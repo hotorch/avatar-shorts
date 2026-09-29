@@ -1,0 +1,31 @@
+{
+  "name": "avatar-shorts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "아바타·셀피 영상 하나로 B-roll 모션그래픽이 입혀진 쇼츠/릴스를 만드는 Claude Code 키트",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "demo": "remotion render Short projects/_demo/demo-vertical.mp4 --props=examples/demo/vertical.json && remotion render DemoSide projects/_demo/demo-side.mp4 --props=examples/demo/side.json",
+    "studio": "remotion studio",
+    "new": "node scripts/new-project.mjs",
+    "render": "node scripts/render.mjs",
+    "typecheck": "tsc --noEmit",
+    "doctor": "node scripts/doctor.mjs",
+    "still": "node scripts/still.mjs",
+    "words": "node scripts/words.mjs",
+    "test": "node scripts/selftest.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.529",
+    "@remotion/fonts": "4.0.529",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "remotion": "4.0.529"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "title": "집중은 설계다 (데모)",
+  "layout": "vertical",
+  "fps": 30,
+  "duration": 24,
+  "video": null,
+  "theme": {"palette": "editorial", "accent": "purple"},
+  "captions": [
+    {"start": 0.0, "end": 2.4, "text": "집중이 안 되는 건 의지 문제일까요?", "style": "big", "emph": [{"text": "의지 문제"}]},
+    {"start": 2.4, "end": 5.0, "text": "사실 진짜 원인은 환경입니다", "emph": [{"text": "환경"}]},
+    {"start": 5.0, "end": 8.2, "text": "알림 하나가 몰입의 흐름을 끊고", "emph": [{"text": "흐름을 끊고", "tone": "problem"}]},
+    {"start": 8.2, "end": 11.0, "text": "다시 돌아오는 데 시간이 걸리죠"},
+    {"start": 11.0, "end": 14.5, "text": "잘하는 사람들은 의지 대신"},
+    {"start": 14.5, "end": 17.5, "text": "방해 요소부터 치웁니다", "emph": [{"text": "방해 요소"}]},
+    {"start": 17.5, "end": 21.0, "text": "알림 끄기, 폰 멀리 두기, 한 탭만 열기"},
+    {"start": 21.0, "end": 24.0, "text": "집중은 결심이 아니라 설계입니다", "style": "big", "emph": [{"text": "설계"}]}
+  ],
+  "scenes": [
+    {"id": "01", "in": 2.4, "out": 5.0, "mode": "cutaway", "template": "keyword",
+     "props": {"text": "진짜 원인은\n*환경*", "times": [2.75, 3.1, 3.55], "mark": "underline", "ghost": "ENVIRONMENT"},
+     "sfx": [{"t": 2.4, "cue": "whoosh"}, {"t": 3.55, "cue": "thud", "volume": 0.7}, {"t": 3.9, "cue": "marker", "volume": 0.6}]},
+    {"id": "02", "in": 5.0, "out": 10.8, "mode": "panel", "template": "morph",
+     "props": {"states": [
+       {"t": 5.2, "kind": "pill", "text": "알림 1개", "object": "notify-heart"},
+       {"t": 6.9, "kind": "card", "title": "흐름 *끊김*", "sub": "다시 몰입하려면 시간이 든다", "object": "flash"},
+       {"t": 8.9, "kind": "toggle", "label": "방해 금지 모드"}
+     ]},
+     "sfx": [{"t": 5.0, "cue": "whoosh-soft", "volume": 0.6}, {"t": 5.2, "cue": "pop"}, {"t": 6.9, "cue": "paper"}, {"t": 9.45, "cue": "click"}]},
+    {"id": "03", "in": 11.2, "out": 17.3, "mode": "cutaway", "template": "compare",
+     "props": {"title": "같은 목표, 다른 방법",
+       "left": {"title": "의지로 버티기", "object": "gym", "items": ["매번 결심", "쉽게 지침"], "at": 11.6},
+       "right": {"title": "환경 바꾸기", "object": "setting", "items": ["한 번 설정", "자동 유지"], "at": 12.6},
+       "winner": "right", "winnerAt": 14.8},
+     "sfx": [{"t": 11.2, "cue": "whoosh"}, {"t": 11.6, "cue": "paper"}, {"t": 12.6, "cue": "paper"}, {"t": 14.8, "cue": "sparkle", "volume": 0.7}]},
+    {"id": "04", "in": 17.5, "out": 20.9, "mode": "panel", "template": "list",
+     "props": {"items": [{"text": "알림 끄기", "at": 17.7}, {"text": "폰 멀리 두기", "at": 18.8}, {"text": "한 탭만 열기", "at": 19.9}]},
+     "sfx": [{"t": 17.7, "cue": "tick"}, {"t": 18.8, "cue": "tick"}, {"t": 19.9, "cue": "tick"}]},
+    {"id": "05", "in": 21.0, "out": 24.0, "mode": "cutaway", "template": "hero",
+     "props": {"object": "bulb", "material": "tint", "title": "결심이 아니라\n*설계*", "titleTimes": [21.5, 21.8, 22.4], "label": "오늘의 결론"},
+     "sfx": [{"t": 21.0, "cue": "whoosh"}, {"t": 21.15, "cue": "pop"}, {"t": 22.4, "cue": "thud", "volume": 0.7}]}
+  ]
+}

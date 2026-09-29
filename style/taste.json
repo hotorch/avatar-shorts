@@ -1,0 +1,32 @@
+{
+  "$doc": "취향 = 둘 다 맞지만 고르는 것. 사람·채널마다 다르다. Claude 는 이 값으로 묻지 않고 결정하고, 사용자가 바꿔 달라고 하면 여기에 기억한다. 프로젝트마다 projects/<이름>/taste.json 에 일부만 적어 덮어쓸 수 있다.",
+
+  "ask": "never",
+
+  "look": {
+    "palette": "auto",
+    "accent": null,
+    "triad": "auto",
+    "surface": "gradient"
+  },
+
+  "edit": {
+    "silence": "tight",
+    "fillers": true,
+    "punchIn": true,
+    "structure": "hook-first",
+    "maxLength": 60
+  },
+
+  "broll": {
+    "density": "high"
+  },
+
+  "captions": {
+    "scale": 1.0
+  },
+
+  "sound": {
+    "sfxVolume": 0.5
+  }
+}

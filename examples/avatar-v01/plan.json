@@ -1,0 +1,300 @@
+{
+ "title": "셀카 영상 하나로 쇼츠 만들기",
+ "theme": {
+  "palette": "darktech"
+ },
+ "sfxVolume": 0.5,
+ "scenes": [
+  {
+   "id": "01",
+   "in": 1.42,
+   "out": 5.44,
+   "mode": "panel",
+   "template": "morph",
+   "props": {
+    "states": [
+     {
+      "t": 1.52,
+      "kind": "pill",
+      "text": "셀카 영상.mp4",
+      "object": "video-camera"
+     },
+     {
+      "t": 1.94,
+      "kind": "card",
+      "title": "*클로드*",
+      "sub": "제가 한 말을 읽는 중",
+      "object": "chat"
+     },
+     {
+      "t": 3.98,
+      "kind": "search",
+      "query": "단어 하나하나"
+     }
+    ],
+    "cursor": true
+   },
+   "sfx": [
+    {
+     "t": 1.42,
+     "cue": "whoosh-soft"
+    },
+    {
+     "t": 1.94,
+     "cue": "pop"
+    },
+    {
+     "t": 3.98,
+     "cue": "click"
+    }
+   ]
+  },
+  {
+   "id": "02",
+   "in": 5.48,
+   "out": 8.86,
+   "mode": "cutaway",
+   "template": "list",
+   "props": {
+    "title": "*설계도*",
+    "object": "notebook",
+    "items": [
+     {
+      "text": "어느 단어에서",
+      "at": 5.78
+     },
+     {
+      "text": "무슨 그림을",
+      "at": 6.82
+     },
+     {
+      "text": "설계도 쓰기",
+      "at": 7.74
+     }
+    ]
+   },
+   "sfx": [
+    {
+     "t": 5.78,
+     "cue": "tick"
+    },
+    {
+     "t": 6.82,
+     "cue": "tick"
+    },
+    {
+     "t": 7.74,
+     "cue": "paper"
+    }
+   ]
+  },
+  {
+   "id": "03",
+   "in": 8.86,
+   "out": 11.5,
+   "mode": "cutaway",
+   "template": "compare",
+   "props": {
+    "left": {
+     "title": "설계도 한 줄",
+     "object": "file-text",
+     "at": 9.18
+    },
+    "right": {
+     "title": "장면 하나",
+     "object": "picture",
+     "at": 10.4
+    },
+    "winner": "right",
+    "winnerAt": 10.78,
+    "vs": "→"
+   },
+   "sfx": [
+    {
+     "t": 9.18,
+     "cue": "paper"
+    },
+    {
+     "t": 10.4,
+     "cue": "pop"
+    }
+   ]
+  },
+  {
+   "id": "04",
+   "in": 11.5,
+   "out": 13.0,
+   "mode": "cutaway",
+   "template": "hero",
+   "props": {
+    "object": "bulb",
+    "objectAt": 12.12,
+    "title": "*톡*",
+    "titleTimes": [
+     12.12
+    ],
+    "stars": true
+   },
+   "sfx": [
+    {
+     "t": 12.12,
+     "cue": "pop",
+     "volume": 0.8
+    }
+   ]
+  },
+  {
+   "id": "05",
+   "in": 13.0,
+   "out": 15.12,
+   "mode": "cutaway",
+   "template": "keyword",
+   "props": {
+    "text": "중요한 *말*",
+    "times": [
+     13.1,
+     13.46
+    ],
+    "mark": "underline",
+    "markAt": 14.62,
+    "ghost": "HIGHLIGHT"
+   },
+   "sfx": [
+    {
+     "t": 14.62,
+     "cue": "marker"
+    }
+   ]
+  },
+  {
+   "id": "06",
+   "in": 15.12,
+   "out": 17.22,
+   "mode": "cutaway",
+   "template": "custom",
+   "component": "LightBloom",
+   "props": {
+    "from": "picture",
+    "to": "star",
+    "bloomAt": 16.32,
+    "title": "빛이 *번지죠*",
+    "titleTimes": [
+     16.32,
+     16.66
+    ]
+   },
+   "sfx": [
+    {
+     "t": 15.12,
+     "cue": "whoosh-soft"
+    },
+    {
+     "t": 16.2,
+     "cue": "air"
+    },
+    {
+     "t": 16.32,
+     "cue": "sparkle",
+     "volume": 0.6
+    }
+   ]
+  },
+  {
+   "id": "07",
+   "in": 17.22,
+   "out": 19.3,
+   "mode": "panel",
+   "template": "morph",
+   "props": {
+    "states": [
+     {
+      "t": 17.3,
+      "kind": "pill",
+      "text": "편집 프로그램",
+      "object": "computer"
+     },
+     {
+      "t": 18.05,
+      "kind": "toggle",
+      "label": "편집 프로그램",
+      "on": false
+     }
+    ]
+   },
+   "sfx": [
+    {
+     "t": 17.3,
+     "cue": "pop"
+    },
+    {
+     "t": 18.6,
+     "cue": "click"
+    }
+   ]
+  },
+  {
+   "id": "08",
+   "in": 21.76,
+   "out": 23.12,
+   "mode": "cutaway",
+   "template": "hero",
+   "props": {
+    "object": "gift",
+    "objectAt": 21.92,
+    "title": "*무료*",
+    "titleTimes": [
+     21.92
+    ],
+    "blob": true
+   },
+   "sfx": [
+    {
+     "t": 21.92,
+     "cue": "sparkle"
+    }
+   ]
+  },
+  {
+   "id": "09",
+   "in": 23.12,
+   "out": 26.1,
+   "mode": "panel",
+   "template": "morph",
+   "props": {
+    "states": [
+     {
+      "t": 23.38,
+      "kind": "pill",
+      "text": "repository",
+      "object": "link"
+     },
+     {
+      "t": 23.95,
+      "kind": "terminal",
+      "command": "git clone avatar-shorts",
+      "enterAt": 25.12,
+      "output": [
+       "Cloning into 'avatar-shorts'..."
+      ]
+     }
+    ],
+    "cursor": false
+   },
+   "sfx": [
+    {
+     "t": 23.38,
+     "cue": "pop"
+    },
+    {
+     "t": 24.14,
+     "cue": "tick",
+     "volume": 0.5
+    },
+    {
+     "t": 25.12,
+     "cue": "click"
+    }
+   ]
+  }
+ ]
+}

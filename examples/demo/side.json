@@ -1,0 +1,31 @@
+{
+  "title": "가로 영상 데모",
+  "layout": "side",
+  "fps": 30,
+  "duration": 20,
+  "video": null,
+  "theme": {"palette": "darktech"},
+  "captions": [
+    {"start": 0.0, "end": 3.0, "text": "AI 도구를 쓰는데 왜 결과가 다를까요", "emph": [{"text": "결과가 다를까요"}]},
+    {"start": 3.0, "end": 6.5, "text": "차이는 도구가 아니라 질문에서 나옵니다", "emph": [{"text": "질문"}]},
+    {"start": 6.5, "end": 10.0, "text": "맥락을 주면 답이 달라지고"},
+    {"start": 10.0, "end": 13.5, "text": "반복할수록 결과가 좋아집니다"},
+    {"start": 13.5, "end": 17.0, "text": "목표, 맥락, 예시 세 가지만 기억하세요"},
+    {"start": 17.0, "end": 20.0, "text": "좋은 질문이 좋은 답을 만듭니다", "emph": [{"text": "좋은 질문"}]}
+  ],
+  "scenes": [
+    {"id": "01", "in": 3.0, "out": 6.4, "mode": "panel", "template": "hero",
+     "props": {"object": "chat-bubble", "title": "도구보다 *질문*", "titleTimes": [3.5, 3.9, 4.4], "sub": "같은 AI, 다른 결과"}},
+    {"id": "02", "in": 6.5, "out": 13.4, "mode": "panel", "template": "morph",
+     "props": {"states": [
+       {"t": 6.7, "kind": "chat", "prompt": "초보자용으로 3줄 요약해줘", "reply": "핵심만 쉬운 말로 정리해 드릴게요.", "app": "AI Chat"},
+       {"t": 10.2, "kind": "card", "title": "반복할수록 *선명하게*", "object": "target"}
+     ]},
+     "sfx": [{"t": 6.5, "cue": "whoosh-soft", "volume": 0.6}, {"t": 8.3, "cue": "click"}, {"t": 10.2, "cue": "pop"}]},
+    {"id": "03", "in": 13.5, "out": 16.9, "mode": "cutaway", "template": "steps",
+     "props": {"title": "기억할 세 가지", "steps": [{"text": "목표", "at": 13.9, "object": "flag"}, {"text": "맥락", "at": 14.6, "object": "map-pin"}, {"text": "예시", "at": 15.3, "object": "file-text"}]},
+     "sfx": [{"t": 13.5, "cue": "whoosh"}, {"t": 13.9, "cue": "tick"}, {"t": 14.6, "cue": "tick"}, {"t": 15.3, "cue": "tick"}]},
+    {"id": "04", "in": 17.0, "out": 20.0, "mode": "panel", "template": "quote",
+     "props": {"text": "좋은 질문이\n좋은 답을 만든다", "times": [17.4, 17.7, 18.0, 18.3], "object": "bulb"}}
+  ]
+}

@@ -1,0 +1,19 @@
+Hakgyoansim Allimjang (학교안심 알림장) — SIL Open Font License (OFL)
+
+Copyright (c) KERIS (한국교육학술정보원).
+"Hakgyoansim Allimjang" is a trademark of KERIS.
+
+Source (official): 교육저작권지원센터 학교 안심폰트
+  https://copyright.keris.or.kr/wft/fntDwnld
+Licence summary as published with the family:
+  국제 SIL(Summer Institute of Linguistics)에서 만든 오픈폰트 라이선스로,
+  OFL 폰트는 이용 대상 및 목적에 제한없이 자유롭게 이용 가능합니다.
+  폰트 파일 수정·복제·배포 가능. 단, 폰트 파일의 유료 판매는 금지.
+
+Verified 2026-09-22 before adding the binary to this repository. The font's own
+embedded copyright string reads "All rights reserved", which predates/omits the
+OFL grant published by KERIS with the family; the published grant is the licence.
+
+Role in this repo: Hangul face of the **emphasis caption register only**
+(core/contracts/captions.md § 강조 레지스터). The base caption register and every
+other surface stay on the two-family rule — SUIT for Hangul, Pretendard for Latin.

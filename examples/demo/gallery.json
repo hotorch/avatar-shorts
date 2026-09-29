@@ -1,0 +1,25 @@
+{
+  "title": "템플릿 갤러리",
+  "layout": "vertical",
+  "duration": 21,
+  "video": null,
+  "theme": {"palette": "academic"},
+  "captions": [
+    {"start": 0, "end": 3, "text": "숫자는 말한 것만 보여줍니다"},
+    {"start": 3, "end": 6, "text": "막대로 비교하고"},
+    {"start": 6, "end": 9, "text": "추세는 방향만"},
+    {"start": 9, "end": 12, "text": "두 번째 이야기"},
+    {"start": 12, "end": 15, "text": "아이디어는 연결됩니다"},
+    {"start": 15, "end": 18, "text": "직접 만든 이미지도 넣을 수 있어요"},
+    {"start": 18, "end": 21, "text": "핵심에 동그라미"}
+  ],
+  "scenes": [
+    {"id": "a", "in": 0.2, "out": 2.9, "mode": "cutaway", "template": "stat", "props": {"value": 87, "suffix": "%", "label": "재방문율", "ring": 0.87}},
+    {"id": "b", "in": 3.0, "out": 5.9, "mode": "panel", "template": "chart", "props": {"title": "3개월 변화", "kind": "bars", "bars": [{"label": "1월", "value": 20, "valueLabel": "20명"}, {"label": "2월", "value": 45, "valueLabel": "45명"}, {"label": "3월", "value": 80, "highlight": true, "valueLabel": "80명"}]}},
+    {"id": "c", "in": 6.0, "out": 8.9, "mode": "cutaway", "template": "chart", "props": {"title": "꾸준히 하면", "kind": "line", "trend": "up", "endLabel": "성장"}},
+    {"id": "d", "in": 9.0, "out": 11.9, "mode": "cutaway", "template": "chapter", "props": {"num": "02", "title": "실전 설정", "sub": "5분이면 끝"}},
+    {"id": "e", "in": 12.0, "out": 14.9, "mode": "cutaway", "template": "custom", "component": "OrbitIdea", "props": {"center": "bulb", "satellites": ["chat", "rocket", "target", "heart"], "title": "아이디어의 *궤도*"}},
+    {"id": "f", "in": 15.0, "out": 17.9, "mode": "panel", "template": "media", "props": {"src": "objects/color/rocket.webp", "title": "직접 만든 *이미지*"}},
+    {"id": "g", "in": 18.0, "out": 21, "mode": "cutaway", "template": "keyword", "props": {"text": "핵심은\n*하나*", "mark": "circle", "label": "정리"}}
+  ]
+}

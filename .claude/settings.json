@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm run setup)",
+      "Bash(npm run doctor)",
+      "Bash(npm run demo)",
+      "Bash(npm run new *)",
+      "Bash(npm run words *)",
+      "Bash(npm run still *)",
+      "Bash(npm run render *)",
+      "Bash(npm test)",
+      "Bash(npm test *)",
+      "Bash(node scripts/*)",
+      "Bash(python3 scripts/*)",
+      "Bash(.venv/bin/python scripts/*)",
+      "Bash(npx remotion *)",
+      "Bash(ffmpeg *)",
+      "Bash(ffprobe *)",
+      "Bash(mdfind -name *)",
+      "Edit(/projects/**)",
+      "Edit(/src/custom/**)",
+      "Edit(/style/taste.json)"
+    ]
+  }
+}

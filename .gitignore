@@ -1,0 +1,9 @@
+node_modules/
+out/
+projects/*
+!projects/.gitkeep
+public/_live/
+.DS_Store
+*.log
+__pycache__/
+.venv/

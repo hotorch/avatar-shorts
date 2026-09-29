@@ -1,0 +1,82 @@
+{
+  "$doc": "정책 = 어기면 결과물이 '틀린' 것. 사람마다 다르지 않다. render --check 가 ❌ 로 막는다. 팀/채널 단위로 바꾸고 git 에 올린다. 설명은 style/README.md",
+  "version": 1,
+
+  "content": {
+    "noFabrication": true,
+    "captionsVerbatim": true,
+    "hookFaceSeconds": 1.0
+  },
+
+  "captions": {
+    "maxChars": 18,
+    "maxEmphPerCue": 2,
+    "bigMaxRatio": 0.3
+  },
+
+  "scenes": {
+    "minSec": 1.2,
+    "maxSec": 10,
+    "maxSameTemplateRun": 2
+  },
+
+  "edit": {
+    "$doc": "무음·군더더기 제거와 재배치의 한계. 취향(silence)이 이보다 느슨할 수는 있어도 이 선을 넘지 못한다.",
+    "maxSilenceKept": 0.45,
+    "minPad": 0.04,
+    "fadeMs": 8,
+    "fillers": ["음", "어", "음…", "어…", "음..", "어..", "으음", "그니까"]
+  },
+
+  "gradient": {
+    "$doc": "그라디언트 면은 트라이어드 3색만으로, 4레이어 레시피로 만든다. 출처: 팔레트 카드 가이드 Part 2. 레퍼런스 이미지 6장과 같은 3색으로 렌더해 비교 — 패널 48곳 평균 ΔE 1.5~3.0 (눈으로 거의 구분 안 됨).",
+    "recipe": "triad-4layer",
+    "colorsFromTriadOnly": true,
+    "interpolation": "srgb",
+    "animateInside": false,
+    "glow": false,
+    "textOnGradient": "white-on-dark-zone-only"
+  },
+
+  "triad": {
+    "$doc": "트라이어드 = 진한색·포인트색·밝은색 3색 한 벌. 레퍼런스 6장(color.bears 'Steal these gradients')을 직접 보고 규칙을 '밝기'가 아니라 '글자 대비'로 정함: 진한색이 꼭 검정은 아니고(0038BD, 576238), 포인트색이 밝은색보다 밝을 수도 있다(DCFC73 > E1D2F3). 탭2 글자(포인트색 위 밝은색)는 흐린 게 원래 디자인이라 검사하지 않는다.",
+    "contrast": {
+      "whiteOnDark": 4.5,
+      "accentOnDark": 3.0,
+      "darkOnLight": 4.5
+    },
+    "approved": {
+      "void-citrine":   {"c": ["#0C0C0C", "#DCFC73", "#E1D2F3"], "n": ["Void", "Citrine", "Lilac Mist"], "src": "ref"},
+      "oxblood-guava":  {"c": ["#4C1413", "#EA6B7E", "#FFDBED"], "n": ["Oxblood", "Guava", "Blossom"], "src": "ref"},
+      "cobalt-amber":   {"c": ["#0038BD", "#EF8E01", "#EEEEEE"], "n": ["Cobalt", "Amber", "Paper"], "src": "ref"},
+      "arctic-haze":    {"c": ["#0F464B", "#F4EC9B", "#C9E0DA"], "n": ["Deep Arctic", "Sun Haze", "Glacier"], "src": "ref"},
+      "chestnut-sky":   {"c": ["#432F2E", "#C3DAE8", "#FEEFB6"], "n": ["Chestnut", "Pale Sky", "Nectar"], "src": "ref"},
+      "moss-harvest":   {"c": ["#576238", "#FFD95E", "#F0EADC"], "n": ["Moss", "Harvest", "Linen"], "src": "ref"},
+      "kelp":           {"c": ["#1B3A34", "#E9F07A", "#CFE8E4"], "n": ["Kelp Shadow", "Citron Glow", "Pale Lagoon"], "src": "guide"},
+      "plum":           {"c": ["#2A1633", "#FF8A3D", "#FFE3CF"], "n": ["Ink Plum", "Tangerine Pop", "Peach Cloud"], "src": "guide"},
+      "cobalt":         {"c": ["#102A8C", "#8FD3FF", "#EEF3F8"], "n": ["Cobalt Night", "Sky Sherbet", "Frost Paper"], "src": "guide"},
+      "espresso":       {"c": ["#3B2A20", "#F5B642", "#F4ECDD"], "n": ["Espresso Bark", "Honey Amber", "Oat Milk"], "src": "guide"},
+      "carbon":         {"c": ["#141A12", "#B6F24E", "#E6DBF5"], "n": ["Carbon Moss", "Acid Fern", "Lilac Dust"], "src": "guide"},
+      "garnet":         {"c": ["#5A0F24", "#F07A9A", "#FFE1EA"], "n": ["Garnet Deep", "Rose Quartz", "Cotton Blush"], "src": "guide"},
+      "teal-night":     {"c": ["#0B2B2F", "#12B5A6", "#DDF3EF"], "n": ["Deep Lagoon", "Signal Teal", "Mint Paper"], "src": "kit"},
+      "violet-ink":     {"c": ["#1E1446", "#8A6CF0", "#ECE6FF"], "n": ["Violet Ink", "Iris", "Lilac Paper"], "src": "kit"},
+      "terracotta":     {"c": ["#3B2A20", "#E07A4F", "#F4ECDD"], "n": ["Espresso Bark", "Terracotta", "Oat Milk"], "src": "kit"}
+    },
+    "paletteDefault": {"darktech": "teal-night", "editorial": "violet-ink", "academic": "terracotta"},
+    "auto": {
+      "$doc": "look.triad 가 auto 면 영상 배경색(video.json tones)과 포인트색 색상이 가까운 승인 트라이어드를 고른다. 배경 채도가 낮으면(chroma < minChroma) 팔레트 기본.",
+      "minChroma": 0.06,
+      "hueWindow": 45,
+      "darkWeight": 0.35
+    }
+  },
+
+  "motion": {
+    "banned": ["particles", "rainbow-gradient", "camera-shake", "css-transition", "math-random", "oklab-gradient"]
+  },
+
+  "fonts": {
+    "$doc": "렌더는 오프라인. 외부 폰트(CDN) 금지. 레퍼런스가 Poppins 를 쓰면 Pretendard 로 대체.",
+    "allowed": ["Pretendard", "SUIT", "Instrument Serif", "Nanum Myeongjo", "Hakgyoansim Allimjang", "IBM Plex Mono"]
+  }
+}
