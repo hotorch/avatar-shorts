@@ -4,7 +4,7 @@
     python3 scripts/probe.py projects/<slug>
 
 결과: projects/<slug>/video.json, projects/<slug>/frames/probe_1..4.jpg
-얼굴 위치(faceX, faceY)는 Claude 가 프레임을 보고 video.json 에 채웁니다.
+얼굴·머리 위치(faceX, faceY, head, track)는 이어서 scripts/face.py 가 채웁니다 (npm run new 가 둘 다 부른다).
 """
 from __future__ import annotations
 
@@ -104,6 +104,8 @@ def main():
         "layout": layout,
         "faceX": old.get("faceX"),
         "faceY": old.get("faceY"),
+        "head": old.get("head"),
+        "track": old.get("track"),
         "frames": shots,
         "tones": tones,
     }

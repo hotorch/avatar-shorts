@@ -19,7 +19,8 @@
   },
 
   "broll": {
-    "density": "high"
+    "density": "high",
+    "framing": "varied"
   },
 
   "captions": {

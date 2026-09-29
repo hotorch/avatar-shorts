@@ -6,6 +6,7 @@ import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {checkTriad} from './style.mjs';
+import {fitFrame, FRAME, headBox} from '../src/layouts/framing.js';
 
 const quick = process.argv.includes('--quick');
 const results = [];
@@ -53,11 +54,11 @@ test('템플릿 목록 3곳 일치 (scenes/index.tsx · render.mjs · templates.
   must(idx.join() === rnd.join(), `index.tsx [${idx}] ≠ render.mjs [${rnd}]`);
   must(idx.join() === md.join(), `index.tsx [${idx}] ≠ templates.md [${md}]`);
 });
-test('데모에 필요한 자산이 저장소에 있음 (효과음 11 · 글꼴 · 오브젝트, .gitignore 에 안 걸림)', () => {
+test('데모에 필요한 자산이 저장소에 있음 (효과음 11 · 글꼴 · 오브젝트 · 얼굴 모델, .gitignore 에 안 걸림)', () => {
   // 예전: public/sfx/*.wav 가 gitignore 라 새로 받은 사람의 npm run demo 가 404 로 실패
   const sfx = fs.readdirSync('public/sfx').filter((f) => f.endsWith('.wav'));
   must(sfx.length >= 11, `효과음 ${sfx.length}개 (11개 필요) → python3 scripts/sfx.py`);
-  const ignored = sh('git', ['check-ignore', 'public/sfx/whoosh.wav', 'public/fonts/PretendardVariable.woff2', 'public/objects/clay/bulb.webp']).out.trim();
+  const ignored = sh('git', ['check-ignore', 'public/sfx/whoosh.wav', 'public/fonts/PretendardVariable.woff2', 'public/objects/clay/bulb.webp', 'models/yunet/face_detection_yunet_2023mar.onnx']).out.trim();
   must(!ignored, `.gitignore 에 걸림: ${ignored}`);
 });
 test('커스텀 장면이 전부 등록됨 (src/custom/index.ts)', () => {
@@ -65,6 +66,48 @@ test('커스텀 장면이 전부 등록됨 (src/custom/index.ts)', () => {
   const files = fs.readdirSync('src/custom').filter((f) => f.endsWith('.tsx')).map((f) => f.replace('.tsx', ''));
   const miss = files.filter((f) => !new RegExp(`\\b${f}\\b`).test(idx));
   must(!miss.length, `등록 안 됨: ${miss.join(', ')}`);
+});
+
+// ── 2-1. 머리 배치 (src/layouts/framing.js). 예전: 얼굴 중심만 1265px 에 맞춰 내려서 정수리가 판 밑으로 190px 들어갔다 (avatar-v01)
+const V01 = {top: 217, chin: 937, left: 300, right: 780}; // avatar-v01 실측(화면 px)
+const REF = {top: 520, chin: 960, left: 300, right: 780}; // 머리 위가 넓은 사람 (레퍼런스)
+const BIG = {top: 96, chin: 1190, left: 150, right: 930}; // 화면을 꽉 채운 얼굴
+const clear = (f, h) => {
+  const top = f.s * h.top + f.ty;
+  const chin = f.s * h.chin + f.ty;
+  if (f.panel != null) must(top >= f.panel + FRAME.GAP - 0.5, `${f.mode}: 판 ${f.panel} 이 정수리 ${Math.round(top)} 를 가림`);
+  if (f.mode === 'above') must(f.box.y + f.box.h <= top - FRAME.GAP + 0.5, `above: 카드 끝 ${f.box.y + f.box.h} ≥ 정수리 ${Math.round(top)}`);
+  if (f.mode === 'below') must(f.box.y >= chin + FRAME.GAP - 0.5, `below: 카드 ${f.box.y} ≤ 턱 ${Math.round(chin)}`);
+  must(chin + FRAME.CAP_GAP <= f.capY + 0.5, `${f.mode}: 자막 ${f.capY} 이 턱 ${Math.round(chin)} 을 가림`);
+  must(f.capY + FRAME.CAP_H <= FRAME.UI_BOTTOM, `${f.mode}: 자막이 플랫폼 UI 자리로 내려감`);
+  must(!f.issues.length, f.issues.join(' / '));
+};
+test('배치: 분할 화면에서 정수리가 판 아래 (avatar-v01 머리)', () => {
+  must(V01.top + Math.min(880, 1265 - 0.35 * 1920) < 1010, '예전 공식이 원래 가리던 경우가 아님 — 시험 값 확인');
+  clear(fitFrame('panel', V01), V01);
+});
+test('배치: 머리 위/아래 카드가 얼굴·자막과 안 겹침 (보통·머리 위 넓음·꽉 찬 얼굴)', () => {
+  for (const h of [V01, REF]) for (const m of ['panel', 'above', 'below']) clear(fitFrame(m, h), h);
+  for (const m of ['above', 'below']) clear(fitFrame(m, BIG), BIG);
+});
+test('배치: 판에 안 들어가는 큰 얼굴은 문제로 알림 (조용히 자르지 않음)', () => {
+  must(fitFrame('panel', BIG).issues.length > 0, '큰 얼굴 panel 이 통과해 버림');
+});
+test('머리 추적(face.py): 예시 영상에서 정수리·턱을 찾음', () => {
+  const D = path.join('projects', '.selftest-face');
+  fs.rmSync(D, {recursive: true, force: true});
+  fs.mkdirSync(D, {recursive: true});
+  fs.copyFileSync('docs/example/before.mp4', path.join(D, 'input.mp4'));
+  fs.writeFileSync(path.join(D, 'video.json'), JSON.stringify({file: 'input.mp4', width: 540, height: 960}));
+  const py = process.platform === 'win32' ? '.venv/Scripts/python' : '.venv/bin/python';
+  const r = sh(py, ['scripts/face.py', D]);
+  const v = json(path.join(D, 'video.json'));
+  fs.rmSync(D, {recursive: true, force: true});
+  must(r.code === 0 && v.head, r.out.trim().split('\n').pop());
+  // 실측: 머리카락 끝 0.145, 턱 0.47 — 정수리는 머리카락보다 위(여유), 너무 위(>0.06 차이)도 아니게
+  must(v.head.top < 0.145 && v.head.top > 0.085, `정수리 ${v.head.top} (머리카락 끝 0.145)`);
+  must(Math.abs(v.head.chin - 0.475) < 0.03, `턱 ${v.head.chin}`);
+  must(v.track.length > 80, `표본 ${v.track.length}개`);
 });
 
 // ── 3. 말 편집 (합성 소리로): 삐- 쉼 삐- 쉼 삐-
@@ -158,6 +201,20 @@ test('막힘: 승인 안 된/대비 낮은 트라이어드', () => {
 test('막힘: 없는 오브젝트·효과음', () => {
   const r = check({theme: {palette: 'darktech'}, scenes: [{...hero('a', 2.0, 3.0), props: {object: 'unicorn', title: 'x'}, sfx: [{t: 2, cue: 'boom'}]}]});
   must(r.code !== 0 && /unicorn/.test(r.out) && /boom/.test(r.out), '통과해 버림');
+});
+
+test('막힘: 머리 위 공간이 없는데 above (얼굴 가림 정책)', () => {
+  const vj = path.join(T, 'video.json');
+  const v = json(vj);
+  // 화면을 꽉 채운 얼굴: 정수리 0.02, 턱 0.9
+  fs.writeFileSync(vj, JSON.stringify({...v, head: {top: 0.02, chin: 0.9, left: 0.1, right: 0.9}, track: [0.5, 1.5, 2.5, 3.5, 4.5, 5.5].map((t) => [t, 0.02, 0.9, 0.1, 0.9])}));
+  const r = check({theme: {palette: 'darktech'}, scenes: [{id: 'a', in: 4.5, out: 5.9, mode: 'above', template: 'keyword', props: {text: '셋', times: [4.6]}}]});
+  fs.writeFileSync(vj, JSON.stringify(v));
+  must(r.code !== 0 && /정책\(얼굴\)/.test(r.out), '통과해 버림');
+});
+test('막힘: 머리 위/아래 카드에 안 맞는 템플릿 (compare 를 below 에)', () => {
+  const r = check({theme: {palette: 'darktech'}, scenes: [{id: 'a', in: 4.5, out: 5.9, mode: 'below', template: 'compare', props: {left: {title: 'a'}, right: {title: 'b'}}}]});
+  must(r.code !== 0 && /below/.test(r.out), '통과해 버림');
 });
 
 // ── 5. 렌더 한 프레임 (브라우저 필요)

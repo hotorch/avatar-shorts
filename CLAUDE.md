@@ -28,7 +28,8 @@ npm run setup                      # 처음 한 번 (npm, .venv+faster-whisper, 
 npm run doctor                     # 환경 진단 — 뭔가 안 되면 이것부터
 npm run demo                       # 영상 없이 데모 2개 렌더
 npm run new -- <영상> [이름]         # projects/<이름>/ 생성(원본 복사) + 분석. 경로가 틀리면 파일 이름으로 찾음
-.venv/bin/python scripts/transcribe.py projects/<이름> --hint "고유명사"   # 이것만 .venv, 나머지 .py 는 python3
+.venv/bin/python scripts/transcribe.py projects/<이름> --hint "고유명사"   # transcribe·face 만 .venv, 나머지 .py 는 python3
+.venv/bin/python scripts/face.py projects/<이름>   # 머리 위치 추적 (npm run new 가 알아서)
 python3 scripts/align.py projects/<이름>
 python3 scripts/edit.py projects/<이름> [--list]   # 무음 제거 + edit.json(order, cut) → edit.mp4
 npm run words -- <이름> [글자…]    # 단어별 원본 시간 · 편집 시간 · 프레임 (plan 의 at/t 는 여기서)
@@ -50,18 +51,18 @@ npm test                           # 자체 시험 (코드를 고쳤으면 반�
 render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json 이나 무음 기준을 바꿔도 plan 은 다시 쓰지 않는다.
 
 ## 프로젝트 폴더 (`projects/<이름>/`, git 제외)
-`input.mp4` 원본 **복사본** · `video.json` 크기/레이아웃/얼굴 위치/배경 색(tones) · `transcript.txt`, `words.raw.json` 음성 인식 원본 ·
+`input.mp4` 원본 **복사본** · `video.json` 크기/레이아웃/얼굴·머리 위치(head, track)/배경 색(tones) · `transcript.txt`, `words.raw.json` 음성 인식 원본 ·
 `script.txt` 교정 대본(한 줄=한 큐) · `words.json`, `captions.json` 정렬 결과 · `edit.json` 순서(`order`)·손으로 자를 곳(`cut`, 원본 초) · `edit.mp4`, `*.edit.json`, `cuts.json` 편집본 ·
 `taste.json` 프로젝트 취향 · `decisions.md` 결정 기록 · `plan.json` 장면 계획 · `broll/` 직접 넣는 이미지·영상 · `out/` 결과 · `.props.json` render 가 합친 최종 입력
 
 ## 코드 지도
 - `src/Short.tsx` 메인 컴포지션 (plan 하나 = 영상 하나), `src/Root.tsx` 크기·길이 계산
-- `src/layouts/` Vertical(1080×1920, 분할/컷어웨이) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
+- `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
 - `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면, `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
 - `src/captions/Captions.tsx` 자막
-- `scripts/` new-project · probe · transcribe · align · edit · words · style · timeline · render · still · look · doctor · selftest · sfx · setup
+- `scripts/` new-project · probe · face · transcribe · align · edit · words · style · timeline · render · still · look · doctor · selftest · sfx · setup
 - `examples/demo/` 템플릿 데모 plan · `examples/avatar-v01/` 실제 영상 하나의 전 과정 파일
-- `public/fonts` 글꼴(OFL) · `public/objects` 3D 오브젝트 62종 · `public/sfx` 합성 효과음 11종 (git 에 포함. 지워지면 `sfx.py`)
+- `models/yunet` 얼굴 인식 모델(MIT, git 에 포함) · `public/fonts` 글꼴(OFL) · `public/objects` 3D 오브젝트 62종 · `public/sfx` 합성 효과음 11종 (git 에 포함. 지워지면 `sfx.py`)
 
 ## 규칙
 - 영상에서 말하지 않은 숫자·가격·결과·인용을 화면에 만들지 않는다.
@@ -86,4 +87,5 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - macOS 는 한글 파일 이름을 자모로 풀어(NFD) 저장한다 → 이름 비교·slug 전에 `normalize('NFC')`.
 - whisper 는 "음, 어" 를 곧잘 지운다 → `initial_prompt` 에 예시로 넣어 둠. 그래도 없으면 `edit.json` 의 `cut` 으로.
 - 장면 시각을 파이썬 한 줄로 뽑아 sed 로 고치다 틀린 적이 있다 → `npm run words`.
+- 분할 화면에서 **얼굴 중심**만 맞춰 내렸더니 머리가 큰 영상은 정수리가 판 밑으로 190px 들어갔다 → 머리 상자(정수리~턱)를 재서 배치 (`framing.js`, 정책 `face`). 머리 위치를 눈대중하지 않는다.
 - 새 함정을 고치면 `scripts/selftest.mjs` 에 시험 한 줄, 이 목록에 한 줄.

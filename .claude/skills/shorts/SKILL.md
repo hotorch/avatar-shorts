@@ -42,7 +42,7 @@ argument-hint: <영상 경로> [대본]
 
 ## ① 영상
 1. `npm run new -- "<영상경로>" [짧은-영문-이름]` → `projects/<이름>/`.
-2. `frames/probe_*.jpg` 4장을 **직접 보고** 얼굴 중심을 `video.json` 의 `faceX`, `faceY` 에.
+2. `npm run new` 가 `face.py` 로 **머리 위치**(정수리·턱·좌우, 초당 4장)를 재서 `video.json` 에 넣는다. 출력의 "머리 위치" 줄만 확인. "얼굴을 찾지 못했습니다"면 `frames/probe_*.jpg` 를 보고 `faceX`, `faceY` 를 직접 적는다.
 3. 주제를 보고 `look.palette` 가 auto 면 `projects/<이름>/taste.json` 에 `{"look": {"palette": "..."}}` 로 정해 둔다.
 
 ## ② 자막 → `transcribe-ko`
@@ -76,5 +76,6 @@ argument-hint: <영상 경로> [대본]
 ## 꼭 지킬 것 (정책)
 - **지어내지 않는다**: 말하지 않은 숫자·가격·결과·인용·로고를 화면에 넣지 않는다. 추세는 방향만.
 - 자막은 **말한 그대로**(오탈자만 교정). 편집은 자르기·옮기기만.
-- 첫 1초(훅)는 얼굴 (cutaway 금지, panel 은 허용).
+- 첫 1초(훅)는 얼굴 (cutaway 금지, panel·above·below 는 허용).
+- 판·카드·자막은 얼굴(정수리~턱)을 가리지 않는다 (배치는 계산되고, 가리면 render 가 막는다).
 - 사용자 원본 파일은 수정·삭제하지 않는다 (`projects/` 안에서만).

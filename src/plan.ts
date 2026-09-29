@@ -24,8 +24,11 @@ export type Scene = {
   id: string;
   in: number;
   out: number;
-  /** cutaway = 화면 전체, panel = 아바타가 보이는 채로 카드 */
-  mode: 'cutaway' | 'panel';
+  /**
+   * cutaway = 화면 전체, panel = 위 칸 판(얼굴은 아래),
+   * above = 머리 위에 떠 있는 카드, below = 턱 아래 카드 (가로 영상에선 둘 다 panel 처럼)
+   */
+  mode: 'cutaway' | 'panel' | 'above' | 'below';
   /** src/scenes 의 템플릿 이름, 또는 'custom' */
   template: string;
   /** template === 'custom' 일 때 src/custom/<component>.tsx */
@@ -48,6 +51,10 @@ export type Plan = {
     /** 얼굴 중심 (0~1). side 레이아웃에서 아바타 카드 크롭 기준 */
     faceX?: number;
     faceY?: number;
+    /** 머리 상자 중앙값 (0~1, scripts/face.py) */
+    head?: {top: number; chin: number; left: number; right: number};
+    /** [렌더 시간 초, top, chin, left, right] — render 가 편집 시간으로 옮겨 넣는다 */
+    track?: number[][];
   } | null;
   theme: {
     palette: PaletteName;

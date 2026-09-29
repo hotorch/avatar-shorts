@@ -39,6 +39,11 @@ add(fs.existsSync('node_modules/remotion') ? 'ok' : 'bad', 'npm 패키지', fs.e
 const fw = fs.existsSync(py) ? run(py, ['-c', 'import faster_whisper; print(faster_whisper.__version__)']) : null;
 add(fw ? 'ok' : 'bad', '음성 인식 (faster-whisper)', fw ?? (fs.existsSync(py) ? '.venv 에 없음' : '.venv 없음'), 'npm run setup');
 
+const cv = fs.existsSync(py) ? run(py, ['-c', 'import cv2; print(cv2.__version__)']) : null;
+add(cv ? 'ok' : 'bad', '얼굴 인식 (OpenCV)', cv ?? '없음', 'npm run setup (분할 화면에서 머리가 잘리지 않게 머리 위치를 잽니다)');
+const yunet = 'models/yunet/face_detection_yunet_2023mar.onnx';
+add(fs.existsSync(yunet) ? 'ok' : 'bad', '얼굴 인식 모델', fs.existsSync(yunet) ? 'YuNet' : '없음', `git 으로 다시 받기 (${yunet})`);
+
 const hf = `${os.homedir()}/.cache/huggingface/hub`;
 const models = fs.existsSync(hf) ? fs.readdirSync(hf).filter((d) => /faster-whisper/.test(d)).map((d) => d.replace(/.*faster-whisper-/, '')) : [];
 add(models.length ? 'ok' : 'warn', '음성 인식 모델', models.length ? models.join(', ') : '아직 안 받음', '첫 받아쓰기 때 자동으로 받습니다 (small ≈ 500MB, 몇 분). 미리: npm run setup');

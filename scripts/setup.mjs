@@ -37,7 +37,7 @@ if (!fs.existsSync(py)) {
   console.log('\n🐍 파이썬 가상환경(.venv) 만들기');
   run('python3', ['-m', 'venv', '.venv']);
 }
-console.log('\n🎙️  음성 인식(faster-whisper) 설치');
+console.log('\n🎙️  음성 인식(faster-whisper) · 얼굴 인식(OpenCV) 설치');
 run(py, ['-m', 'pip', 'install', '-q', '--upgrade', 'pip']);
 run(py, ['-m', 'pip', 'install', '-q', '-r', 'requirements.txt']);
 

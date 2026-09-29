@@ -5,14 +5,21 @@ import {alpha, FONT, useTheme} from '../kit/theme';
 import type {Plan} from '../plan';
 
 /** 원본 아바타 영상. 영상이 없으면(데모) 자리표시 카드를 그린다. */
-export const AvatarVideo: React.FC<{video: Plan['video']; style?: React.CSSProperties; muted?: boolean; punch?: Plan['punch']}> = ({video, style, muted, punch}) => {
+export const AvatarVideo: React.FC<{video: Plan['video']; style?: React.CSSProperties; muted?: boolean; punch?: Plan['punch']; punchK?: number}> = ({
+  video,
+  style,
+  muted,
+  punch,
+  punchK = 1,
+}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   if (!video?.src) return <Placeholder />;
   const src = video.src.startsWith('http') ? video.src : staticFile(video.src);
   // 펀치인: 컷 순간에만 배율이 바뀐다 (컷이 가려 주므로 보간 없음). 얼굴 중심 기준.
   const now = frame / fps;
-  const scale = [...(punch ?? [])].reverse().find((p) => now >= p.t)?.scale ?? 1;
+  // punchK: 판·카드 배치 중엔 배치가 화면을 정하므로 펀치인을 뺀다 (0 = 펀치인 없음)
+  const scale = 1 + (([...(punch ?? [])].reverse().find((p) => now >= p.t)?.scale ?? 1) - 1) * punchK;
   const origin = `${(video.faceX ?? 0.5) * 100}% ${(video.faceY ?? 0.36) * 100}%`;
   return (
     <OffthreadVideo

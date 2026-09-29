@@ -80,4 +80,8 @@ if (ok) {
 }
 
 spawnSync('python3', ['scripts/probe.py', dir], {stdio: 'inherit'});
+// 머리 위치 추적 (분할 화면·머리 위/아래 카드 배치가 쓴다). OpenCV 는 .venv 에 있다
+const py = process.platform === 'win32' ? '.venv/Scripts/python' : '.venv/bin/python';
+if (fs.existsSync(py)) spawnSync(py, ['scripts/face.py', dir], {stdio: 'inherit'});
+else console.log('⚠️  .venv 가 없어 머리 위치를 못 쟀습니다 → npm run setup 후 .venv/bin/python scripts/face.py ' + dir);
 console.log(`\n프로젝트: ${dir}`);

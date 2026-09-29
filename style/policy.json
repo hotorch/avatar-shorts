@@ -14,6 +14,12 @@
     "bigMaxRatio": 0.3
   },
 
+  "face": {
+    "$doc": "B-roll 판·카드와 자막은 얼굴(정수리~턱)을 가리지 않는다. 머리 위치는 scripts/face.py 가 영상을 따라가며 잰 값(video.json track). 배치는 src/layouts/framing.js 가 장면마다 계산하고(정수리를 판 아래로, 머리가 크면 판을 줄이거나 아바타를 줄임), render --check 가 순간마다 확인해 막는다. 컷어웨이(화면 전체 교체)는 가리는 게 아니라 바꾸는 것이라 예외. 계기: 분할 화면에서 얼굴 중심만 맞추다 정수리가 190px 가려짐 (avatar-v01).",
+    "neverCovered": true,
+    "gapPx": 36
+  },
+
   "scenes": {
     "minSec": 1.2,
     "maxSec": 10,

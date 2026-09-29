@@ -13,6 +13,7 @@
 | 첫 렌더가 한참 걸림 | 렌더용 브라우저(≈100MB)를 받는 중 | 한 번만. 미리: `npx remotion browser ensure` |
 | `npm run setup` 중 `pip install` 실패 | 네트워크 문제, 또는 너무 새 파이썬(3.14 등)이라 음성 인식 패키지가 아직 없음 | Python 3.12 를 설치하고(`brew install python@3.12`) `rm -rf .venv` 후 다시 `npm run setup`. 그래도 안 되면 오류 마지막 줄을 이슈에 |
 | 모델 받기가 실패·멈춤 (회사망) | 프록시·방화벽이 huggingface.co 를 막음 | 다른 네트워크에서 `npm run setup` 한 번 (모델은 `~/.cache/huggingface` 에 남습니다) |
+| doctor 에 `얼굴 인식 (OpenCV)` ❌ | 예전에 설치한 `.venv` 에 OpenCV 가 없음 | `npm run setup` 한 번 더 (또는 `.venv/bin/python -m pip install -r requirements.txt`) |
 | Windows 에서 `python3`·`.venv/bin` 오류 | 일반 Windows 터미널은 미지원 | [WSL2](https://learn.microsoft.com/ko-kr/windows/wsl/install)(Ubuntu) 안에서 clone 부터 다시 |
 
 ## Claude Code
@@ -55,7 +56,10 @@
 
 | 증상 | 원인 | 해결 |
 |---|---|---|
-| `첫 1초(훅)는 얼굴` ❌ | 정책: 훅에 전체 화면 장면 금지 | 그 장면을 `panel` 로 바꾸거나 1초 뒤로 |
+| `첫 1초(훅)는 얼굴` ❌ | 정책: 훅에 전체 화면 장면 금지 | 그 장면을 `above`·`below`·`panel` 로 바꾸거나 1초 뒤로 |
+| `정책(얼굴) … 판이 정수리를 가립니다` · `머리 위 공간이 … 뿐입니다` ❌ | 얼굴이 커서 그 배치에 머리가 안 들어감 | 장면 `mode` 를 다른 배치로 (큰 얼굴은 `above`/`below`, 머리 위가 좁으면 `below`/`panel`) |
+| `머리 추적(video.json track)이 없습니다` ⚠️ | 예전에 만든 프로젝트 | `.venv/bin/python scripts/face.py projects/<이름>` |
+| 머리 위 카드인데 정수리가 살짝 가림 | 머리숱이 아주 많아 정수리 짐작이 모자람 | `scripts/face.py` 의 `HAIR` 를 올리고(0.42 → 0.55) face.py 다시 |
 | `빈 판` ❌ | morph 첫 상태가 장면 시작보다 늦음 | 첫 상태를 in 쪽으로 당기기 (예: 알약을 먼저 띄우고 다음 상태로) |
 | `트라이어드 … 대비` ❌ | 직접 준 3색이 글자 대비 정책 미달 | 승인 목록 이름을 쓰거나 `look.triad: "auto"` |
 | 스틸이 예전 장면을 보여 줌 | (예전 버전) 검사가 .props.json 을 안 씀 | 지금은 `--check` 와 `npm run still` 이 항상 새로 씁니다 |

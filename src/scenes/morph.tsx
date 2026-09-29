@@ -44,7 +44,7 @@ const sizeOf = (s: MorphState, u: number, W: number, H: number) => {
 export const Morph: React.FC<MorphProps> = ({states, cursor = true}) => {
   const t = useTheme();
   const {start} = useScene();
-  const {w: W, h: H, u} = useStage();
+  const {w: W, h: H, u, anchor = 'center'} = useStage();
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const out = useExit(0.35);
@@ -69,11 +69,13 @@ export const Morph: React.FC<MorphProps> = ({states, cursor = true}) => {
 
   // 커서 경로: 상태별 상호작용 지점
   const cx = W / 2;
-  const cy = H / 2;
+  // 머리 위/아래 카드에선 도형을 머리 쪽 가장자리에 붙인다 (상태마다 높이가 달라 중심도 다르다)
+  const cyOf = (sz: {h: number}) => (anchor === 'end' ? H - sz.h / 2 : anchor === 'start' ? sz.h / 2 : H / 2);
   const path: {t: number; x: number; y: number}[] = [];
   const clicks: number[] = [];
   states.forEach((s, i) => {
     const sz = sizes[i];
+    const cy = cyOf(sz);
     if (s.kind === 'chat') {
       const tSend = s.t + 0.35 + Array.from(s.prompt).length / 22;
       path.push({t: s.t + 0.2, x: cx + sz.w * 0.55, y: cy + sz.h * 0.5});
@@ -89,7 +91,7 @@ export const Morph: React.FC<MorphProps> = ({states, cursor = true}) => {
   });
 
   return (
-    <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center', opacity: 1 - out}}>
+    <AbsoluteFill style={{alignItems: 'center', justifyContent: anchor === 'end' ? 'flex-end' : anchor === 'start' ? 'flex-start' : 'center', opacity: 1 - out}}>
       <div
         style={{
           position: 'relative',
