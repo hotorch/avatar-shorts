@@ -15,7 +15,7 @@ README 맨 위 영상(`docs/example/before.mp4` → `after.mp4`)을 만들 때 C
 ```bash
 npm run new -- docs/example/before.mp4 avatar-v01
 cp examples/avatar-v01/*.json examples/avatar-v01/script.txt projects/avatar-v01/
-python3 scripts/edit.py projects/avatar-v01
+npm run edit -- avatar-v01
 npm run render -- avatar-v01
 ```
 받아쓰기를 건너뛰고 같은 설계도로 렌더합니다. `plan.json` 을 고쳐 가며 결과가 어떻게 바뀌는지 보기 좋습니다.

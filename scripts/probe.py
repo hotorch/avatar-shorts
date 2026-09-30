@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """입력 영상을 살펴봅니다: 크기·길이·비율 → 레이아웃 결정 + 대표 프레임 4장.
 
-    python3 scripts/probe.py projects/<slug>
+    npm run probe -- <이름>
 
 결과: projects/<slug>/video.json, projects/<slug>/frames/probe_1..4.jpg
 얼굴·머리 위치(faceX, faceY, head, track)는 이어서 scripts/face.py 가 채웁니다 (npm run new 가 둘 다 부른다).
@@ -17,7 +17,7 @@ from pathlib import Path
 def ffprobe(path: Path) -> dict:
     out = subprocess.run(
         ["ffprobe", "-v", "error", "-print_format", "json", "-show_streams", "-show_format", str(path)],
-        capture_output=True, text=True, check=True,
+        capture_output=True, encoding="utf-8", errors="replace", check=True,
     ).stdout
     return json.loads(out)
 
@@ -48,7 +48,7 @@ def video_tones(src: Path, times) -> dict:
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit("사용법: probe.py projects/<slug>")
+        sys.exit("사용법: npm run probe -- <이름>")
     proj = Path(sys.argv[1])
     src = next((p for p in proj.glob("input.*")), None)
     if not src:
@@ -93,7 +93,7 @@ def main():
     old = {}
     vj = proj / "video.json"
     if vj.exists():
-        old = json.loads(vj.read_text())
+        old = json.loads(vj.read_text(encoding="utf-8"))
     data = {
         "file": src.name,
         "width": w,
@@ -109,7 +109,7 @@ def main():
         "frames": shots,
         "tones": tones,
     }
-    vj.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+    vj.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
     kind = "세로 쇼츠(1080×1920)" if layout == "vertical" else "가로 영상(1920×1080) — 아바타 왼쪽 카드 + 오른쪽 설명 화면"
     print(f"영상: {w}×{h}, {dur:.1f}초, {fps}fps, 오디오 {'있음' if has_audio else '없음'}")

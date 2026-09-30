@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """교정된 대본(script.txt)에 음성 인식 단어 타이밍을 붙입니다.
 
-    python3 scripts/align.py projects/<slug>
+    npm run align -- <이름>
 
 입력
   words.raw.json  음성 인식 결과 (시간은 믿고, 글자는 안 믿는다)
@@ -65,13 +65,13 @@ def parse_script(text: str):
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit("사용법: align.py projects/<slug>")
+        sys.exit("사용법: npm run align -- <이름>")
     proj = Path(sys.argv[1])
-    raw = json.loads((proj / "words.raw.json").read_text())
+    raw = json.loads((proj / "words.raw.json").read_text(encoding="utf-8"))
     script_p = proj / "script.txt"
     if not script_p.exists():
         sys.exit("script.txt 가 없습니다. transcript.txt 를 교정해서 한 줄에 한 절씩 script.txt 로 저장하세요.")
-    cues = parse_script(script_p.read_text())
+    cues = parse_script(script_p.read_text(encoding="utf-8"))
 
     # 음성 쪽: 글자별 시간표
     a_chars, a_time = [], []
@@ -145,8 +145,8 @@ def main():
         if c["style"] == "base":
             del c["style"]
 
-    (proj / "words.json").write_text(json.dumps(words, ensure_ascii=False, indent=1))
-    (proj / "captions.json").write_text(json.dumps(out, ensure_ascii=False, indent=1))
+    (proj / "words.json").write_text(json.dumps(words, ensure_ascii=False, indent=1), encoding="utf-8")
+    (proj / "captions.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
 
     rate = matched / max(1, len(b_chars))
     print(f"자막 {len(out)}개, 단어 {len(words)}개 정렬 완료 (글자 일치율 {rate:.0%})")

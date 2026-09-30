@@ -2,7 +2,7 @@
 """효과음 11종을 코드로 합성해서 public/sfx/*.wav 로 저장합니다.
 
 파일을 내려받지 않고, 같은 seed 면 항상 같은 소리가 나옵니다. (numpy 만 필요)
-    python3 scripts/sfx.py
+    npm run sfx
 """
 from __future__ import annotations
 

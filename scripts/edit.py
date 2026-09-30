@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """말 편집: 무음·군더더기 제거 + (선택) 순서 재배치 → edit.mp4 와 새 타임라인의 자막
 
-  python3 scripts/edit.py projects/<이름> --list     자막 번호 목록 (edit.json 쓸 때 참고)
-  python3 scripts/edit.py projects/<이름>            편집 실행
+  npm run edit -- <이름> --list     자막 번호 목록 (edit.json 쓸 때 참고)
+  npm run edit -- <이름>            편집 실행
 
 입력:  input.mp4, words.json, captions.json (align.py 결과, 원본 시간)
        style (정책+취향: edit.silence / fillers / punchIn), 선택: edit.json
@@ -30,14 +30,14 @@ MIN_SILENCE = 0.10
 
 
 def run_style(slug):
-    r = subprocess.run(["node", "scripts/style.mjs", slug], capture_output=True, text=True, check=True)
+    r = subprocess.run(["node", "scripts/style.mjs", slug], capture_output=True, encoding="utf-8", errors="replace", check=True)
     return json.loads(r.stdout)
 
 
 def probe(src):
     out = subprocess.run(
         ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate:format=duration", "-of", "json", str(src)],
-        capture_output=True, text=True, check=True,
+        capture_output=True, encoding="utf-8", errors="replace", check=True,
     ).stdout
     d = json.loads(out)
     n, m = d["streams"][0]["r_frame_rate"].split("/")
@@ -47,7 +47,7 @@ def probe(src):
 def silences(src, dur):
     r = subprocess.run(
         ["ffmpeg", "-hide_banner", "-nostats", "-i", str(src), "-vn", "-af", f"silencedetect=noise={NOISE_DB}dB:d={MIN_SILENCE}", "-f", "null", "-"],
-        capture_output=True, text=True,
+        capture_output=True, encoding="utf-8", errors="replace",
     ).stderr
     out, a = [], None
     for line in r.splitlines():
@@ -84,8 +84,8 @@ def main():
     ap.add_argument("--list", action="store_true")
     a = ap.parse_args()
     proj = Path(a.project)
-    words = json.loads((proj / "words.json").read_text())
-    cues = json.loads((proj / "captions.json").read_text())
+    words = json.loads((proj / "words.json").read_text(encoding="utf-8"))
+    cues = json.loads((proj / "captions.json").read_text(encoding="utf-8"))
 
     if a.list:
         for i, c in enumerate(cues, 1):
@@ -121,7 +121,7 @@ def main():
     cut_regions += [(w["start"], w["end"]) for w in filler_words]
 
     # 2) 순서: edit.json 의 자막 번호 구간, 없으면 전체 한 덩어리
-    ej = json.loads((proj / "edit.json").read_text()) if (proj / "edit.json").exists() else {}
+    ej = json.loads((proj / "edit.json").read_text(encoding="utf-8")) if (proj / "edit.json").exists() else {}
     order = ej.get("order") or [[1, len(cues)]]
     # 손으로 자를 곳 (원본 초): 인식 안 된 "음", 말실수, 기침 등. 안에 든 단어는 자막에서도 빠진다
     cut_regions += [(float(a), float(b)) for a, b in ej.get("cut", []) if b > a]
@@ -234,12 +234,12 @@ def main():
         check=True,
     )
 
-    (proj / "words.edit.json").write_text(json.dumps(new_words, ensure_ascii=False, indent=1))
-    (proj / "captions.edit.json").write_text(json.dumps(new_cues, ensure_ascii=False, indent=1))
+    (proj / "words.edit.json").write_text(json.dumps(new_words, ensure_ascii=False, indent=1), encoding="utf-8")
+    (proj / "captions.edit.json").write_text(json.dumps(new_cues, ensure_ascii=False, indent=1), encoding="utf-8")
     (proj / "cuts.json").write_text(json.dumps(
         {"fps": fps, "duration": round(total, 3), "sourceDuration": round(dur, 3), "silence": taste.get("silence"), "keptGap": keep_gap,
          "order": order, "cut": ej.get("cut", []), "why": ej.get("why"), "segments": [{"src": s["src"], "out": s["out"]} for s in segs], "punch": punch},
-        ensure_ascii=False, indent=1))
+        ensure_ascii=False, indent=1), encoding="utf-8")
 
     removed = dur - total
     print(f"편집: {dur:.1f}초 → {total:.1f}초 (−{removed:.1f}초, 조각 {len(segs)}개, 펀치인 {len(punch)}번)")

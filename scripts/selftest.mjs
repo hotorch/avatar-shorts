@@ -29,7 +29,7 @@ const json = (p) => JSON.parse(fs.readFileSync(p, 'utf8'));
 
 // ── 1. 타입
 test('타입 검사 (tsc)', () => {
-  const r = sh('npx', ['tsc', '--noEmit']);
+  const r = sh(process.execPath, ['node_modules/typescript/bin/tsc', '--noEmit']);
   must(r.code === 0, r.out.trim().split('\n').slice(0, 3).join(' | '));
 });
 
@@ -54,10 +54,22 @@ test('템플릿 목록 3곳 일치 (scenes/index.tsx · render.mjs · templates.
   must(idx.join() === rnd.join(), `index.tsx [${idx}] ≠ render.mjs [${rnd}]`);
   must(idx.join() === md.join(), `index.tsx [${idx}] ≠ templates.md [${md}]`);
 });
+test('Windows 에서도 도는 코드 (python3·.venv/bin·npx 를 직접 부르지 않음, 파이썬 파일 읽기·쓰기는 UTF-8)', () => {
+  // 예전: WSL 없이는 안 됐다. Windows 에는 python3·.venv/bin 이 없고, npx 는 .cmd 라 spawn 이 실패하고,
+  //       한국어 Windows 의 기본 인코딩(cp949)으로 한글 JSON 을 읽다 깨졌다 → scripts/platform.mjs 와 encoding="utf-8"
+  const bad = [];
+  for (const f of fs.readdirSync('scripts').filter((x) => /\.(mjs|py)$/.test(x))) {
+    const src = fs.readFileSync(path.join('scripts', f), 'utf8');
+    if (f.endsWith('.mjs') && f !== 'platform.mjs' && /spawnSync\('(python3?|npx|npm)'|['"`]\.venv\/(bin|Scripts)/.test(src)) bad.push(`${f}: python3·npx·.venv 경로 직접 호출 → platform.mjs`);
+    const n = (re) => (src.match(re) ?? []).length;
+    if (f.endsWith('.py') && (/\.read_text\(\)|text=True/.test(src) || n(/\.write_text\(/g) > n(/, encoding="utf-8"\)/g))) bad.push(`${f}: encoding="utf-8" 없는 파일 읽기·쓰기`);
+  }
+  must(!bad.length, bad.join(' / '));
+});
 test('데모에 필요한 자산이 저장소에 있음 (효과음 11 · 글꼴 · 오브젝트 · 얼굴 모델, .gitignore 에 안 걸림)', () => {
   // 예전: public/sfx/*.wav 가 gitignore 라 새로 받은 사람의 npm run demo 가 404 로 실패
   const sfx = fs.readdirSync('public/sfx').filter((f) => f.endsWith('.wav'));
-  must(sfx.length >= 11, `효과음 ${sfx.length}개 (11개 필요) → python3 scripts/sfx.py`);
+  must(sfx.length >= 11, `효과음 ${sfx.length}개 (11개 필요) → npm run sfx`);
   const ignored = sh('git', ['check-ignore', 'public/sfx/whoosh.wav', 'public/fonts/PretendardVariable.woff2', 'public/objects/clay/bulb.webp', 'models/yunet/face_detection_yunet_2023mar.onnx']).out.trim();
   must(!ignored, `.gitignore 에 걸림: ${ignored}`);
 });
@@ -99,8 +111,7 @@ test('머리 추적(face.py): 예시 영상에서 정수리·턱을 찾음', () 
   fs.mkdirSync(D, {recursive: true});
   fs.copyFileSync('docs/example/before.mp4', path.join(D, 'input.mp4'));
   fs.writeFileSync(path.join(D, 'video.json'), JSON.stringify({file: 'input.mp4', width: 540, height: 960}));
-  const py = process.platform === 'win32' ? '.venv/Scripts/python' : '.venv/bin/python';
-  const r = sh(py, ['scripts/face.py', D]);
+  const r = sh(process.execPath, ['scripts/py.mjs', 'face', D]);
   const v = json(path.join(D, 'video.json'));
   fs.rmSync(D, {recursive: true, force: true});
   must(r.code === 0 && v.head, r.out.trim().split('\n').pop());
@@ -127,7 +138,7 @@ fs.writeFileSync(path.join(T, 'words.json'), JSON.stringify(words));
 fs.writeFileSync(path.join(T, 'captions.json'), JSON.stringify(cues));
 fs.writeFileSync(path.join(T, 'video.json'), JSON.stringify({file: 'input.mp4', width: 320, height: 568, duration: 6, fps: 25, audio: true, layout: 'vertical', faceX: 0.5, faceY: 0.35}));
 
-const edit = () => sh('python3', ['scripts/edit.py', T]);
+const edit = () => sh(process.execPath, ['scripts/py.mjs', 'edit', T]);
 test('합성 시험 영상 만들기 (ffmpeg lavfi)', () => must(gen.code === 0, gen.out));
 test('무음 제거: 6초 → 약 3.8초 (소리 3.5초 + 남기는 무음), 말은 그대로', () => {
   const r = edit();
@@ -174,7 +185,7 @@ test('손으로 자르기: edit.json cut 구간의 소리와 자막이 함께 �
 // ── 4. 검사기: 원본 시간 plan 이 편집 시간으로 옮겨지고, 알려진 실수는 막힌다
 const check = (plan) => {
   fs.writeFileSync(path.join(T, 'plan.json'), JSON.stringify(plan));
-  return sh('node', ['scripts/render.mjs', '.selftest', '--check']);
+  return sh(process.execPath, ['scripts/render.mjs', '.selftest', '--check']);
 };
 const hero = (id, a, b) => ({id, in: a, out: b, mode: 'cutaway', template: 'hero', props: {object: 'bulb', title: '셋', objectAt: a + 0.1}});
 test('plan(원본 시간) → 편집 시간으로 옮김 + .props.json 갱신', () => {
@@ -221,7 +232,7 @@ test('막힘: 머리 위/아래 카드에 안 맞는 템플릿 (compare 를 belo
 if (!quick)
   test('스틸 렌더 (npm run still)', () => {
     check({theme: {palette: 'darktech'}, scenes: [hero('a', 4.5, 5.9)]});
-    const r = sh('node', ['scripts/still.mjs', '.selftest', '5.2']);
+    const r = sh(process.execPath, ['scripts/still.mjs', '.selftest', '5.2']);
     must(r.code === 0 && fs.existsSync(path.join(T, 'out', 'still.png')), r.out.trim().split('\n').pop());
   });
 

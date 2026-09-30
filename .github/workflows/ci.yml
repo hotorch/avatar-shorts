@@ -6,16 +6,32 @@ on:
 
 jobs:
   selftest:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - if: runner.os == 'Windows'
+        run: choco install ffmpeg -y --no-progress
       - run: npm ci
-      # 머리 추적 시험(face.py)용 얼굴 인식만 (음성 인식 패키지는 무거워서 뺀다)
-      - run: python3 -m venv .venv && .venv/bin/pip install -q "opencv-python-headless>=4.8,<5" "numpy>=1.24"
+      # 머리 추적 시험(face.py)용 얼굴 인식만 (음성 인식 패키지는 무거워서 뺀다). .venv 경로는 OS 마다 달라서 python -m pip
+      - run: |
+          python -m venv .venv
+          if [ -f .venv/Scripts/python.exe ]; then PY=.venv/Scripts/python.exe; else PY=.venv/bin/python; fi
+          $PY -m pip install -q "opencv-python-headless>=4.8,<5" "numpy>=1.24"
       # 음성 인식·렌더 없이: 타입, 정책↔코드 일치, 머리 배치·추적, 말 편집(합성 소리), 검사기 회귀
       - run: npm test -- --quick

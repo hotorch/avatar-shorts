@@ -3,10 +3,10 @@
 //   npm run render -- <이름>            최종본  projects/<이름>/out/final.mp4
 //   npm run render -- <이름> --preview  절반 해상도 미리보기 (빠름)
 //   npm run render -- <이름> --check    렌더 없이 검사만
-import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {buildFraming, faceFrame, headBox} from '../src/layouts/framing.js';
+import {remotion} from './platform.mjs';
 import {resolveStyle} from './style.mjs';
 import {firstBeat, loadCuts, mapTime, remapScene} from './timeline.mjs';
 
@@ -86,7 +86,7 @@ const warn = [...style.warn];
 const P = {scenes: {minSec: 1.2, maxSec: 10, maxSameTemplateRun: 2, ...pol.scenes}, captions: {maxChars: 18, maxEmphPerCue: 2, bigMaxRatio: 0.3, ...pol.captions}, hook: pol.content?.hookFaceSeconds ?? 1};
 if (edited) {
   const newer = ['words.json', 'captions.json'].some((f) => fs.existsSync(path.join(dir, f)) && fs.statSync(path.join(dir, f)).mtimeMs > fs.statSync(path.join(dir, 'cuts.json')).mtimeMs);
-  if (newer) problems.push('자막을 다시 정렬했는데 편집본이 예전 것입니다 → python3 scripts/edit.py ' + dir);
+  if (newer) problems.push('자막을 다시 정렬했는데 편집본이 예전 것입니다 → npm run edit -- ' + slug);
 }
 const templates = ['hero', 'keyword', 'stat', 'compare', 'steps', 'list', 'chart', 'quote', 'chapter', 'morph', 'media', 'palette', 'custom'];
 const objects = new Set(fs.readdirSync('public/objects/clay').map((f) => f.replace('.webp', '')));
@@ -154,7 +154,7 @@ if (props.layout === 'side' && video && video.faceX == null) warn.push('video.js
 // ── 정책(얼굴): 판·카드·자막이 머리(정수리~턱)를 가리지 않는다. 배치는 Remotion 과 같은 계산(src/layouts/framing.js)
 if (props.layout !== 'side' && pol.face?.neverCovered !== false) {
   const opts = {GAP: pol.face?.gapPx ?? 36};
-  if (video && !video.head) warn.push('머리 추적(video.json track)이 없습니다 → .venv/bin/python scripts/face.py ' + dir + ' (없으면 faceY 로 짐작해 배치)');
+  if (video && !video.head) warn.push('머리 추적(video.json track)이 없습니다 → npm run face -- ' + slug + ' (없으면 faceY 로 짐작해 배치)');
   const segs = buildFraming(scenes, props.video, opts);
   const at = (t) => headBox(props.video, t, t); // 그 순간 머리 (앞뒤 0.25초)
   const hit = [];
@@ -189,7 +189,13 @@ if (problems.length) {
 console.log(`✅ 검사 통과: 장면 ${scenes.length}개, 자막 ${captions.length}개, ${props.duration.toFixed(1)}초, ${props.layout}${edited ? ' (편집본)' : ''}, 팔레트 ${style.theme.palette}${style.theme.triadName ? '/' + style.theme.triadName : ''}, 면 ${style.theme.surface}`);
 
 // ── public/_live 에 이 프로젝트 파일만 연결 (렌더 번들이 가볍도록). 저장소 안 파일끼리라 하드링크 OK (사용자 원본은 아님)
-fs.rmSync('public/_live', {recursive: true, force: true});
+try {
+  fs.rmSync('public/_live', {recursive: true, force: true});
+} catch (e) {
+  // Windows 는 열려 있는 파일을 못 지운다 (Remotion Studio 가 영상을 쥐고 있을 때)
+  console.error(`❌ public/_live 를 비우지 못했습니다 (${e.code}) — npm run studio 창을 닫고 다시 실행하세요`);
+  process.exit(1);
+}
 const liveDir = path.join('public', live);
 fs.mkdirSync(liveDir, {recursive: true});
 const link = (from, to) => {
@@ -210,9 +216,8 @@ fs.writeFileSync(propsFile, JSON.stringify(props));
 if (checkOnly) process.exit(0);
 
 const outFile = path.join(dir, 'out', preview ? 'preview.mp4' : 'final.mp4');
-const r = spawnSync(
-  'npx',
-  ['remotion', 'render', 'Short', outFile, `--props=${propsFile}`, ...(preview ? ['--scale=0.5', '--jpeg-quality=80'] : ['--crf=18'])],
+const r = remotion(
+  ['render', 'Short', outFile, `--props=${propsFile}`, ...(preview ? ['--scale=0.5', '--jpeg-quality=80'] : ['--crf=18'])],
   {stdio: 'inherit'},
 );
 if (r.status === 0) console.log(`\n🎬 완성: ${outFile}`);
