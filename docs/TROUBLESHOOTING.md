@@ -7,14 +7,18 @@
 
 | 증상 | 원인 | 해결 |
 |---|---|---|
-| `ffmpeg: command not found` | ffmpeg 미설치 | macOS `brew install ffmpeg` · Windows `winget install ffmpeg` · Ubuntu `sudo apt install ffmpeg` |
+| `ffmpeg: command not found` · `'ffmpeg'은(는) … 명령이 아닙니다` | ffmpeg 미설치 | macOS `brew install ffmpeg` · Windows `winget install Gyan.FFmpeg` · Ubuntu `sudo apt install ffmpeg` |
+| Windows PowerShell: `npm.ps1 파일을 로드할 수 없습니다` (스크립트 실행 사용 안 함) | PowerShell 기본 보안 설정 | PowerShell 에서 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` 를 한 번 (내 계정에만 적용). 설정을 바꾸기 싫으면 `npm` 대신 `npm.cmd` 로 치거나 명령 프롬프트(cmd)에서 |
+| Windows: 방금 깔았는데 `ffmpeg`·`python`·`node` 를 못 찾음 | 열려 있던 창은 새 PATH 를 모름 | PowerShell(과 Claude Code)을 **닫고 새로** 열기 |
 | doctor 에 `ffmpeg 필터 없음` | 최소 빌드 ffmpeg | 위 명령으로 전체 빌드 설치 |
 | 첫 받아쓰기가 몇 분째 멈춘 듯 | 음성 인식 모델(≈500MB)을 받는 중 | 기다리면 됩니다. `npm run setup` 이 미리 받아 둡니다 |
 | 첫 렌더가 한참 걸림 | 렌더용 브라우저(≈100MB)를 받는 중 | 한 번만. 미리: `npx remotion browser ensure` |
-| `npm run setup` 중 `pip install` 실패 | 네트워크 문제, 또는 너무 새 파이썬(3.14 등)이라 음성 인식 패키지가 아직 없음 | Python 3.12 를 설치하고(`brew install python@3.12`) `rm -rf .venv` 후 다시 `npm run setup`. 그래도 안 되면 오류 마지막 줄을 이슈에 |
+| `npm run setup` 중 `pip install` 실패 | 네트워크 문제, 또는 너무 새 파이썬(3.14 등)이라 음성 인식 패키지가 아직 없음 | Python 3.12 를 설치하고(macOS `brew install python@3.12` · Windows `winget install Python.Python.3.12`) `.venv` 폴더를 지운 뒤 다시 `npm run setup` (여러 버전이 있으면 3.12 를 먼저 고릅니다). 그래도 안 되면 오류 마지막 줄을 이슈에 |
+| Windows: `python` 을 치면 Microsoft Store 가 열림 | 파이썬이 안 깔려 있고 스토어 바로가기만 있음 | `winget install Python.Python.3.12` 후 창을 새로 열기 |
 | 모델 받기가 실패·멈춤 (회사망) | 프록시·방화벽이 huggingface.co 를 막음 | 다른 네트워크에서 `npm run setup` 한 번 (모델은 `~/.cache/huggingface` 에 남습니다) |
-| doctor 에 `얼굴 인식 (OpenCV)` ❌ | 예전에 설치한 `.venv` 에 OpenCV 가 없음 | `npm run setup` 한 번 더 (또는 `.venv/bin/python -m pip install -r requirements.txt`) |
-| Windows 에서 `python3`·`.venv/bin` 오류 | 일반 Windows 터미널은 미지원 | [WSL2](https://learn.microsoft.com/ko-kr/windows/wsl/install)(Ubuntu) 안에서 clone 부터 다시 |
+| Windows: `render` 가 `public/_live 를 비우지 못했습니다` | `npm run studio` 가 영상 파일을 쥐고 있음 | Studio 창(터미널)을 닫고 다시 |
+| doctor 에 `얼굴 인식 (OpenCV)` ❌ | 예전에 설치한 `.venv` 에 OpenCV 가 없음 | `npm run setup` 한 번 더 |
+| Windows: 자막·JSON 의 한글이 깨짐 (`UnicodeDecodeError`, `cp949`) | 파이썬 스크립트를 `npm run` 없이 직접 실행 | `npm run edit -- <이름>` 처럼 `npm run` 으로 (UTF-8 모드로 실행됩니다) |
 
 ## Claude Code
 
@@ -28,7 +32,7 @@
 
 | 증상 | 원인 | 해결 |
 |---|---|---|
-| `영상을 찾을 수 없어요` | 경로 오타·줄임(`.../파일.mp4`) | 파일 이름으로 바탕화면·다운로드·동영상·문서·`projects/` 를 자동으로 찾습니다. 못 찾으면 Finder 에서 파일을 터미널로 끌어다 놓아 전체 경로를 넣기 |
+| `영상을 찾을 수 없어요` | 경로 오타·줄임(`.../파일.mp4`) | 파일 이름으로 바탕화면·다운로드·동영상·문서·OneDrive·`projects/` 를 자동으로 찾습니다. 못 찾으면 Finder·탐색기에서 파일을 터미널로 끌어다 놓아 전체 경로를 넣기 |
 | 아이폰 `.mov`(HEVC) | 렌더가 불안정한 코덱 | 자동으로 H.264 로 변환합니다 (시간이 조금 걸림) |
 | 원본이 바뀔까 걱정 | — | `projects/<이름>/input.mp4` 는 **복사본**입니다. 원본은 읽기만 합니다 |
 
@@ -39,7 +43,7 @@
 | 고유명사가 틀림 | 음성 인식 한계 | `--hint "제품명, 이름"` 을 주거나, 대본을 같이 주면 대본을 정답으로 씁니다 |
 | 전체적으로 부정확 | small 모델 | `--model medium` (느리지만 정확) |
 | 일치율 70% 미만 경고 | script.txt 가 실제 말과 다름 | 빠지거나 더한 문장이 없는지 transcript.txt 와 대조 |
-| 자막 18자 넘는다고 ❌ | 정책 `captions.maxChars` | script.txt 에서 쉼표·접속어 앞으로 줄을 나누고 `align.py` 다시 |
+| 자막 18자 넘는다고 ❌ | 정책 `captions.maxChars` | script.txt 에서 쉼표·접속어 앞으로 줄을 나누고 `npm run align -- <이름>` 다시 |
 
 ## 말 편집 (무음·재배치)
 
@@ -48,7 +52,7 @@
 | 무음이 거의 안 줄어듦 | 원래 쉬는 틈이 없는 영상 (AI 아바타 등) | 정상입니다 |
 | "음, 어" 가 안 빠짐 | 음성 인식이 그 소리를 글자로 안 적으면 자를 자리를 모름 | `transcript.txt` 에 "음"이 있는지 확인. 없으면 "12초쯤 음 잘라줘" 라고 말하기 → `edit.json` 의 `cut` |
 | 말끝이 잘림 | 배경 소음이 커서 무음 판정이 공격적 | 취향 `edit.silence: "natural"` |
-| `자막을 다시 정렬했는데 편집본이 예전 것` ❌ | align 후 edit 를 안 돌림 | `python3 scripts/edit.py projects/<이름>` |
+| `자막을 다시 정렬했는데 편집본이 예전 것` ❌ | align 후 edit 를 안 돌림 | `npm run edit -- <이름>` |
 | `장면이 재배치 경계를 넘습니다` ❌ | 한 장면이 edit.json 의 두 덩어리에 걸침 | 장면을 나누거나 한 덩어리 안으로 |
 | 편집 뒤 `장면이 1.2초보다 짧습니다` ❌ | 무음이 잘려서 장면이 줄어듦 | 옆 문장 쪽으로 in/out 을 늘리기 (plan 은 원본 시간 그대로) |
 
@@ -58,8 +62,8 @@
 |---|---|---|
 | `첫 1초(훅)는 얼굴` ❌ | 정책: 훅에 전체 화면 장면 금지 | 그 장면을 `above`·`below`·`panel` 로 바꾸거나 1초 뒤로 |
 | `정책(얼굴) … 판이 정수리를 가립니다` · `머리 위 공간이 … 뿐입니다` ❌ | 얼굴이 커서 그 배치에 머리가 안 들어감 | 장면 `mode` 를 다른 배치로 (큰 얼굴은 `above`/`below`, 머리 위가 좁으면 `below`/`panel`) |
-| `머리 추적(video.json track)이 없습니다` ⚠️ | 예전에 만든 프로젝트 | `.venv/bin/python scripts/face.py projects/<이름>` |
-| 머리 위 카드인데 정수리가 살짝 가림 | 머리숱이 아주 많아 정수리 짐작이 모자람 | `scripts/face.py` 의 `HAIR` 를 올리고(0.42 → 0.55) face.py 다시 |
+| `머리 추적(video.json track)이 없습니다` ⚠️ | 예전에 만든 프로젝트 | `npm run face -- <이름>` |
+| 머리 위 카드인데 정수리가 살짝 가림 | 머리숱이 아주 많아 정수리 짐작이 모자람 | `scripts/face.py` 의 `HAIR` 를 올리고(0.42 → 0.55) `npm run face -- <이름>` 다시 |
 | `빈 판` ❌ | morph 첫 상태가 장면 시작보다 늦음 | 첫 상태를 in 쪽으로 당기기 (예: 알약을 먼저 띄우고 다음 상태로) |
 | `트라이어드 … 대비` ❌ | 직접 준 3색이 글자 대비 정책 미달 | 승인 목록 이름을 쓰거나 `look.triad: "auto"` |
 | 스틸이 예전 장면을 보여 줌 | (예전 버전) 검사가 .props.json 을 안 씀 | 지금은 `--check` 와 `npm run still` 이 항상 새로 씁니다 |

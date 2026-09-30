@@ -7,6 +7,7 @@
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import {remotion} from './platform.mjs';
 import {COMP_FPS, loadCuts, mapTime, toFrame} from './timeline.mjs';
 
 const args = process.argv.slice(2);
@@ -21,7 +22,7 @@ const sceneId = args.includes('--scene') ? args[args.indexOf('--scene') + 1] : n
 let times = args.filter((a) => a !== sceneId && !isNaN(Number(a))).map(Number);
 
 // .props.json 을 최신으로 (render --check 가 plan·정책·편집을 합쳐 쓴다)
-const chk = spawnSync('node', ['scripts/render.mjs', slug, '--check'], {encoding: 'utf8'});
+const chk = spawnSync(process.execPath, ['scripts/render.mjs', slug, '--check'], {encoding: 'utf8'});
 if (chk.status !== 0) {
   process.stdout.write(chk.stdout + chk.stderr);
   process.exit(1);
@@ -46,7 +47,7 @@ fs.mkdirSync(out, {recursive: true});
 const files = times.map((t, i) => {
   const f = path.join(out, `.still_${i}.png`);
   const frame = toFrame(toEdit(t), COMP_FPS);
-  const r = spawnSync('npx', ['remotion', 'still', 'Short', f, `--frame=${frame}`, `--props=${path.join(dir, '.props.json')}`, '--scale=0.4', '--log=error'], {encoding: 'utf8'});
+  const r = remotion(['still', 'Short', f, `--frame=${frame}`, `--props=${path.join(dir, '.props.json')}`, '--scale=0.4', '--log=error'], {encoding: 'utf8'});
   if (r.status !== 0) {
     process.stdout.write(r.stdout + r.stderr);
     process.exit(1);

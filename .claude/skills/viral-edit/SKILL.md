@@ -9,7 +9,7 @@ description: 무음·군더더기를 줄이고, 가장 센 문장을 맨 앞(훅
 
 ## 1. 자막 번호 보기
 ```bash
-python3 scripts/edit.py projects/<이름> --list
+npm run edit -- <이름> --list
 ```
 
 ## 2. 구조 정하기 → `projects/<이름>/edit.json`
@@ -41,7 +41,7 @@ python3 scripts/edit.py projects/<이름> --list
 
 ## 3. 실행
 ```bash
-python3 scripts/edit.py projects/<이름>
+npm run edit -- <이름>
 ```
 - 무음은 취향 `edit.silence`(tight 0.16s / natural 0.30s / off), 정책 `edit.maxSilenceKept`(0.45s)를 넘게 남기지 않는다.
 - 덩어리 경계는 문장 사이 무음 한가운데 → 말이 잘리지 않는다. 경계마다 8ms 페이드.

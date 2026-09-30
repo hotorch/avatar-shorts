@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """한국어 음성 → 단어 단위 타이밍 (faster-whisper, 로컬·무료).
 
-    .venv/bin/python scripts/transcribe.py projects/<slug> [--model small|medium] [--hint "고유명사, 제품명"]
+    npm run transcribe -- <이름> [--model small|medium] [--hint "고유명사, 제품명"]
 
 결과
   words.raw.json   [{text, start, end, prob}]  ← 음성 인식 그대로 (오탈자 포함)
@@ -67,8 +67,8 @@ def main():
                 words.append({"text": t, "start": round(w.start, 3), "end": round(w.end, 3), "prob": round(w.probability, 3)})
 
     words = fix_overlaps(words)
-    (proj / "words.raw.json").write_text(json.dumps(words, ensure_ascii=False, indent=1))
-    (proj / "transcript.txt").write_text("\n".join(lines) + "\n")
+    (proj / "words.raw.json").write_text(json.dumps(words, ensure_ascii=False, indent=1), encoding="utf-8")
+    (proj / "transcript.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
     low = [w for w in words if w["prob"] < 0.5]
     print(f"단어 {len(words)}개, 문장 {len(lines)}개 → {proj}/words.raw.json, transcript.txt")
     if low:

@@ -4,6 +4,8 @@
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
+import path from 'node:path';
+import {findPython, hasVenv, VENV_PY as py, WIN} from './platform.mjs';
 
 const run = (cmd, args) => {
   const r = spawnSync(cmd, args, {encoding: 'utf8'});
@@ -11,45 +13,45 @@ const run = (cmd, args) => {
 };
 const rows = [];
 const add = (ok, name, detail, fix) => rows.push({ok, name, detail, fix});
-const py = process.platform === 'win32' ? '.venv/Scripts/python' : '.venv/bin/python';
-
-if (process.platform === 'win32') add('warn', '운영체제', 'Windows', 'WSL2(Ubuntu) 안에서 쓰세요 — 일반 Windows 터미널은 아직 지원하지 않습니다 (README 준비물)');
+const how = (win, other) => (WIN ? win : other);
 
 const nodeMajor = Number(process.versions.node.split('.')[0]);
-add(nodeMajor >= 18 ? 'ok' : 'bad', 'Node.js', process.versions.node, 'Node 18 이상 설치 (https://nodejs.org)');
+add(nodeMajor >= 18 ? 'ok' : 'bad', 'Node.js', process.versions.node, how('winget install OpenJS.NodeJS.LTS', 'Node 18 이상 설치 (https://nodejs.org)'));
 
 const ff = run('ffmpeg', ['-hide_banner', '-version']);
 const ffVer = ff?.match(/ffmpeg version (\S+)/)?.[1];
-add(ff ? 'ok' : 'bad', 'ffmpeg', ffVer ?? '없음', 'macOS: brew install ffmpeg · Windows: winget install ffmpeg · Ubuntu: sudo apt install ffmpeg');
+add(ff ? 'ok' : 'bad', 'ffmpeg', ffVer ?? '없음', how('winget install Gyan.FFmpeg 후 터미널을 새로 열기', 'macOS: brew install ffmpeg · Ubuntu: sudo apt install ffmpeg'));
 if (ff) {
   const filters = run('ffmpeg', ['-hide_banner', '-filters']) ?? '';
   const need = ['silencedetect', 'atrim', 'afade', 'concat'];
   const miss = need.filter((f) => !new RegExp(`\\s${f}\\s`).test(filters));
-  add(miss.length ? 'bad' : 'ok', 'ffmpeg 필터', miss.length ? `없음: ${miss.join(', ')}` : need.join(', '), '전체 기능 빌드의 ffmpeg 로 다시 설치 (brew install ffmpeg)');
+  add(miss.length ? 'bad' : 'ok', 'ffmpeg 필터', miss.length ? `없음: ${miss.join(', ')}` : need.join(', '), how('전체 기능 빌드로 다시 설치 (winget install Gyan.FFmpeg)', '전체 기능 빌드의 ffmpeg 로 다시 설치 (brew install ffmpeg)'));
   const enc = run('ffmpeg', ['-hide_banner', '-encoders']) ?? '';
   add(/libx264/.test(enc) ? 'ok' : 'bad', 'H.264 인코더', /libx264/.test(enc) ? 'libx264' : '없음', 'libx264 가 포함된 ffmpeg 설치');
 }
 add(run('ffprobe', ['-version']) ? 'ok' : 'bad', 'ffprobe', run('ffprobe', ['-version'])?.match(/version (\S+)/)?.[1] ?? '없음', 'ffmpeg 와 함께 설치됩니다');
 
-const pyv = run('python3', ['--version']);
+// .venv 가 있으면 그 파이썬, 없으면 가상환경을 만들 시스템 파이썬
+const pyv = hasVenv() ? run(py, ['-c', 'import sys; print("%d.%d" % sys.version_info[:2])']) : findPython()?.version;
 const [pm, pn] = (pyv?.match(/(\d+)\.(\d+)/) ?? []).slice(1).map(Number);
-add(pyv && (pm > 3 || pn >= 10) ? 'ok' : 'bad', 'python3', pyv ?? '없음', 'Python 3.10 이상 설치');
+const pyFix = how('winget install Python.Python.3.12 후 터미널을 새로 열고 npm run setup', 'Python 3.10~3.13 설치 (macOS: brew install python@3.12) 후 npm run setup');
+add(!pyv ? 'bad' : pm === 3 && pn >= 10 && pn <= 13 ? 'ok' : pm === 3 && pn > 13 ? 'warn' : 'bad', 'Python', pyv ? `${pyv}${hasVenv() ? ' (.venv)' : ''}` : '없음', pn > 13 ? `음성 인식 패키지가 아직 ${pyv} 를 지원하지 않을 수 있습니다 → ${pyFix}` : pyFix);
 
 add(fs.existsSync('node_modules/remotion') ? 'ok' : 'bad', 'npm 패키지', fs.existsSync('node_modules/remotion') ? '설치됨' : '없음', 'npm run setup');
-const fw = fs.existsSync(py) ? run(py, ['-c', 'import faster_whisper; print(faster_whisper.__version__)']) : null;
-add(fw ? 'ok' : 'bad', '음성 인식 (faster-whisper)', fw ?? (fs.existsSync(py) ? '.venv 에 없음' : '.venv 없음'), 'npm run setup');
+const fw = hasVenv() ? run(py, ['-c', 'import faster_whisper; print(faster_whisper.__version__)']) : null;
+add(fw ? 'ok' : 'bad', '음성 인식 (faster-whisper)', fw ?? (hasVenv() ? '.venv 에 없음' : '.venv 없음'), 'npm run setup');
 
-const cv = fs.existsSync(py) ? run(py, ['-c', 'import cv2; print(cv2.__version__)']) : null;
+const cv = hasVenv() ? run(py, ['-c', 'import cv2; print(cv2.__version__)']) : null;
 add(cv ? 'ok' : 'bad', '얼굴 인식 (OpenCV)', cv ?? '없음', 'npm run setup (분할 화면에서 머리가 잘리지 않게 머리 위치를 잽니다)');
 const yunet = 'models/yunet/face_detection_yunet_2023mar.onnx';
 add(fs.existsSync(yunet) ? 'ok' : 'bad', '얼굴 인식 모델', fs.existsSync(yunet) ? 'YuNet' : '없음', `git 으로 다시 받기 (${yunet})`);
 
-const hf = `${os.homedir()}/.cache/huggingface/hub`;
+const hf = path.join(process.env.HF_HOME ?? path.join(os.homedir(), '.cache', 'huggingface'), 'hub');
 const models = fs.existsSync(hf) ? fs.readdirSync(hf).filter((d) => /faster-whisper/.test(d)).map((d) => d.replace(/.*faster-whisper-/, '')) : [];
 add(models.length ? 'ok' : 'warn', '음성 인식 모델', models.length ? models.join(', ') : '아직 안 받음', '첫 받아쓰기 때 자동으로 받습니다 (small ≈ 500MB, 몇 분). 미리: npm run setup');
 
 const sfx = fs.existsSync('public/sfx') ? fs.readdirSync('public/sfx').filter((f) => f.endsWith('.wav')).length : 0;
-add(sfx >= 11 ? 'ok' : 'bad', '효과음', `${sfx}개`, `${py} scripts/sfx.py`);
+add(sfx >= 11 ? 'ok' : 'bad', '효과음', `${sfx}개`, 'npm run sfx');
 const fonts = fs.readdirSync('public/fonts').filter((f) => f.endsWith('.woff2')).length;
 add(fonts >= 6 ? 'ok' : 'bad', '글꼴', `${fonts}개`, 'git 으로 다시 받기 (public/fonts)');
 const objs = fs.existsSync('public/objects/clay') ? fs.readdirSync('public/objects/clay').length : 0;

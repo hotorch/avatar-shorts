@@ -9,7 +9,7 @@ description: 한국어 음성을 단어 단위 타이밍으로 받아 적고, �
 
 ## 1. 받아쓰기
 ```bash
-.venv/bin/python scripts/transcribe.py projects/<slug> --hint "클로드 코드, 리모션"
+npm run transcribe -- <slug> --hint "클로드 코드, 리모션"
 ```
 - 기본 모델 `small`. 발음이 뭉개지거나 전문용어가 많아 오류가 많으면 `--model medium` (느리지만 정확).
 - 결과: `words.raw.json`(단어별 시간·확신도), `transcript.txt`(문장 원문). 확신이 낮은 단어 목록이 출력된다 → 교정 1순위.
@@ -42,7 +42,7 @@ description: 한국어 음성을 단어 단위 타이밍으로 받아 적고, �
 
 ## 3. 정렬
 ```bash
-python3 scripts/align.py projects/<slug>
+npm run align -- <slug>
 ```
 - 출력: `words.json`(교정 단어+시간), `captions.json`(큐). 글자 일치율 90% 이상이면 정상.
 - "시간을 추정한 단어"는 교정으로 글자가 크게 바뀐 단어 — 앞뒤 사이로 보간됐으니 대개 괜찮다.

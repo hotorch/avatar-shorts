@@ -1,0 +1,10 @@
+# Windows 에서 받아도 줄바꿈을 LF 로 (스크립트·JSON 이 운영체제마다 달라지지 않게)
+* text=auto eol=lf
+*.mp4 binary
+*.gif binary
+*.jpg binary
+*.png binary
+*.wav binary
+*.woff2 binary
+*.onnx binary
+*.webp binary

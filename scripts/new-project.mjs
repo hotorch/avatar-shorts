@@ -4,9 +4,9 @@
 // → projects/<이름>/input.mp4 (+ video.json, 대표 프레임)
 import {execFileSync, spawnSync} from 'node:child_process';
 import fs from 'node:fs';
-import path from 'node:path';
-
 import os from 'node:os';
+import path from 'node:path';
+import {hasVenv} from './platform.mjs';
 
 const [srcArg, nameArg] = process.argv.slice(2);
 if (!srcArg) {
@@ -15,7 +15,7 @@ if (!srcArg) {
 }
 // 경로가 틀렸거나 줄여 쓴 경우(…/파일.mp4, ~/Desktop/파일.mp4): 파일 이름으로 흔한 폴더를 찾아 본다
 const findByName = (name) => {
-  const roots = ['.', 'projects', ...['Desktop', 'Downloads', 'Movies', 'Videos', 'Documents'].map((d) => path.join(os.homedir(), d))];
+  const roots = ['.', 'projects', ...['Desktop', 'Downloads', 'Movies', 'Videos', 'Documents', 'OneDrive'].map((d) => path.join(os.homedir(), d))];
   const hits = [];
   const walk = (d, depth) => {
     if (depth > 3 || hits.length > 5) return;
@@ -35,7 +35,7 @@ const findByName = (name) => {
   roots.forEach((r) => walk(r, 0));
   return [...new Set(hits.map((h) => path.resolve(h)))].filter((h) => !h.includes(`${path.sep}projects${path.sep}`) || !/input\.mp4$|edit\.mp4$/.test(h));
 };
-let src = srcArg.replace(/^~(?=\/)/, os.homedir());
+let src = srcArg.replace(/^~(?=[\\/])/, os.homedir());
 if (!fs.existsSync(src)) {
   const hits = findByName(path.basename(src));
   if (hits.length === 1) {
@@ -79,9 +79,9 @@ if (ok) {
   if (r.status !== 0) process.exit(r.status ?? 1);
 }
 
-spawnSync('python3', ['scripts/probe.py', dir], {stdio: 'inherit'});
+const py = (script) => spawnSync(process.execPath, ['scripts/py.mjs', script, dir], {stdio: 'inherit'});
+py('probe');
 // 머리 위치 추적 (분할 화면·머리 위/아래 카드 배치가 쓴다). OpenCV 는 .venv 에 있다
-const py = process.platform === 'win32' ? '.venv/Scripts/python' : '.venv/bin/python';
-if (fs.existsSync(py)) spawnSync(py, ['scripts/face.py', dir], {stdio: 'inherit'});
-else console.log('⚠️  .venv 가 없어 머리 위치를 못 쟀습니다 → npm run setup 후 .venv/bin/python scripts/face.py ' + dir);
+if (hasVenv()) py('face');
+else console.log(`⚠️  .venv 가 없어 머리 위치를 못 쟀습니다 → npm run setup 후 npm run face -- ${slug}`);
 console.log(`\n프로젝트: ${dir}`);

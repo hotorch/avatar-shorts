@@ -24,14 +24,19 @@ Claude Code 안에서 `/shorts 내영상.mp4` 한 줄이면 끝까지 알아서 
 
 ### 1. 준비물
 
-| | 설치 | 확인 |
-|---|---|---|
-| [Claude Code](https://claude.com/claude-code) | 사이트 안내대로 설치 (Claude 유료 요금제 필요) | `claude --version` |
-| [Node.js](https://nodejs.org) 18 이상 | 사이트에서 LTS 설치 | `node -v` |
-| [Python](https://www.python.org) 3.10~3.13 | macOS: `brew install python@3.12` | `python3 --version` |
-| [ffmpeg](https://ffmpeg.org) | macOS: `brew install ffmpeg` · Ubuntu: `sudo apt install ffmpeg` | `ffmpeg -version` |
+| | macOS | Windows | 확인 |
+|---|---|---|---|
+| [Claude Code](https://claude.com/claude-code) (Claude 유료 요금제 필요) | 사이트 안내대로 | 사이트 안내대로 | `claude --version` |
+| [Node.js](https://nodejs.org) 18 이상 | 사이트에서 LTS 설치 | `winget install OpenJS.NodeJS.LTS` | `node -v` |
+| [Python](https://www.python.org) 3.10~3.13 | `brew install python@3.12` | `winget install Python.Python.3.12` | `python3 --version` · Windows `py --version` |
+| [ffmpeg](https://ffmpeg.org) | `brew install ffmpeg` | `winget install Gyan.FFmpeg` | `ffmpeg -version` |
+| [Git](https://git-scm.com) | 처음 `git` 을 치면 설치 창이 뜸 | `winget install Git.Git` | `git --version` |
 
-> **지원 환경**: macOS에서 만들고 시험했습니다. Linux(Ubuntu)는 CI에서 돌아갑니다. **Windows는 [WSL2](https://learn.microsoft.com/ko-kr/windows/wsl/install)(Ubuntu) 안에서** 쓰세요. 일반 Windows 터미널에서는 경로·명령이 달라서 아직 지원하지 않습니다.
+Linux(Ubuntu)는 `sudo apt install ffmpeg python3-venv` 와 Node.js 면 됩니다.
+
+> **Windows**: WSL 없이 그냥 PowerShell에서 됩니다. 위 명령은 PowerShell에 한 줄씩 붙여 넣으면 되고, 다 깔고 나면 **PowerShell 창을 닫고 새로 여세요** (그래야 새로 깐 명령을 찾습니다). Claude Code가 쓰는 Git도 여기서 함께 깔립니다. `npm` 을 쳤는데 "스크립트를 실행할 수 없습니다" 가 나오면 [문제 해결](docs/TROUBLESHOOTING.md)의 첫 표를 보세요.
+>
+> 명령은 운영체제와 상관없이 전부 `npm run …` 으로 같습니다. 파이썬 이름(`python3`/`py`)이나 가상환경 경로가 달라도 키트가 알아서 찾습니다.
 
 ### 2. 설치 (한 번만, 5~10분)
 
@@ -47,12 +52,12 @@ npm run setup
 |---|---|---|
 | npm 패키지 (Remotion 등) | `node_modules/` | ≈450MB |
 | 파이썬 가상환경: 음성 인식(faster-whisper), 얼굴 인식(OpenCV) | `.venv/` | ≈350MB |
-| 음성 인식 모델 (small) | `~/.cache/huggingface` | ≈500MB |
+| 음성 인식 모델 (small) | `~/.cache/huggingface` (Windows: `C:\Users\<나>\.cache\huggingface`) | ≈500MB |
 | 렌더용 브라우저 | `node_modules/.remotion` | ≈100MB |
 
 얼굴 인식 모델(YuNet, 0.3MB)은 저장소에 들어 있어서 따로 받지 않습니다.
 
-> **예전에 설치했다면** 저장소를 받은 뒤(`git pull`) `npm run setup` 을 한 번 더 실행하세요. 머리 위치를 재는 얼굴 인식(OpenCV)이 새로 들어갔습니다. 빠져 있으면 `npm run doctor` 에 ❌ 로 나옵니다. 이미 만든 프로젝트는 `.venv/bin/python scripts/face.py projects/<이름>` 으로 머리 위치를 한 번 재면 됩니다.
+> **예전에 설치했다면** 저장소를 받은 뒤(`git pull`) `npm run setup` 을 한 번 더 실행하세요. 머리 위치를 재는 얼굴 인식(OpenCV)이 새로 들어갔습니다. 빠져 있으면 `npm run doctor` 에 ❌ 로 나옵니다. 이미 만든 프로젝트는 `npm run face -- <이름>` 으로 머리 위치를 한 번 재면 됩니다.
 
 ```bash
 npm run demo
@@ -72,6 +77,12 @@ claude
 
 ```
 /shorts ~/Desktop/내영상.mp4
+```
+
+Windows면 경로만 이렇게 씁니다. 파일을 탐색기에서 Claude Code 창으로 끌어다 놓아도 경로가 들어갑니다.
+
+```
+/shorts C:\Users\나\Desktop\내영상.mp4
 ```
 
 대본이 있으면 다음 줄에 붙여 주세요. 자막이 훨씬 정확해집니다.

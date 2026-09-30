@@ -49,7 +49,7 @@ argument-hint: <영상 경로> [대본]
 받아쓰기 → 교정(`script.txt`) → `align.py`. 고친 곳은 결정 요약에 표로.
 
 ## ③ 말 편집 → `viral-edit`
-`edit.structure` 가 hook-first 면 `edit.json` 을 쓰고, `python3 scripts/edit.py projects/<이름>`. 무음 제거는 항상 (정도는 취향).
+`edit.structure` 가 hook-first 면 `edit.json` 을 쓰고, `npm run edit -- <이름>`. 무음 제거는 항상 (정도는 취향).
 
 ## ④ 스타일·B-roll → `broll-plan`
 - plan.json 을 **원본 시간(words.json)** 으로 쓴다 (render 가 편집본 시간으로 옮긴다).
@@ -59,7 +59,7 @@ argument-hint: <영상 경로> [대본]
 ## ⑤ 렌더·자체 검수 (사용자에게 보여 주기 전에 끝낸다)
 1. `npm run render -- <이름> --check` → ❌ 는 전부 고친다 (정책 위반). ⚠️ 는 판단.
 2. `npm run render -- <이름> --preview`
-3. `python3 scripts/look.py projects/<이름>/out/preview.mp4 --plan projects/<이름>/plan.json` → 시트를 **직접 본다**.
+3. `npm run look -- projects/<이름>/out/preview.mp4 --plan projects/<이름>/plan.json` → 시트를 **직접 본다**.
    훅(0.5초 칸)이 비었거나 약함 / 글자 잘림·겹침 / 자막과 장면 글자 충돌 / 빈 화면 1초 이상 / 얼굴 가림 / 대비.
    의심 구간은 `npm run still -- <이름> --scene <id>` 또는 `npm run still -- <이름> <원본 초…>` 로 렌더 없이 더 본다. 고치고 다시 미리보기 (최대 3번).
 4. `npm run render -- <이름>` → `out/final.mp4`, 최종 시트도 한 번 본다.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """얼굴을 따라가며 머리 위치(정수리·턱·좌우)를 잽니다. 분할 화면·머리 위/아래 카드 배치가 이 값을 씁니다.
 
-    .venv/bin/python scripts/face.py projects/<slug>   (npm run new 가 알아서 부른다)
+    npm run face -- <이름>   (npm run new 가 알아서 부른다)
 
 결과: video.json 에
   faceX, faceY   얼굴 중심 (0~1, 전체 중앙값) — 예전처럼 눈대중으로 적지 않는다
@@ -70,7 +70,7 @@ def track(src: Path, w: int, h: int):
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit("사용법: .venv/bin/python scripts/face.py projects/<slug>")
+        sys.exit("사용법: npm run face -- <이름>")
     proj = Path(sys.argv[1])
     vj = proj / "video.json"
     if not vj.exists():
@@ -78,8 +78,8 @@ def main():
     try:
         import cv2  # noqa: F401
     except ImportError:
-        sys.exit("OpenCV 가 없습니다 → npm run setup (또는 .venv/bin/python -m pip install -r requirements.txt)")
-    video = json.loads(vj.read_text())
+        sys.exit("OpenCV 가 없습니다 → npm run setup")
+    video = json.loads(vj.read_text(encoding="utf-8"))
     src = proj / video.get("file", "input.mp4")
     rows, total = track(src, video["width"], video["height"])
     if not rows:
@@ -93,7 +93,7 @@ def main():
         head={"top": round(top, 4), "chin": round(chin, 4), "left": round(left, 4), "right": round(right, 4)},
         track=rows,
     )
-    vj.write_text(json.dumps(video, ensure_ascii=False, indent=2))
+    vj.write_text(json.dumps(video, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
         f"머리 위치: 정수리 {top:.2f} · 턱 {chin:.2f} · 좌우 {left:.2f}~{right:.2f} (화면 비율, 중앙값) · "
         f"얼굴 찾은 장면 {len(rows)}/{total}장"

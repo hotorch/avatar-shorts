@@ -19,7 +19,8 @@
 ## 새 세션에서 처음
 - `node_modules` 나 `.venv` 가 없으면 → `npm run setup` 부터 (5~10분, 모델·브라우저까지 받음). 끝나면 doctor 결과를 쉬운 말로 한 줄.
 - "처음이에요", "잘 되는지 보고 싶어요" → `npm run demo` 를 돌리고 `projects/_demo/` 를 알려 준다.
-- Windows(일반 터미널)면 → WSL2 안에서 쓰라고 안내한다 (`python3`, `.venv/bin` 경로를 가정한 키트).
+- Windows 도 WSL 없이 그대로 된다. 준비물은 `winget` 한 줄씩 (README), 깔고 나면 터미널을 새로 열라고 안내.
+- 파이썬 스크립트는 **항상 `npm run <이름> -- …`** 로 부른다 (`python3`·`.venv/bin/python` 을 직접 쓰지 않음). OS 마다 다른 파이썬 이름·가상환경 경로·UTF-8 설정을 `scripts/platform.mjs` 가 맞춘다.
 - plan.json 을 어떻게 쓰는지 감이 필요하면 → `examples/avatar-v01/` (README 영상의 실제 대본·편집·설계도·결정 기록).
 
 ## 명령
@@ -28,17 +29,17 @@ npm run setup                      # 처음 한 번 (npm, .venv+faster-whisper, 
 npm run doctor                     # 환경 진단 — 뭔가 안 되면 이것부터
 npm run demo                       # 영상 없이 데모 2개 렌더
 npm run new -- <영상> [이름]         # projects/<이름>/ 생성(원본 복사) + 분석. 경로가 틀리면 파일 이름으로 찾음
-.venv/bin/python scripts/transcribe.py projects/<이름> --hint "고유명사"   # transcribe·face 만 .venv, 나머지 .py 는 python3
-.venv/bin/python scripts/face.py projects/<이름>   # 머리 위치 추적 (npm run new 가 알아서)
-python3 scripts/align.py projects/<이름>
-python3 scripts/edit.py projects/<이름> [--list]   # 무음 제거 + edit.json(order, cut) → edit.mp4
+npm run transcribe -- <이름> --hint "고유명사"   # 파이썬 스크립트는 전부 npm run (scripts/py.mjs → .venv 파이썬, UTF-8)
+npm run face -- <이름>              # 머리 위치 추적 (npm run new 가 알아서)
+npm run align -- <이름>
+npm run edit -- <이름> [--list]     # 무음 제거 + edit.json(order, cut) → edit.mp4
 npm run words -- <이름> [글자…]    # 단어별 원본 시간 · 편집 시간 · 프레임 (plan 의 at/t 는 여기서)
 node scripts/style.mjs <이름>                     # 정책+취향 합친 결과·위반 확인
 npm run render -- <이름> --check   # 검사 (+ .props.json, public/_live 준비)
 npm run still -- <이름> 16.3 17.0  # 그 순간 스틸 (원본 시간. --edit = 결과 영상 시간, --scene 06)
 npm run render -- <이름> --preview # 절반 해상도
 npm run render -- <이름>           # 최종 → projects/<이름>/out/final.mp4
-python3 scripts/look.py <mp4> --plan projects/<이름>/plan.json   # 훅 + 장면별 프레임 시트
+npm run look -- <mp4> --plan projects/<이름>/plan.json   # 훅 + 장면별 프레임 시트
 npm test                           # 자체 시험 (코드를 고쳤으면 반드시. --quick 은 스틸 렌더 생략)
 ```
 
@@ -60,7 +61,7 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
 - `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면, `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
 - `src/captions/Captions.tsx` 자막
-- `scripts/` new-project · probe · face · transcribe · align · edit · words · style · timeline · render · still · look · doctor · selftest · sfx · setup
+- `scripts/` new-project · probe · face · transcribe · align · edit · words · style · timeline · render · still · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
 - `examples/demo/` 템플릿 데모 plan · `examples/avatar-v01/` 실제 영상 하나의 전 과정 파일
 - `models/yunet` 얼굴 인식 모델(MIT, git 에 포함) · `public/fonts` 글꼴(OFL) · `public/objects` 3D 오브젝트 62종 · `public/sfx` 합성 효과음 11종 (git 에 포함. 지워지면 `sfx.py`)
 
@@ -88,4 +89,5 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - whisper 는 "음, 어" 를 곧잘 지운다 → `initial_prompt` 에 예시로 넣어 둠. 그래도 없으면 `edit.json` 의 `cut` 으로.
 - 장면 시각을 파이썬 한 줄로 뽑아 sed 로 고치다 틀린 적이 있다 → `npm run words`.
 - 분할 화면에서 **얼굴 중심**만 맞춰 내렸더니 머리가 큰 영상은 정수리가 판 밑으로 190px 들어갔다 → 머리 상자(정수리~턱)를 재서 배치 (`framing.js`, 정책 `face`). 머리 위치를 눈대중하지 않는다.
+- Windows 는 `python3`·`.venv/bin` 이 없고, `npx`·`npm` 은 `.cmd` 라 셸 없이 spawn 하면 실패하고, 한국어 Windows 는 파이썬 기본 인코딩이 cp949 → 파이썬·remotion·npm 은 `scripts/platform.mjs` 로 부르고, `.py` 의 파일 읽기·쓰기에는 `encoding="utf-8"`.
 - 새 함정을 고치면 `scripts/selftest.mjs` 에 시험 한 줄, 이 목록에 한 줄.
