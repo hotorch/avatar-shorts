@@ -22,6 +22,8 @@
     "doctor": "node scripts/doctor.mjs",
     "still": "node scripts/still.mjs",
     "storyboard": "node scripts/storyboard.mjs",
+    "reference": "node scripts/reference.mjs",
+    "me": "node scripts/me.mjs",
     "words": "node scripts/words.mjs",
     "test": "node scripts/selftest.mjs"
   },

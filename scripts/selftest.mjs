@@ -10,6 +10,10 @@ import {varietyProblems} from './variety.mjs';
 import {fitFrame, FRAME, headBox} from '../src/layouts/framing.js';
 
 const quick = process.argv.includes('--quick');
+// 이 PC 의 내 취향(style/me.json)이 시험 결과를 바꾸지 않게: 시험용 경로로 (자식 프로세스도 물려받는다)
+const ME = path.resolve('projects', '.selftest-me.json');
+process.env.AVATAR_SHORTS_ME = ME;
+fs.rmSync(ME, {force: true});
 const results = [];
 const test = (name, fn) => {
   try {
@@ -77,6 +81,18 @@ test('Windows 에서도 도는 코드 (python3·.venv/bin·npx 를 직접 부르
     if (f.endsWith('.py') && (/\.read_text\(\)|text=True/.test(src) || n(/\.write_text\(/g) > n(/, encoding="utf-8"\)/g))) bad.push(`${f}: encoding="utf-8" 없는 파일 읽기·쓰기`);
   }
   must(!bad.length, bad.join(' / '));
+});
+test('내 취향(style/me.json)은 git 에 안 올라감 (각자 PC)', () => must(sh('git', ['check-ignore', 'style/me.json']).out.trim(), 'style/me.json 이 .gitignore 에 없음'));
+test('레퍼런스 영상 → 내 취향: after(장면 많음, 무음 줄임, 어두움) → high · tight · darktech', () => {
+  const ref = (f, n) => sh(process.execPath, ['scripts/reference.mjs', f, n]);
+  const r = ref('docs/example/after.mp4', 'selftest-ref-after');
+  must(r.code === 0, r.out.trim().split('\n').pop());
+  const me = json(ME);
+  must(me.broll?.density === 'high' && me.edit?.silence === 'tight' && me.look?.palette === 'darktech', JSON.stringify({b: me.broll, e: me.edit, l: me.look}));
+  must(me.edit?.maxLength == null, '영상 길이를 배워 버림 (내 말이 잘린다)');
+  // 얼굴만 나오는 원본을 더하면 중앙값이 내려간다 (분당 23 · 0 → 11.6 = medium)
+  must(ref('docs/example/before.mp4', 'selftest-ref-before').code === 0, 'before 재기 실패');
+  must(json(ME).broll.density === 'medium', `레퍼런스 2개 density ${json(ME).broll.density}`);
 });
 test('데모에 필요한 자산이 저장소에 있음 (효과음 11 · 글꼴 · 오브젝트 · 얼굴 모델, .gitignore 에 안 걸림)', () => {
   // 예전: public/sfx/*.wav 가 gitignore 라 새로 받은 사람의 npm run demo 가 404 로 실패
@@ -263,6 +279,15 @@ test('통과: 배치만 같고 모션·주인공이 다른 두 장면 (strict �
   const s = check(plan);
   fs.rmSync(path.join(T, 'taste.json'));
   must(s.code !== 0 && /0개까지/.test(s.out), 'strict 인데 통과해 버림');
+  // 우선순위: 프로젝트 취향 > 내 취향(me.json) > 기본 취향
+  fs.writeFileSync(ME, JSON.stringify({broll: {variety: 'strict'}}));
+  const m = check(plan);
+  fs.writeFileSync(path.join(T, 'taste.json'), JSON.stringify({broll: {variety: 'normal'}}));
+  const p = check(plan);
+  fs.rmSync(path.join(T, 'taste.json'));
+  fs.rmSync(ME, {force: true});
+  must(m.code !== 0, '내 취향(me.json) strict 가 안 먹음');
+  must(p.code === 0, '프로젝트 취향이 내 취향을 못 덮음');
 });
 
 // ── 5. 렌더 한 프레임 (브라우저 필요)
@@ -292,6 +317,8 @@ if (!quick)
 
 fs.rmSync(T, {recursive: true, force: true});
 fs.rmSync('public/_live', {recursive: true, force: true});
+fs.rmSync(ME, {force: true});
+for (const n of ['after', 'before']) fs.rmSync(path.join('projects', '_refs', `selftest-ref-${n}`), {recursive: true, force: true});
 
 for (const r of results) console.log(`${r.ok ? '✅' : '❌'} ${r.name}${r.ok ? '' : `\n     ${r.msg}`}`);
 const bad = results.filter((r) => !r.ok).length;

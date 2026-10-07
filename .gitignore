@@ -2,6 +2,7 @@ node_modules/
 out/
 projects/*
 !projects/.gitkeep
+style/me.json
 public/_live/
 .DS_Store
 *.log

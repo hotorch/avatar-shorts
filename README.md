@@ -204,13 +204,17 @@ B-roll을 띄울 때 먼저 **머리가 어디 있는지** 잽니다. 영상 내
 - "이 레퍼런스 그라디언트를 우리 정책으로 넣어줘"
 - "구글 플로우로 비롤을 직접 만들고 싶어. 프롬프트 줘"
 - "렌더 전에 스토리보드 먼저 보여줘"
+- "이 영상처럼 만들고 싶어" (좋아하는 영상 파일과 함께) / "내 취향 보여줘"
 - "하나씩 물어보면서 해줘" (질문 정도를 바꿉니다)
 
-한 번 고친 취향은 그 프로젝트에 기억하고, 같은 방향으로 두 번 고치면 다음 영상부터 기본값이 됩니다.
+한 번 고친 취향은 그 프로젝트에 기억하고, 같은 방향으로 두 번 고치면 다음 영상부터 내 기본값이 됩니다.
+
+### 내 취향 배우기 (`style/me.json`)
+좋아하는 쇼츠 영상 파일을 주면서 "이 영상처럼 만들고 싶어"라고 하세요. Claude가 화면이 바뀌는 리듬, 말 사이 쉼, 밝기를 재고, 장면을 직접 보고 자막 크기와 배치를 정해 **내 취향**으로 기억합니다. 영상을 줄수록 정확해집니다. 내 취향은 내 PC에만 있고 git에 올라가지 않습니다. "내 취향 보여줘"라고 하면 지금까지 배운 것을 보여 줍니다. 그림·글자·로고는 가져오지 않고 구도와 리듬만 배웁니다.
 
 ### 정책과 취향 (`style/`)
 - **정책** `style/policy.json`: 어기면 틀린 것입니다. 지어내지 않기, 첫 1초는 얼굴, 얼굴(정수리~턱)을 가리지 않기, 이웃한 장면이 비슷하지 않기, 자막 길이, 그라디언트 레시피, 승인된 3색 팔레트 같은 것들이고, 렌더 검사가 막습니다. 팀·채널이 git으로 공유합니다.
-- **취향** `style/taste.json`: 고르는 것입니다. 팔레트, 무음을 얼마나 줄일지, 훅을 앞으로 뺄지, B-roll 양, 자막 크기, 질문 정도(`ask`). Claude는 이 값을 보고 묻지 않고 정합니다.
+- **취향** `style/taste.json`: 고르는 것입니다. 팔레트, 무음을 얼마나 줄일지, 훅을 앞으로 뺄지, B-roll 양, 자막 크기, 질문 정도(`ask`). Claude는 이 값을 보고 묻지 않고 정합니다. 공용 기본값이고, 내 값은 `style/me.json` 이 덮어씁니다.
 - 레퍼런스(이미지·가이드 문서)를 주면서 "반영해줘"라고 하면 Claude가 정책·취향·부품으로 나눠 넣습니다. 기준은 [style/README.md](style/README.md) 에 있습니다.
 
 ---
@@ -226,11 +230,11 @@ B-roll을 띄울 때 먼저 **머리가 어디 있는지** 잽니다. 영상 내
 | **3D 오브젝트 62종** | 전구, 체스, 시계, 로켓, 자물쇠, 돈, 채팅 등 (CC0) |
 | **글꼴 6종** | Pretendard, SUIT, 나눔명조, 학교안심 알림장, Instrument Serif, IBM Plex Mono (OFL) |
 | **효과음 11종** | 코드로 합성했습니다(whoosh, pop, click, tick, thud, paper, sparkle 등). 저작권 걱정이 없습니다 |
-| **스킬 8개** | `shorts`(전체 흐름) · `transcribe-ko` · `viral-edit` · `broll-plan` · `storyboard` · `motion-kit` · `style-intake` · `flow-prompts` |
+| **스킬 9개** | `shorts`(전체 흐름) · `transcribe-ko` · `viral-edit` · `broll-plan` · `storyboard` · `motion-kit` · `style-intake` · `reference-taste` · `flow-prompts` |
 
 ```
-.claude/skills/   Claude가 따르는 작업 방법 (스킬 8개)
-style/            정책(policy.json)과 취향(taste.json)
+.claude/skills/   Claude가 따르는 작업 방법 (스킬 9개)
+style/            정책(policy.json)과 취향(taste.json · 내 취향 me.json 은 git 제외)
 src/              Remotion 코드: 레이아웃, 템플릿, 부품(kit), 자막
 scripts/          영상 분석, 머리 추적, 음성 인식, 자막 정렬, 말 편집, 렌더, 검수, 효과음 합성
 public/           글꼴, 3D 오브젝트, 효과음

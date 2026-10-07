@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // 정책(style/policy.json) + 취향(style/taste.json → projects/<이름>/taste.json) 을 합친다.
 //   node scripts/style.mjs <이름>        합친 결과를 JSON 으로 출력 (edit.py 가 읽는다)
-// 우선순위: 정책(잠김) > plan.json 에 직접 적은 값 > 프로젝트 취향 > 기본 취향
+// 우선순위: 정책(잠김) > plan.json 에 직접 적은 값 > 프로젝트 취향 > 내 취향(style/me.json, 이 PC 에만) > 기본 취향
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {readMe} from './me.mjs';
 
 const readJson = (p, fallback = {}) => (fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : fallback);
 
@@ -75,7 +76,7 @@ const PALETTE_BG = {darktech: '#14171B', editorial: '#F3F0E8', academic: '#F6F0E
 export const resolveStyle = (slug, plan = {}) => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const policy = readJson(path.join(root, 'style/policy.json'));
-  let taste = readJson(path.join(root, 'style/taste.json'));
+  let taste = merge(readJson(path.join(root, 'style/taste.json')), readMe());
   if (slug) taste = merge(taste, readJson(path.join(root, 'projects', slug, 'taste.json')));
 
   const problems = [];
