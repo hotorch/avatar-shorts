@@ -40,6 +40,7 @@ description: 자막(words.json, captions.json)을 보고 어느 문장에 어떤
   - 같은 방식이 이어지면(0.6초 이내) 한 번에 배치된다. above↔below 를 바로 붙이면 아바타가 오르내리니, 붙일 거면 같은 방식으로 묶는다.
   - 가로: 기본 `panel`(오른쪽 무대), 넓게 보여줄 것만 `cutaway`(아바타가 작아짐). above/below 는 panel 과 같다. 장면이 없는 구간은 말하는 문장이 오른쪽에 크게 뜨므로 빈 화면 걱정 없음.
 - 같은 템플릿 연속 3번 금지. 영상 전체에서 3~5가지 템플릿을 섞는다.
+- **바로 이웃한 두 장면은 지문(배치·모션·주인공·첫 효과음)이 2개 이상 같으면 안 된다.** 주인공 오브젝트가 같아도 안 된다 (정책 `variety`, 렌더가 막는다). list·steps 는 같은 모션. 쓰고 나면 `storyboard` 스킬로 확인.
 - 효과음은 동작에 1:1 로. 장면당 1~3개. `sfx` 를 비우면 시작에 옅은 whoosh 가 자동으로 들어간다.
   효과음: whoosh, whoosh-soft, pop, click, tick, thud, paper, sparkle, coin, marker, air
 
@@ -68,4 +69,4 @@ description: 자막(words.json, captions.json)을 보고 어느 문장에 어떤
 - `layout`, `duration`, `video`, `captions` 는 비워둔다 → 렌더 스크립트가 video.json / captions.json 에서 채운다.
 - palette: `editorial` | `darktech` | `academic`. 트라이어드·그라디언트 면(`surface`)·효과음 볼륨·자막 크기는 취향에서 채워지므로 보통 적지 않는다.
   accent 는 트라이어드를 쓰면 무시된다(정책: 한 영상 한 강조색).
-- 작성 후 `npm run render -- <slug> --check` 로 검증.
+- 작성 후 `npm run storyboard -- <slug>` (검사 + 장면별 프레임 시트)로 확인한다 → `storyboard` 스킬.

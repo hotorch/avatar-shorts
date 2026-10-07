@@ -50,16 +50,28 @@ export const remapScene = (cuts, sc) => {
   return {scene: {...sc, props: walk(sc.props, ''), sfx: sc.sfx?.map((e) => ({...e, t: m(e.t)})), in: +a.t.toFixed(3), out: +b.t.toFixed(3)}};
 };
 
-/** 장면 props 안에서 가장 이른 등장 시각 (빈 화면 검사용). 시간 값이 없으면 null */
-export const firstBeat = (sc) => {
-  let min = null;
+/** 장면 props 안의 등장 시각들 (at · times · t · …At) */
+const beatTimes = (sc) => {
+  const out = [];
   const walk = (v, k) => {
-    if (typeof v === 'number' && TIME_KEY.test(k) && k !== 'in' && k !== 'out') min = min == null ? v : Math.min(min, v);
+    if (typeof v === 'number' && TIME_KEY.test(k) && k !== 'in' && k !== 'out') out.push(v);
     else if (Array.isArray(v)) v.forEach((x) => walk(x, k));
     else if (v && typeof v === 'object') Object.entries(v).forEach(([kk, x]) => walk(x, kk));
   };
   walk(sc.props, '');
-  return min;
+  return out;
+};
+
+/** 가장 이른 등장 시각 (빈 화면 검사용). 시간 값이 없으면 null */
+export const firstBeat = (sc) => {
+  const b = beatTimes(sc);
+  return b.length ? Math.min(...b) : null;
+};
+
+/** 가장 늦은 등장 시각 (스토리보드: 퇴장 직전에 나오는 요소 찾기). 없으면 null */
+export const lastBeat = (sc) => {
+  const b = beatTimes(sc);
+  return b.length ? Math.max(...b) : null;
 };
 
 export const toFrame = (t, fps = COMP_FPS) => Math.max(0, Math.round(t * fps));

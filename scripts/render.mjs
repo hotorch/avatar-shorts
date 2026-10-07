@@ -9,6 +9,7 @@ import {buildFraming, faceFrame, headBox} from '../src/layouts/framing.js';
 import {remotion} from './platform.mjs';
 import {resolveStyle} from './style.mjs';
 import {firstBeat, loadCuts, mapTime, remapScene} from './timeline.mjs';
+import {varietyProblems} from './variety.mjs';
 
 const args = process.argv.slice(2);
 const slug = args.find((a) => !a.startsWith('--'));
@@ -141,6 +142,8 @@ scenes.forEach((s, i) => {
     }
   }
 });
+// 정책(다양성): 연속으로 비슷한 장면 막기 (scripts/variety.mjs)
+problems.push(...varietyProblems(scenes, pol.variety, style.taste.broll?.variety === 'strict'));
 for (const e of props.sfx ?? []) if (!sfx.has(e.cue)) problems.push(`효과음 "${e.cue}" 없음`);
 if (!captions.length) warn.push('자막이 없습니다 (captions.json)');
 const bigs = captions.filter((c) => c.style === 'big').length;

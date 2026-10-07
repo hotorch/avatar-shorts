@@ -6,9 +6,14 @@ import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {checkTriad} from './style.mjs';
+import {varietyProblems} from './variety.mjs';
 import {fitFrame, FRAME, headBox} from '../src/layouts/framing.js';
 
 const quick = process.argv.includes('--quick');
+// 이 PC 의 내 취향(style/me.json)이 시험 결과를 바꾸지 않게: 시험용 경로로 (자식 프로세스도 물려받는다)
+const ME = path.resolve('projects', '.selftest-me.json');
+process.env.AVATAR_SHORTS_ME = ME;
+fs.rmSync(ME, {force: true});
 const results = [];
 const test = (name, fn) => {
   try {
@@ -54,6 +59,17 @@ test('템플릿 목록 3곳 일치 (scenes/index.tsx · render.mjs · templates.
   must(idx.join() === rnd.join(), `index.tsx [${idx}] ≠ render.mjs [${rnd}]`);
   must(idx.join() === md.join(), `index.tsx [${idx}] ≠ templates.md [${md}]`);
 });
+test('모든 템플릿에 등장 모션 계열이 있음 (policy variety.motion = render.mjs 템플릿 목록)', () => {
+  const rnd = JSON.parse(fs.readFileSync('scripts/render.mjs', 'utf8').match(/const templates = (\[[^\]]+\])/)[1].replace(/'/g, '"')).filter((t) => t !== 'custom');
+  const miss = rnd.filter((t) => !policy.variety.motion[t]);
+  must(!miss.length, `motion 없음: ${miss.join(', ')}`);
+});
+test('예시 plan 이 전부 다양성 정책을 통과 (avatar-v01 · 데모 3개)', () => {
+  // 예전: avatar-v01 장면 07~09 가 머리 위 morph 알약 3연속인데 템플릿 검사(maxSameTemplateRun)를 통과했다
+  const bad = ['examples/avatar-v01/plan.json', ...fs.readdirSync('examples/demo').map((f) => `examples/demo/${f}`)].flatMap((f) =>
+    varietyProblems([...json(f).scenes].sort((a, b) => a.in - b.in), policy.variety).map((m) => `${f}: ${m}`));
+  must(!bad.length, bad.join(' / '));
+});
 test('Windows 에서도 도는 코드 (python3·.venv/bin·npx 를 직접 부르지 않음, 파이썬 파일 읽기·쓰기는 UTF-8)', () => {
   // 예전: WSL 없이는 안 됐다. Windows 에는 python3·.venv/bin 이 없고, npx 는 .cmd 라 spawn 이 실패하고,
   //       한국어 Windows 의 기본 인코딩(cp949)으로 한글 JSON 을 읽다 깨졌다 → scripts/platform.mjs 와 encoding="utf-8"
@@ -65,6 +81,18 @@ test('Windows 에서도 도는 코드 (python3·.venv/bin·npx 를 직접 부르
     if (f.endsWith('.py') && (/\.read_text\(\)|text=True/.test(src) || n(/\.write_text\(/g) > n(/, encoding="utf-8"\)/g))) bad.push(`${f}: encoding="utf-8" 없는 파일 읽기·쓰기`);
   }
   must(!bad.length, bad.join(' / '));
+});
+test('내 취향(style/me.json)은 git 에 안 올라감 (각자 PC)', () => must(sh('git', ['check-ignore', 'style/me.json']).out.trim(), 'style/me.json 이 .gitignore 에 없음'));
+test('레퍼런스 영상 → 내 취향: after(장면 많음, 무음 줄임, 어두움) → high · tight · darktech', () => {
+  const ref = (f, n) => sh(process.execPath, ['scripts/reference.mjs', f, n]);
+  const r = ref('docs/example/after.mp4', 'selftest-ref-after');
+  must(r.code === 0, r.out.trim().split('\n').pop());
+  const me = json(ME);
+  must(me.broll?.density === 'high' && me.edit?.silence === 'tight' && me.look?.palette === 'darktech', JSON.stringify({b: me.broll, e: me.edit, l: me.look}));
+  must(me.edit?.maxLength == null, '영상 길이를 배워 버림 (내 말이 잘린다)');
+  // 얼굴만 나오는 원본을 더하면 중앙값이 내려간다 (분당 23 · 0 → 11.6 = medium)
+  must(ref('docs/example/before.mp4', 'selftest-ref-before').code === 0, 'before 재기 실패');
+  must(json(ME).broll.density === 'medium', `레퍼런스 2개 density ${json(ME).broll.density}`);
 });
 test('데모에 필요한 자산이 저장소에 있음 (효과음 11 · 글꼴 · 오브젝트 · 얼굴 모델, .gitignore 에 안 걸림)', () => {
   // 예전: public/sfx/*.wav 가 gitignore 라 새로 받은 사람의 npm run demo 가 404 로 실패
@@ -228,6 +256,40 @@ test('막힘: 머리 위/아래 카드에 안 맞는 템플릿 (compare 를 belo
   must(r.code !== 0 && /below/.test(r.out), '통과해 버림');
 });
 
+// 다양성: 편집본(재배치 [[1,3]]) 원본 0.3–2.9 · 2.9–5.9 → 편집 약 0.3–1.9 · 1.9–3.7 로 붙은 두 장면
+const pair = (a, b) => [{id: 'a', in: 0.3, out: 2.9, mode: 'panel', ...a}, {id: 'b', in: 2.9, out: 5.9, mode: 'panel', ...b}];
+const kw = {template: 'keyword', props: {text: '하나', times: [0.4]}};
+test('막힘: 붙은 두 장면의 배치·모션이 같음 (다양성 정책)', () => {
+  const r = check({theme: {palette: 'darktech'}, scenes: pair(kw, {template: 'keyword', props: {text: '셋', times: [4.6]}})});
+  must(r.code !== 0 && /정책\(다양성\) 장면 a→b/.test(r.out), '통과해 버림');
+});
+test('막힘: 붙은 두 장면의 주인공 오브젝트가 같음', () => {
+  const r = check({theme: {palette: 'darktech'}, scenes: pair({template: 'list', props: {object: 'bulb', items: [{text: 'x', at: 0.4}]}}, {mode: 'cutaway', ...hero('b', 2.9, 5.9)})});
+  must(r.code !== 0 && /주인공 "bulb"/.test(r.out), '통과해 버림');
+});
+test('막힘: morph 안에서 같은 모양이 연속 (pill → pill)', () => {
+  const r = check({theme: {palette: 'darktech'}, scenes: [{id: 'm', in: 2.9, out: 5.9, mode: 'panel', template: 'morph', props: {states: [{t: 3.0, kind: 'pill', text: 'a'}, {t: 4.6, kind: 'pill', text: 'b'}]}}]});
+  must(r.code !== 0 && /pill → pill/.test(r.out), '통과해 버림');
+});
+test('통과: 배치만 같고 모션·주인공이 다른 두 장면 (strict 취향이면 막힘)', () => {
+  const plan = {theme: {palette: 'darktech'}, scenes: pair(kw, {template: 'hero', props: {object: 'bulb', title: '셋', objectAt: 4.6}})};
+  const r = check(plan);
+  must(r.code === 0, r.out.trim().split('\n').filter((l) => l.startsWith('❌')).join(' | '));
+  fs.writeFileSync(path.join(T, 'taste.json'), JSON.stringify({broll: {variety: 'strict'}}));
+  const s = check(plan);
+  fs.rmSync(path.join(T, 'taste.json'));
+  must(s.code !== 0 && /0개까지/.test(s.out), 'strict 인데 통과해 버림');
+  // 우선순위: 프로젝트 취향 > 내 취향(me.json) > 기본 취향
+  fs.writeFileSync(ME, JSON.stringify({broll: {variety: 'strict'}}));
+  const m = check(plan);
+  fs.writeFileSync(path.join(T, 'taste.json'), JSON.stringify({broll: {variety: 'normal'}}));
+  const p = check(plan);
+  fs.rmSync(path.join(T, 'taste.json'));
+  fs.rmSync(ME, {force: true});
+  must(m.code !== 0, '내 취향(me.json) strict 가 안 먹음');
+  must(p.code === 0, '프로젝트 취향이 내 취향을 못 덮음');
+});
+
 // ── 5. 렌더 한 프레임 (브라우저 필요)
 if (!quick)
   test('스틸 렌더 (npm run still)', () => {
@@ -235,9 +297,28 @@ if (!quick)
     const r = sh(process.execPath, ['scripts/still.mjs', '.selftest', '5.2']);
     must(r.code === 0 && fs.existsSync(path.join(T, 'out', 'still.png')), r.out.trim().split('\n').pop());
   });
+if (!quick)
+  test('스토리보드 (npm run storyboard): 장면마다 한 칸 + 지문 표, 다양성 위반이면 표만 쓰고 멈춤, 끝에 늦게 나오는 요소 ⚠️', () => {
+    check({theme: {palette: 'darktech'}, scenes: pair(kw, {template: 'hero', props: {object: 'bulb', title: '셋', objectAt: 4.6}})});
+    const sb = () => sh(process.execPath, ['scripts/storyboard.mjs', '.selftest']);
+    const r = sb();
+    const sheet = path.join(T, 'out', 'storyboard.png');
+    must(r.code === 0 && fs.existsSync(sheet), r.out.trim().split('\n').pop());
+    const w = Number(sh('ffprobe', ['-v', 'error', '-show_entries', 'stream=width', '-of', 'csv=p=0', sheet]).out.trim());
+    must(w > 800, `시트 폭 ${w}px — 두 칸이 아님`);
+    must(/\| a \|.*\| b \|.*배치/s.test(fs.readFileSync(path.join(T, 'storyboard.md'), 'utf8')), 'storyboard.md 에 장면 a·b 와 같은 축(배치)이 없음');
+    // 예전: avatar-v01 장면 06 "번지죠" 가 무음을 줄인 장면 끝 0.5초 전에야 나와 거의 안 보였다
+    check({theme: {palette: 'darktech'}, scenes: pair(kw, {template: 'keyword', props: {text: '셋', times: [5.7]}})});
+    const x = sb();
+    const md = fs.readFileSync(path.join(T, 'storyboard.md'), 'utf8');
+    must(x.code !== 0 && /정책\(다양성\)/.test(md), '다양성 위반인데 시트를 만들어 버림');
+    must(/⚠️ 장면 b: 마지막 요소/.test(md), '장면 끝에 나오는 요소를 알리지 않음');
+  });
 
 fs.rmSync(T, {recursive: true, force: true});
 fs.rmSync('public/_live', {recursive: true, force: true});
+fs.rmSync(ME, {force: true});
+for (const n of ['after', 'before']) fs.rmSync(path.join('projects', '_refs', `selftest-ref-${n}`), {recursive: true, force: true});
 
 for (const r of results) console.log(`${r.ok ? '✅' : '❌'} ${r.name}${r.ok ? '' : `\n     ${r.msg}`}`);
 const bad = results.filter((r) => !r.ok).length;

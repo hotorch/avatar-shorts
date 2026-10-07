@@ -1,6 +1,6 @@
 ---
 name: style-intake
-description: 레퍼런스(이미지, 스레드/핀터레스트 링크, 디자인 가이드 프롬프트)나 "앞으로 이렇게 해줘" 같은 요청을 받아 정책/취향/자산으로 나눠 style/policy.json, style/taste.json, src/kit 에 녹인다. "이 레퍼런스 반영해줘", "이거 정책으로", "내 취향 저장", "이런 그라디언트 쓰고 싶어" 요청에 사용.
+description: 레퍼런스(이미지, 스레드/핀터레스트 링크, 디자인 가이드 프롬프트)나 "앞으로 이렇게 해줘" 같은 요청을 받아 정책/취향/자산으로 나눠 style/policy.json, style/taste.json, src/kit 에 녹인다. "이 레퍼런스 반영해줘", "이거 정책으로", "팀 기본값으로", "이런 그라디언트 쓰고 싶어" 요청에 사용. 좋아하는 영상으로 개인 취향을 배우는 건 reference-taste.
 ---
 
 # 스타일 들이기: 레퍼런스 → 정책 · 취향 · 자산
@@ -16,7 +16,7 @@ description: 레퍼런스(이미지, 스레드/핀터레스트 링크, 디자인
 
 ## 2. 넣기
 - 정책 → `style/policy.json` (`$doc` 에 출처와 바꾼 점 한 줄). 검사가 필요하면 `scripts/style.mjs` 또는 `scripts/render.mjs` 에 검사 추가.
-- 취향 → `style/taste.json` 키와 기본값. README 의 취향 표에 한 줄.
+- 취향 → `style/taste.json` 키와 기본값(팀 공용). README 의 취향 표에 한 줄. 한 사람의 값은 `style/me.json` (`reference-taste`).
 - 자산 → `src/kit/` 부품 (motion-kit 규칙: 프레임 함수만, px 에 `* u`, 오프라인 폰트). 필요하면 템플릿 (`src/scenes/index.tsx`, render 의 templates 목록, broll-plan 의 templates.md).
 - **레퍼런스 이미지는 반드시 직접 본다.** 텍스트 명세와 실제 이미지가 다른 경우가 있다 (예: 명세는 "진한색은 충분히 어둡게"였지만 실제로는 파랑·올리브도 있었고, 진짜 규칙은 글자 대비였다).
   - 링크가 SNS 게시물이면: 브라우저로 열어 `og:image`·`img` 주소를 뽑거나, 사용자에게 이미지 주소를 받는다.
