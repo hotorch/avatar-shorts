@@ -11,6 +11,7 @@
 | 자막 받아쓰기·오탈자 교정·다시 만들기 | `transcribe-ko` |
 | 무음 제거, 훅 재배치, 길이 줄이기 | `viral-edit` |
 | 어디에 어떤 B-roll 을 얹을지, 장면 수정 | `broll-plan` |
+| 렌더 전에 장면 미리 보기, "비슷한 장면이 반복돼" | `storyboard` |
 | 템플릿으로 안 되는 장면 직접 만들기, 템플릿 고치기 | `motion-kit` |
 | 레퍼런스·"앞으로 이렇게" → 정책/취향/부품 | `style-intake` |
 | Google Flow 등 생성 도구로 B-roll 을 만들고 싶을 때 | `flow-prompts` |
@@ -35,6 +36,7 @@ npm run align -- <이름>
 npm run edit -- <이름> [--list]     # 무음 제거 + edit.json(order, cut) → edit.mp4
 npm run words -- <이름> [글자…]    # 단어별 원본 시간 · 편집 시간 · 프레임 (plan 의 at/t 는 여기서)
 node scripts/style.mjs <이름>                     # 정책+취향 합친 결과·위반 확인
+npm run storyboard -- <이름>       # 렌더 전: 검사 + 장면마다 대표 프레임 시트(out/storyboard.png) + 지문 표(storyboard.md)
 npm run render -- <이름> --check   # 검사 (+ .props.json, public/_live 준비)
 npm run still -- <이름> 16.3 17.0  # 그 순간 스틸 (원본 시간. --edit = 결과 영상 시간, --scene 06)
 npm run render -- <이름> --preview # 절반 해상도
@@ -54,14 +56,14 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 ## 프로젝트 폴더 (`projects/<이름>/`, git 제외)
 `input.mp4` 원본 **복사본** · `video.json` 크기/레이아웃/얼굴·머리 위치(head, track)/배경 색(tones) · `transcript.txt`, `words.raw.json` 음성 인식 원본 ·
 `script.txt` 교정 대본(한 줄=한 큐) · `words.json`, `captions.json` 정렬 결과 · `edit.json` 순서(`order`)·손으로 자를 곳(`cut`, 원본 초) · `edit.mp4`, `*.edit.json`, `cuts.json` 편집본 ·
-`taste.json` 프로젝트 취향 · `decisions.md` 결정 기록 · `plan.json` 장면 계획 · `broll/` 직접 넣는 이미지·영상 · `out/` 결과 · `.props.json` render 가 합친 최종 입력
+`taste.json` 프로젝트 취향 · `decisions.md` 결정 기록 · `plan.json` 장면 계획 · `storyboard.md` 장면 지문 표 · `broll/` 직접 넣는 이미지·영상 · `out/` 결과 · `.props.json` render 가 합친 최종 입력
 
 ## 코드 지도
 - `src/Short.tsx` 메인 컴포지션 (plan 하나 = 영상 하나), `src/Root.tsx` 크기·길이 계산
 - `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
 - `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면, `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
 - `src/captions/Captions.tsx` 자막
-- `scripts/` new-project · probe · face · transcribe · align · edit · words · style · timeline · render · still · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
+- `scripts/` new-project · probe · face · transcribe · align · edit · words · style · timeline · variety(장면 지문·다양성 검사) · render · still · storyboard · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
 - `examples/demo/` 템플릿 데모 plan · `examples/avatar-v01/` 실제 영상 하나의 전 과정 파일
 - `models/yunet` 얼굴 인식 모델(MIT, git 에 포함) · `public/fonts` 글꼴(OFL) · `public/objects` 3D 오브젝트 62종 · `public/sfx` 합성 효과음 11종 (git 에 포함. 지워지면 `sfx.py`)
 
@@ -80,7 +82,7 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - **morph 는 첫 상태의 `t` 에 나타난다.** 장면 in 보다 늦으면 빈 판 → 첫 상태(알약 등)를 in 쪽에.
 - **대사가 화면을 설명하면 그걸 보여 준다**: "빛이 번지죠" → 빛 번짐 장면, `git clone` → 터미널(검색창 아님).
 - 영상 색 분석은 **얼굴(피부) 빼고** 배경만 — 안 그러면 모든 영상이 주황으로 뽑힌다.
-- 무음을 줄이면 장면이 짧아진다 → 1.2초 정책에 걸리면 in/out 을 넓힌다.
+- 무음을 줄이면 장면이 짧아진다 → 1.2초 정책에 걸리면 in/out 을 넓힌다. 끝이 당겨져 마지막 요소가 퇴장 직전에 나오기도 한다 (avatar-v01 06 "번지죠") → `npm run storyboard` 가 ⚠️ 로 알린다.
 - 재배치 덩어리의 경계는 문장 사이 무음 한가운데 (edit.py). 이웃 덩어리와 원본을 겹쳐 가져가면 같은 소리가 두 번 난다.
 - ffmpeg 버전마다 옵션이 다르다 (`-filter_complex_script` 는 7.x 에서 사라짐) → 필터 그래프는 인자로 넘긴다.
 - 레퍼런스가 로그인 뒤에 있으면(스레드 등) 캡처가 안 될 수 있다 → 페이지의 `og:image` 나 사용자에게 받은 이미지 주소를 받아 **직접 보고** 판단한다.
@@ -90,4 +92,5 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - 장면 시각을 파이썬 한 줄로 뽑아 sed 로 고치다 틀린 적이 있다 → `npm run words`.
 - 분할 화면에서 **얼굴 중심**만 맞춰 내렸더니 머리가 큰 영상은 정수리가 판 밑으로 190px 들어갔다 → 머리 상자(정수리~턱)를 재서 배치 (`framing.js`, 정책 `face`). 머리 위치를 눈대중하지 않는다.
 - Windows 는 `python3`·`.venv/bin` 이 없고, `npx`·`npm` 은 `.cmd` 라 셸 없이 spawn 하면 실패하고, 한국어 Windows 는 파이썬 기본 인코딩이 cp949 → 파이썬·remotion·npm 은 `scripts/platform.mjs` 로 부르고, `.py` 의 파일 읽기·쓰기에는 `encoding="utf-8"`.
+- 템플릿 이름만 다르면 통과하던 탓에 머리 위 morph 알약이 세 번 연속 나왔다 (avatar-v01 07~09) → 이웃 장면의 지문 4축(배치·모션·주인공·첫 효과음)을 비교 (`variety.mjs`, 정책 `variety`). 이웃은 **편집 시간 순** (훅을 옮기면 순서가 바뀐다).
 - 새 함정을 고치면 `scripts/selftest.mjs` 에 시험 한 줄, 이 목록에 한 줄.

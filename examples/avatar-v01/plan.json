@@ -237,17 +237,14 @@
    "in": 21.76,
    "out": 23.12,
    "mode": "above",
-   "template": "morph",
+   "template": "keyword",
    "props": {
-    "states": [
-     {
-      "t": 21.92,
-      "kind": "pill",
-      "text": "무료",
-      "object": "gift"
-     }
+    "text": "*무료*",
+    "times": [
+     21.92
     ],
-    "cursor": false
+    "mark": "circle",
+    "markAt": 22.26
    },
    "sfx": [
     {

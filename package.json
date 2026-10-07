@@ -21,6 +21,7 @@
     "typecheck": "tsc --noEmit",
     "doctor": "node scripts/doctor.mjs",
     "still": "node scripts/still.mjs",
+    "storyboard": "node scripts/storyboard.mjs",
     "words": "node scripts/words.mjs",
     "test": "node scripts/selftest.mjs"
   },

@@ -26,6 +26,28 @@
     "maxSameTemplateRun": 2
   },
 
+  "variety": {
+    "$doc": "연속으로 비슷한 장면은 지루하다. 장면마다 지문 4축(배치 mode · 등장 모션 · 주인공 에셋 · 첫 효과음)을 뽑아, 바로 앞 장면(사이 얼굴 구간이 windowSec 이하)과 maxSharedAxes 개보다 많이 같으면 막는다. 주인공 에셋(첫 object·center·media src)이 같으면 그것만으로 막는다. morph 안에서 같은 모양(kind)이 연이어 나오면 변화가 안 보여 막는다. 계기: avatar-v01 장면 07~09 가 템플릿 검사는 통과했지만 머리 위 morph 알약이 세 번 연속. 취향 broll.variety 가 strict 면 0개(전부 달라야). 모션은 템플릿이 정한다(motion 표). list·steps 는 둘 다 항목이 차례로 쌓여 같은 모션.",
+    "windowSec": 5,
+    "maxSharedAxes": 1,
+    "sameHeroAdjacent": false,
+    "morphSameKindRun": false,
+    "motion": {
+      "hero": "object-pop",
+      "keyword": "type-reveal",
+      "stat": "count-up",
+      "compare": "split",
+      "steps": "stack-build",
+      "list": "stack-build",
+      "chart": "grow",
+      "quote": "paper-drop",
+      "chapter": "wipe",
+      "morph": "morph",
+      "media": "ken-burns",
+      "palette": "card-stack"
+    }
+  },
+
   "edit": {
     "$doc": "무음·군더더기 제거와 재배치의 한계. 취향(silence)이 이보다 느슨할 수는 있어도 이 선을 넘지 못한다.",
     "maxSilenceKept": 0.45,

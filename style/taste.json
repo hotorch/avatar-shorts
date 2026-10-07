@@ -20,7 +20,8 @@
 
   "broll": {
     "density": "high",
-    "framing": "varied"
+    "framing": "varied",
+    "variety": "normal"
   },
 
   "captions": {
