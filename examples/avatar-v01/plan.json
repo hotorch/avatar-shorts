@@ -156,12 +156,12 @@
      13.46
     ],
     "mark": "underline",
-    "markAt": 14.62,
+    "markAt": 13.94,
     "ghost": "HIGHLIGHT"
    },
    "sfx": [
     {
-     "t": 14.62,
+     "t": 13.94,
      "cue": "marker"
     }
    ]
@@ -180,7 +180,7 @@
     "title": "빛이 *번지죠*",
     "titleTimes": [
      16.32,
-     16.66
+     16.32
     ]
    },
    "sfx": [
