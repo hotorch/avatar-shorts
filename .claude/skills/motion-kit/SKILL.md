@@ -56,6 +56,13 @@ const {w, h, u, wide, kind} = useStage(); // 무대 크기, u=기준 스케일(�
 | `useTheme()` `alpha()` `FONT` | kit/theme | 팔레트 색·트라이어드(`t.triad`)·면(`t.surface`)·글꼴 스택 |
 | `fitSize(text, size, maxW)` `textWidth()` | kit/measure | 폭에 맞춰 글자 크기 |
 
+## 색 (정책 `sceneColors`)
+바탕·면·타일은 `useTheme()` 의 팔레트·트라이어드(`t.triad.dark/accent/light`, `t.accent`)와 그 색에 검정을 섞은 명암만. 레퍼런스 사진 색을 가져오지 않는다. 예: `StackCarousel` 의 바탕 = 타일 색을 어둡게.
+
+## 레퍼런스 모션을 옮길 때
+- 그 움직임만 옮기고, 레퍼런스의 타이포·라벨·사진은 가져오지 않는다 (사용자가 좋다고 한 부분만).
+- 화면 전체 레이아웃의 전환(아바타가 커지며 돌아오기 등)은 장면이 아니라 `src/layouts/Vertical.tsx` 에 넣고, 수치는 정책에 둔다 (`avatarGrow` 처럼 render 가 plan 으로 넘김 → 코드에 따로 적지 않음).
+
 ## Remotion 규칙 (렌더가 깨지지 않게)
 - 모든 움직임은 프레임의 함수: `spring`, `interpolate` 만. **CSS transition / @keyframes / setTimeout / Math.random 금지** (랜덤은 `random('seed')`).
 - 이미지는 `<Img>`, 영상은 `<OffthreadVideo>`, 파일은 `staticFile('objects/…')`.

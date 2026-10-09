@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
-import {AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Captions} from '../captions/Captions';
 import {Backdrop} from '../kit/Backdrop';
-import {EASE} from '../kit/motion';
+import {EASE, SPRING} from '../kit/motion';
 import {alpha, useTheme} from '../kit/theme';
 import type {Plan, Scene} from '../plan';
 import {AvatarVideo} from './Avatar';
@@ -30,6 +30,7 @@ export const Vertical: React.FC<{plan: Plan}> = ({plan}) => {
   const base = useMemo(() => faceFrame(plan.video), [plan.video]);
   const f = frameAt(segs, base, now);
   const cutaways = plan.scenes.filter((s) => s.mode === 'cutaway');
+  const grow = plan.avatarGrow ?? GROW_DEFAULT;
   const onCut = cutaways.some((s) => now >= s.in + 0.1 && now < s.out - 0.1);
 
   // 영상이 화면을 다 못 덮는 쪽(내리거나 줄였을 때)은 가장자리를 부드럽게 지워 흐린 영상과 잇는다
@@ -68,12 +69,23 @@ export const Vertical: React.FC<{plan: Plan}> = ({plan}) => {
           stage={{w: W, h: FRAME.CAPTION_Y - SAFE_TOP - 40, kind: 'full'}}
           style={{top: SAFE_TOP, height: FRAME.CAPTION_Y - SAFE_TOP - 40}}
           wrap={(children, clock) => (
-            <CutawayWipe clock={clock} holdEnd={s.out >= plan.duration - 0.05}>
+            <CutawayWipe clock={clock} holdEnd={s.out >= plan.duration - 0.05 || s.exit === 'avatar-grow'}>
               {children}
             </CutawayWipe>
           )}
         />
       ))}
+
+      {/* 컷어웨이 퇴장 avatar-grow: 아바타가 작은 틀에서 계단식으로 커져 돌아온다 */}
+      {cutaways
+        .filter((s) => s.exit === 'avatar-grow' && now >= s.out - grow.durationSec - 0.05 && now < s.out + grow.settleSec) // 마지막 계단의 넘침이 가라앉을 때까지
+        .map((s) => (
+          <AvatarGrow key={s.id} end={s.out} now={now} recipe={grow}>
+            <AbsoluteFill style={{transform: `translate(${f.tx}px, ${f.ty}px) scale(${f.s})`, transformOrigin: '0 0'}}>
+              <AvatarVideo video={plan.video} muted punch={plan.punch} punchK={1 - f.k} />
+            </AbsoluteFill>
+          </AvatarGrow>
+        ))}
 
       <Captions
         cues={plan.captions}
@@ -206,6 +218,55 @@ const CutawayWipe: React.FC<{clock: {start: number; end: number}; holdEnd?: bool
       <Backdrop />
       {children}
     </AbsoluteFill>
+  );
+};
+
+/**
+ * 아바타 확대 퇴장 (레퍼런스: 잡지 표지 영상의 사진 틀). 장면 끝 GROW 초 동안
+ * 컷어웨이 무대 가운데에 작은 아바타 틀이 생겨 3계단(작게 → 중간 → 꽉 채움)으로 커진다.
+ * 틀 비율 = 화면 비율이라 마지막 계단이 그대로 다음 얼굴 화면이 된다 (이음매 없음). 계단마다 pop 스프링.
+ * 수치는 정책 avatarGrow (render 가 plan.avatarGrow 로 넘김). 아래는 정책이 없을 때(데모 등)의 같은 값.
+ */
+const GROW_DEFAULT: NonNullable<Plan['avatarGrow']> = {
+  durationSec: 0.8,
+  steps: [
+    {before: 1.0, scale: 0.2},
+    {before: 0.62, scale: 0.46},
+    {before: 0.3, scale: 1},
+  ],
+  settleSec: 0.7,
+};
+const AvatarGrow: React.FC<{end: number; now: number; recipe: NonNullable<Plan['avatarGrow']>; children: React.ReactNode}> = ({end, now, recipe, children}) => {
+  const {fps} = useVideoConfig();
+  let s = 0;
+  let prev = 0;
+  let last = 0;
+  for (const st of recipe.steps) {
+    const k = spring({frame: Math.round((now - (end - st.before * recipe.durationSec)) * fps), fps, config: SPRING.pop});
+    s += k * (st.scale - prev);
+    prev = st.scale;
+    last = k;
+  }
+  if (s <= 0.001) return null;
+  const stageCy = (SAFE_TOP + FRAME.CAPTION_Y - 40) / 2;
+  const cy = interpolate(last, [0, 1], [stageCy, H / 2]);
+  const w = W * s;
+  const h = H * s;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: W / 2 - w / 2,
+        top: cy - h / 2,
+        width: w,
+        height: h,
+        overflow: 'hidden',
+        borderRadius: 18 * (1 - Math.min(1, last)),
+        boxShadow: last < 0.98 ? `0 30px 70px ${alpha('#000000', 0.28)}` : undefined,
+      }}
+    >
+      <div style={{position: 'absolute', left: 0, top: 0, width: W, height: H, transform: `scale(${s})`, transformOrigin: '0 0'}}>{children}</div>
+    </div>
   );
 };
 

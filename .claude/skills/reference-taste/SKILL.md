@@ -41,6 +41,19 @@ npm run me -- --set <키>=<값> --why "시트에서 본 것 한 줄" --by refere
 | 판·카드에 그라디언트가 있는가 | `look.surface` | gradient / flat |
 | 컷마다 얼굴 크기가 바뀌는가 (확대) | `edit.punchIn` | true / false |
 | 이웃 칸이 매번 배치·모양까지 다 다른가 | `broll.variety` | 그렇다면 strict |
+| 작은 틀(사진·인물)이 계단식으로 커져 화면을 채우는가 | `broll.exit` | 그렇다면 avatar-grow (컷어웨이에서 얼굴로 돌아올 때 아바타가 커짐) |
+
+## 2-1. 모션 레퍼런스 (짧은 모션그래픽 클립, 얼굴·말 없음)
+숫자(전환 수·쉼·얼굴 비율)는 거의 의미 없다 (부드럽게 이어지는 모션은 전환 0~2번으로 잡힘). **콘택트 시트를 만들어 직접 본다**:
+```bash
+ffmpeg -v error -y -i <영상> -vf "fps=6,scale=240:-1,tile=6x5:padding=4:color=red" -frames:v 1 projects/_refs/<이름>/contact.png
+```
+(ffmpeg 빌드에 `drawtext` 가 없을 수 있다 → 시각 글자는 넣지 않는다. 칸 = 1/6초)
+1. 칸을 따라 **움직임을 문장으로** 쪼갠다: 무엇이 · 어디서 · 몇 계단으로 · 어떤 리듬으로 (예: "가운데 작은 틀 → 3계단으로 커져 화면을 채움").
+2. 사용자가 "이 부분이 좋다"고 하면 **그 움직임만** 가져온다. 나머지(타이포·라벨·색)는 가져오지 않고 결정 요약에 "안 가져온 것"으로 적는다.
+3. 이미 있는 것에 맞춘다: 취향 키(`broll.exit=avatar-grow` 등) → `npm run me -- --set … --by reference` / 없으면 `motion-kit` 으로 일반 이름의 커스텀 장면(`StackCarousel` 처럼) / 반복해서 쓸 전환이면 레이아웃 + 정책(만드는 법)·취향(쓸지) 키를 새로 (`style-intake`).
+4. 그림 자리에는 레퍼런스 사진 대신 **이 영상의 아바타**나 3D 오브젝트를 쓴다. 색은 트라이어드에서만 (정책 `sceneColors`).
+선례: avatar-v03 (`projects/avatar-v03/decisions.md`, `style/README.md` 의 예).
 
 ## 3. 가져오지 않는 것 (정책이 이긴다)
 - 그림·글자·로고·브랜드·핸들·같은 문구. **구도와 리듬만** 배운다.

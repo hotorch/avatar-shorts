@@ -46,8 +46,13 @@ def main():
         )
         print(f"음성 인식 중… (모델 {a.model}, 처음 한 번은 모델을 내려받습니다)", flush=True)
         model = WhisperModel(a.model, device=a.device, compute_type="int8")
+        # wav 를 직접 읽어 배열로 넘긴다 — faster-whisper 의 PyAV 디코더는 av 버전에 따라 깨진다 (av 19: metadata_errors)
+        import wave
+        import numpy as np
+        with wave.open(str(wav), "rb") as wf:
+            audio = np.frombuffer(wf.readframes(wf.getnframes()), np.int16).astype(np.float32) / 32768.0
         segments, info = model.transcribe(
-            str(wav),
+            audio,
             language="ko",
             word_timestamps=True,
             vad_filter=True,

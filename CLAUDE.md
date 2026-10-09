@@ -63,8 +63,8 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 
 ## 코드 지도
 - `src/Short.tsx` 메인 컴포지션 (plan 하나 = 영상 하나), `src/Root.tsx` 크기·길이 계산
-- `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
-- `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면, `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
+- `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이/아바타 확대 퇴장) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
+- `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면(StackCarousel · TypeSpecimen · LightBloom · OrbitIdea), `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
 - `src/captions/Captions.tsx` 자막
 - `scripts/` new-project · probe · face · transcribe · align · edit · words · style · me(내 취향) · reference(레퍼런스 측정) · timeline · variety(장면 지문·다양성 검사) · render · still · storyboard · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
 - `examples/demo/` 템플릿 데모 plan · `examples/avatar-v01/` 실제 영상 하나의 전 과정 파일
@@ -98,4 +98,7 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - Windows 는 `python3`·`.venv/bin` 이 없고, `npx`·`npm` 은 `.cmd` 라 셸 없이 spawn 하면 실패하고, 한국어 Windows 는 파이썬 기본 인코딩이 cp949 → 파이썬·remotion·npm 은 `scripts/platform.mjs` 로 부르고, `.py` 의 파일 읽기·쓰기에는 `encoding="utf-8"`.
 - 템플릿 이름만 다르면 통과하던 탓에 머리 위 morph 알약이 세 번 연속 나왔다 (avatar-v01 07~09) → 이웃 장면의 지문 4축(배치·모션·주인공·첫 효과음)을 비교 (`variety.mjs`, 정책 `variety`). 이웃은 **편집 시간 순** (훅을 옮기면 순서가 바뀐다).
 - 레퍼런스 리듬을 ffmpeg 장면 점수(하드컷)로 쟀더니 부드럽게 들어오는 모션그래픽 영상이 "컷 0번"으로 나왔다 → 0.25초 사이 화면 밝기 차로 잰다 (`reference.py`).
+- faster-whisper 에 wav 경로를 넘겼더니 PyAV 19 에서 `metadata_errors` TypeError 로 받아쓰기가 죽었다 → `transcribe.py` 가 wav 를 numpy 로 읽어 배열로 넘긴다.
+- 4초짜리 모션 레퍼런스를 `npm run reference` 숫자로만 봤더니 전환 1~2번·얼굴 비율로 엉뚱하게 읽혔다 → **콘택트 시트(fps=6 tile)를 직접 보고** 움직임을 문장으로 쪼갠다. 사용자가 좋다고 한 부분만 가져온다 (avatar-v03: 사진 틀이 커지는 것 ○, 굵은 표지 타이포 ✗) (`reference-taste` 2-1).
+- 아바타 확대 수치를 render.mjs 와 Vertical.tsx 에 따로 적었다 → 정책 `avatarGrow` 한 곳에서 render 가 plan 으로 넘긴다 (시험이 확인).
 - 새 함정을 고치면 `scripts/selftest.mjs` 에 시험 한 줄, 이 목록에 한 줄.

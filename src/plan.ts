@@ -35,6 +35,11 @@ export type Scene = {
   component?: string;
   props: Record<string, unknown>;
   sfx?: Sfx[];
+  /**
+   * 컷어웨이가 끝날 때: wipe = 둥근 창이 닫힘(기본), avatar-grow = 가운데 작은 아바타 틀이 계단식으로 커져 화면을 채움.
+   * 비워 두면 render 가 취향 broll.exit 로 채운다 (뒤가 얼굴일 때만).
+   */
+  exit?: 'wipe' | 'avatar-grow';
 };
 
 export type Plan = {
@@ -70,6 +75,8 @@ export type Plan = {
   };
   /** 컷마다 줌 (edit.py 의 cuts.json → render 가 채움). t 는 편집본 기준 초 */
   punch?: {t: number; scale: number}[];
+  /** 아바타 확대 퇴장 레시피 (정책 avatarGrow → render 가 채움). steps.before = durationSec 에 대한 비율 */
+  avatarGrow?: {durationSec: number; steps: {before: number; scale: number}[]; settleSec: number};
   /** 자막 크기 배율 (취향 captions.scale) */
   captionScale?: number;
   captions: Cue[];

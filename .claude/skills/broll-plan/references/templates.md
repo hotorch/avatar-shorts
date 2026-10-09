@@ -95,3 +95,11 @@ object 는 하프톤 콜라주로 모서리에 붙는다.
 {"template": "custom", "component": "OrbitIdea", "props": {"center": "bulb", "satellites": ["chat", "rocket", "target"], "title": "아이디어의 *궤도*"}}
 ```
 `motion-kit` 스킬 참고. `src/custom/index.ts` 에 등록해야 한다.
+
+이미 있는 커스텀 장면 (다른 영상에서도 그대로 쓴다):
+| 이름 | 쓰는 때 | props |
+|---|---|---|
+| `StackCarousel` | 종류 3~5개를 차례로 말할 때 (cutaway). 세로로 쌓인 띠 중 가운데 한 장이 펼쳐지고, at 마다 다음 띠로 넘어가며 바탕색이 트라이어드를 따라 바뀜 | `{"label": "영상 소스", "items": [{"title": "분위기 있는 비롤", "object": "video-camera", "at": 32.56}, …]}` |
+| `TypeSpecimen` | 글꼴·서체를 말할 때 (panel). 글꼴 이름을 그 글꼴로 쓴 카드가 차례로 | `{"items": [{"sample": "얇은 명조", "font": "myeongjo", "label": "고급스럽게", "at": 16.76}, {"sample": "고딕", "font": "sans", "weight": 800}, {"sample": "손글씨", "font": "hand"}]}` |
+| `LightBloom` | "빛이 번지죠" 같은 화면 전환을 말할 때 | `{"from": "picture", "to": "star", "bloomAt": 12.3}` |
+| `OrbitIdea` | 중심 개념 + 주변 요소 | `{"center": "bulb", "satellites": ["chat", "rocket", "target"]}` |

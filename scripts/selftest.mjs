@@ -64,6 +64,15 @@ test('모든 템플릿에 등장 모션 계열이 있음 (policy variety.motion 
   const miss = rnd.filter((t) => !policy.variety.motion[t]);
   must(!miss.length, `motion 없음: ${miss.join(', ')}`);
 });
+test('아바타 확대 레시피: Vertical.tsx 기본값 = 정책 avatarGrow, 마지막 계단은 꽉 채움(1)', () => {
+  // 예전: 0.8초·계단 크기가 render.mjs 와 Vertical.tsx 에 따로 적혀 있었다 (avatar-v03)
+  const ag = policy.avatarGrow;
+  must(ag?.steps?.at(-1)?.scale === 1, '마지막 계단이 1 이 아니면 얼굴 화면으로 이어질 때 튄다');
+  const src = fs.readFileSync('src/layouts/Vertical.tsx', 'utf8');
+  must(src.includes(`durationSec: ${ag.durationSec},`) && src.includes(`settleSec: ${ag.settleSec},`), 'Vertical.tsx GROW_DEFAULT 의 시간이 정책과 다름');
+  const num = (v) => (Number.isInteger(v) ? v.toFixed(1) : String(v)); // 1 → 1.0 (Vertical.tsx 표기)
+  for (const st of ag.steps) must(src.includes(`{before: ${num(st.before)}, scale: ${st.scale}}`), `계단 ${JSON.stringify(st)} 가 Vertical.tsx 에 없음`);
+});
 test('예시 plan 이 전부 다양성 정책을 통과 (avatar-v01 · 데모 3개)', () => {
   // 예전: avatar-v01 장면 07~09 가 머리 위 morph 알약 3연속인데 템플릿 검사(maxSameTemplateRun)를 통과했다
   const bad = ['examples/avatar-v01/plan.json', ...fs.readdirSync('examples/demo').map((f) => `examples/demo/${f}`)].flatMap((f) =>
@@ -100,6 +109,11 @@ test('데모에 필요한 자산이 저장소에 있음 (효과음 11 · 글꼴 
   must(sfx.length >= 11, `효과음 ${sfx.length}개 (11개 필요) → npm run sfx`);
   const ignored = sh('git', ['check-ignore', 'public/sfx/whoosh.wav', 'public/fonts/PretendardVariable.woff2', 'public/objects/clay/bulb.webp', 'models/yunet/face_detection_yunet_2023mar.onnx']).out.trim();
   must(!ignored, `.gitignore 에 걸림: ${ignored}`);
+});
+test('음성 인식은 wav 를 직접 읽어 넘김 (PyAV 를 안 씀)', () => {
+  // 예전: av 19 에서 faster-whisper 의 decode_audio 가 metadata_errors 인자로 TypeError → transcribe 실패
+  const src = fs.readFileSync('scripts/transcribe.py', 'utf8');
+  must(/model\.transcribe\(\s*audio,/.test(src), 'transcribe 에 파일 경로를 넘김 → av 버전에 따라 깨짐');
 });
 test('커스텀 장면이 전부 등록됨 (src/custom/index.ts)', () => {
   const idx = fs.readFileSync('src/custom/index.ts', 'utf8');
@@ -254,6 +268,20 @@ test('막힘: 머리 위 공간이 없는데 above (얼굴 가림 정책)', () =
 test('막힘: 머리 위/아래 카드에 안 맞는 템플릿 (compare 를 below 에)', () => {
   const r = check({theme: {palette: 'darktech'}, scenes: [{id: 'a', in: 4.5, out: 5.9, mode: 'below', template: 'compare', props: {left: {title: 'a'}, right: {title: 'b'}}}]});
   must(r.code !== 0 && /below/.test(r.out), '통과해 버림');
+});
+
+test('아바타 확대: 취향대로 채움(영상 끝이면 wipe), cutaway 가 아니면 막힘, 레시피는 정책에서 (정책 avatarGrow)', () => {
+  const tj = path.join(T, 'taste.json');
+  fs.writeFileSync(tj, JSON.stringify({broll: {exit: 'avatar-grow'}}));
+  const r = check({theme: {palette: 'darktech'}, scenes: [hero('a', 2.9, 5.9)]});
+  const p = json(path.join(T, '.props.json'));
+  const bad = check({theme: {palette: 'darktech'}, scenes: [{...hero('a', 2.9, 5.9), mode: 'panel', exit: 'avatar-grow'}]});
+  fs.rmSync(tj);
+  must(r.code === 0, r.out.trim().split('\n').pop());
+  const want = p.scenes[0].out < p.duration - 0.05 ? 'avatar-grow' : 'wipe'; // 뒤에 얼굴이 남으면 커지고, 영상 끝이면 돌아올 얼굴이 없다
+  must(p.scenes[0].exit === want, `exit ${p.scenes[0].exit} (기대 ${want}, out ${p.scenes[0].out} / 길이 ${p.duration})`);
+  must(JSON.stringify(p.avatarGrow?.steps) === JSON.stringify(policy.avatarGrow.steps), '.props.json 레시피가 정책과 다름');
+  must(bad.code !== 0 && /avatar-grow/.test(bad.out), 'panel 에 avatar-grow 가 통과해 버림');
 });
 
 // 다양성: 편집본(재배치 [[1,3]]) 원본 0.3–2.9 · 2.9–5.9 → 편집 약 0.3–1.9 · 1.9–3.7 로 붙은 두 장면

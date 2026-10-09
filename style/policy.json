@@ -48,6 +48,24 @@
     }
   },
 
+  "sceneColors": {
+    "$doc": "장면이 바탕·면·타일을 칠할 땐 팔레트·트라이어드 색과 그 색에 검정을 섞은 명암만 쓴다. 레퍼런스 사진의 색·남의 브랜드 색은 가져오지 않는다. 출처: savee-tile-vertical.mp4(넘길 때마다 바탕색이 사진 색을 따라감) → 우리는 트라이어드를 따라감 (StackCarousel). 커스텀 장면은 검사기가 속을 못 보므로 motion-kit 규칙으로 지킨다. 계기: avatar-v03.",
+    "fillsFromThemeOnly": true
+  },
+
+  "avatarGrow": {
+    "$doc": "컷어웨이 → 얼굴 복귀 전환 '아바타 확대'를 만드는 법 (쓸지 말지는 취향 broll.exit). 출처: 레퍼런스 Scene.mp4(잡지 표지 — 가운데 작은 사진 틀이 계단식으로 커져 화면을 채움). 영상에 맞게: 사진 대신 실제 말하는 아바타 영상(소리 없음), 틀 비율 = 화면 비율이라 마지막 계단이 그대로 얼굴 화면이 된다(이음매 없음). 계단마다 pop 스프링, 마지막 계단의 넘침이 가라앉을 때까지 settleSec 더 그린다. 레퍼런스의 굵은 표지 타이포·라벨은 가져오지 않는다. 바로 뒤가 다른 장면이면(faceAfterSec 미만) 판·카드 배치와 겹쳐 튀므로 wipe. 계기: avatar-v03.",
+    "durationSec": 0.8,
+    "steps": [
+      {"before": 1.0, "scale": 0.2},
+      {"before": 0.62, "scale": 0.46},
+      {"before": 0.3, "scale": 1}
+    ],
+    "settleSec": 0.7,
+    "faceAfterSec": 1.0,
+    "minBrollSec": 0.8
+  },
+
   "edit": {
     "$doc": "무음·군더더기 제거와 재배치의 한계. 취향(silence)이 이보다 느슨할 수는 있어도 이 선을 넘지 못한다.",
     "maxSilenceKept": 0.45,

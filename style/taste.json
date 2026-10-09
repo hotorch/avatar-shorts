@@ -21,7 +21,8 @@
   "broll": {
     "density": "high",
     "framing": "varied",
-    "variety": "normal"
+    "variety": "normal",
+    "exit": "avatar-grow"
   },
 
   "captions": {

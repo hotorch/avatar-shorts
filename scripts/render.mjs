@@ -108,8 +108,21 @@ const walkObjects = (v, where) => {
   }
 };
 
+// 컷어웨이 퇴장: 취향 broll.exit 를 채운다. 아바타가 커지며 돌아오는 건 뒤가 얼굴일 때만 (바로 다음 장면이 붙으면 둥근 창)
+const AG = {durationSec: 0.8, steps: [], settleSec: 0.7, faceAfterSec: 1.0, minBrollSec: 0.8, ...pol.avatarGrow}; // 정책 avatarGrow
+props.avatarGrow = {durationSec: AG.durationSec, steps: AG.steps, settleSec: AG.settleSec};
+const GROW = AG.durationSec;
+scenes.forEach((s, i) => {
+  const next = scenes[i + 1];
+  const faceAfter = !next || next.in - s.out >= AG.faceAfterSec; // 커진 아바타가 settleSec 더 남는다
+  if (s.mode === 'cutaway' && !s.exit) s.exit = style.taste.broll?.exit === 'avatar-grow' && faceAfter && s.out < props.duration - 0.05 ? 'avatar-grow' : 'wipe';
+});
 scenes.forEach((s, i) => {
   const w = `장면 ${s.id ?? i + 1}`;
+  if (s.exit === 'avatar-grow') {
+    if (s.mode !== 'cutaway') problems.push(`${w}: exit avatar-grow 는 cutaway 에서만 됩니다`);
+    if (s.out - s.in < GROW + AG.minBrollSec) warn.push(`${w}: ${(s.out - s.in).toFixed(1)}초라 아바타가 커지는 ${GROW}초가 B-roll 을 거의 다 가립니다 — out 을 늘리세요`);
+  }
   if (!(s.out > s.in)) problems.push(`${w}: out 이 in 보다 커야 합니다`);
   if (s.in < 0 || s.out > props.duration + 0.01) problems.push(`${w}: 영상 길이(${props.duration}s) 밖입니다`);
   if (s.out - s.in < P.scenes.minSec) problems.push(`정책 ${w}: ${P.scenes.minSec}초보다 짧습니다`);

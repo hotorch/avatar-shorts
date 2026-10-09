@@ -65,6 +65,7 @@ argument-hint: <영상 경로> [대본]
 3. `npm run look -- projects/<이름>/out/preview.mp4 --plan projects/<이름>/plan.json` → 시트를 **직접 본다**.
    훅(0.5초 칸)이 비었거나 약함 / 글자 잘림·겹침 / 자막과 장면 글자 충돌 / 빈 화면 1초 이상 / 얼굴 가림 / 대비.
    의심 구간은 `npm run still -- <이름> --scene <id>` 또는 `npm run still -- <이름> <원본 초…>` 로 렌더 없이 더 본다. 고치고 다시 미리보기 (최대 3번).
+   컷어웨이에 아바타 확대(`exit: avatar-grow`, `.props.json` 에서 확인)가 있으면 그 장면 끝 1초를 `npm run still -- <이름> --edit <끝-0.7> <끝-0.4> <끝-0.1> <끝+0.4>` 로 본다: 작은 틀 → 중간 → 꽉 참 → 얼굴 화면이 튀지 않고 이어지는지.
 4. `npm run render -- <이름>` → `out/final.mp4`, 최종 시트도 한 번 본다.
 
 ## 결정 요약 (마지막 메시지 하나)
