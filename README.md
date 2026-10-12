@@ -18,6 +18,11 @@ Claude Code에서 `/shorts 내영상.mp4` 한 줄이면 받아쓰기, 자막 교
 
 > 📚 **교육용 프로젝트입니다.** Claude Code에 스킬·정책·검사를 붙여 일을 끝까지 맡기는 방법을 보여 주려고 공개했습니다. 만든 과정은 유튜브 [@ai.sam_hottman](https://www.youtube.com/@ai.sam_hottman) 에서 소개합니다.
 
+<p align="center">
+  <a href="https://youtu.be/y-xpKr3rLBg"><img src="https://img.youtube.com/vi/y-xpKr3rLBg/hqdefault.jpg" width="480" alt="이 프로젝트로 만든 과정 영상 (YouTube)" /></a><br/>
+  ▶ <a href="https://youtu.be/y-xpKr3rLBg">이 프로젝트로 찍은 영상 보기 (YouTube)</a>
+</p>
+
 ## 빠른 시작
 
 **1. 준비물**
