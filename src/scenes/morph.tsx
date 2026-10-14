@@ -1,5 +1,6 @@
 import React from 'react';
-import {AbsoluteFill, Img, interpolate, OffthreadVideo, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {Video} from '@remotion/media';
+import {AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {KText} from '../kit/KText';
 import {fitSize, textWidth} from '../kit/measure';
 import {SPRING, useExit, useNow, useScene, useSpringAt} from '../kit/motion';
@@ -262,8 +263,9 @@ export const Media: React.FC<MediaProps> = (p) => {
         }}
       >
         <div style={{width: '100%', height: '100%', transform: `scale(${kb})`}}>
+          {/* 영상은 OffthreadVideo 가 아니라 <Video> (이유는 layouts/Avatar.tsx) */}
           {isVideo ? (
-            <OffthreadVideo src={src} muted style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+            <Video src={src} muted objectFit="cover" style={{width: '100%', height: '100%'}} />
           ) : (
             <Img src={src} style={{width: '100%', height: '100%', objectFit: 'cover'}} />
           )}

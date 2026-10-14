@@ -240,6 +240,7 @@ export const Counter: React.FC<{
         color: color ?? t.ink,
         fontVariantNumeric: 'tabular-nums',
         lineHeight: 1,
+        whiteSpace: 'nowrap', // 접미사("억 원")가 다음 줄로 떨어지지 않게
         transform: `scale(${interpolate(s, [0, 1], [0.8, 1])})`,
         opacity: Math.min(1, s * 2),
       }}

@@ -143,14 +143,24 @@ export type StatProps = {
 
 export const Stat: React.FC<StatProps> = (p) => {
   const {start} = useScene();
-  const {u, wide} = useStage();
+  const {u, w, wide} = useStage();
   const t = useTheme();
   const at = p.at ?? start + 0.2;
   const R = 300 * u;
   const prog = useProgress(at, 1.2, EASE.out);
+  // 숫자 폭 = 최종 값(쉼표 포함) + 접미사(0.45em). 원(ring) 안이면 원 안에 맞춰 줄이고,
+  // 원이 없으면 상자를 넓히다가 무대 폭을 넘을 때만 줄인다.
+  // 예전: 상자가 R*2 로 고정이라 "26,249억 원" 이 밖으로 나가 가로 화면에서 설명 글자와 겹쳤다 (test-169)
+  const ringed = p.ring !== undefined;
+  const base = (ringed ? 150 : 230) * u;
+  const full = (p.prefix ?? '') + p.value.toLocaleString('ko-KR', {minimumFractionDigits: p.decimals ?? 0, maximumFractionDigits: p.decimals ?? 0});
+  const need = textWidth(full, base, -0.05) + textWidth(p.suffix ?? '', base * 0.45);
+  const room = ringed ? (R - 54 * u) * 2 * 0.86 : (wide ? w * 0.56 : w * 0.88) - 30 * u;
+  const size = base * Math.max(0.4, Math.min(1, room / need));
+  const boxW = ringed ? R * 2 : Math.max(R * 2, (need * size) / base + 30 * u);
   return (
     <AbsoluteFill style={{...center, flexDirection: wide ? 'row' : 'column', gap: 40 * u}}>
-      <div style={{position: 'relative', width: R * 2, height: R * 2, ...center}}>
+      <div style={{position: 'relative', width: boxW, height: R * 2, ...center}}>
         {p.ring !== undefined ? (
           <svg width={R * 2} height={R * 2} style={{position: 'absolute', inset: 0, transform: 'rotate(-90deg)'}}>
             <circle cx={R} cy={R} r={R - 24 * u} fill="none" stroke={alpha(t.ink, 0.08)} strokeWidth={30 * u} />
@@ -172,7 +182,7 @@ export const Stat: React.FC<StatProps> = (p) => {
             <Object3D name={p.object} at={at + 0.25} size={240 * u} float={8} depth={0.9} />
           </div>
         ) : null}
-        <Counter at={at} to={p.value} prefix={p.prefix} suffix={p.suffix} decimals={p.decimals} size={(p.ring !== undefined ? 150 : 230) * u} />
+        <Counter at={at} to={p.value} prefix={p.prefix} suffix={p.suffix} decimals={p.decimals} size={size} />
       </div>
       <KText text={p.label} at={at + 0.4} size={70 * u} weight={700} maxWidth={900 * u} />
     </AbsoluteFill>
@@ -180,7 +190,83 @@ export const Stat: React.FC<StatProps> = (p) => {
 };
 
 // ─────────────────────────────────────────── chapter: 소제목 카드
-export type ChapterProps = {num?: string; title: string; sub?: string; at?: number};
+export type ChapterProps = {
+  num?: string;
+  title: string;
+  sub?: string;
+  at?: number;
+  /** 길 지도에 쓸 짧은 이름 (8자 이하) */
+  label?: string;
+  /** 길 지도: 모든 장 이름과 지금 장 번호(0부터). render 가 chapter 가 3개 이상이면 채운다 */
+  road?: string[];
+  roadIndex?: number;
+};
+
+/**
+ * 챕터 길 지도 (온돌 롱폼의 로드맵 참고): 장 이름이 점으로 이어진 길, 지난 장은 채워지고 지금 장에 불이 켜진다.
+ * 선이 앞 장에서 지금 장까지 그어진 뒤 지금 점이 튀어나온다. 같은 길이 장 카드마다 나와서 "지금 어디쯤" 이 이어진다.
+ */
+const Road: React.FC<{road: string[]; index: number; at: number}> = ({road, index, at}) => {
+  const {u, w} = useStage();
+  const t = useTheme();
+  const n = road.length;
+  const width = Math.min(w * 0.82, n * 300 * u);
+  const gap = n > 1 ? width / (n - 1) : 0;
+  const fill = useProgress(at, 0.6, EASE.inOut); // 앞 장 → 지금 장 선
+  const pop = useSpringAt(at + 0.5, 'pop');
+  const appear = useProgress(at - 0.2, 0.35, EASE.out);
+  const muted = alpha(t.ink, 0.22);
+  const lineY = 24 * u;
+  const reach = Math.max(0, index - 1 + fill) * gap; // 그어진 선의 끝
+  return (
+    <div style={{position: 'relative', width, height: 110 * u, marginTop: 40 * u, opacity: appear}}>
+      <div style={{position: 'absolute', left: 0, top: lineY - 2 * u, width, height: 4 * u, background: muted, borderRadius: 4 * u}} />
+      <div style={{position: 'absolute', left: 0, top: lineY - 2 * u, width: index === 0 ? 0 : reach, height: 4 * u, background: t.accent, borderRadius: 4 * u}} />
+      {road.map((label, i) => {
+        const x = i * gap;
+        const past = i < index;
+        const cur = i === index;
+        const r = (cur ? 17 + 7 * pop : 12) * u;
+        return (
+          <React.Fragment key={i}>
+            {cur ? (
+              <div style={{position: 'absolute', left: x - r * 2, top: lineY - r * 2, width: r * 4, height: r * 4, borderRadius: '50%', background: alpha(t.accent, 0.18 * pop)}} />
+            ) : null}
+            <div
+              style={{
+                position: 'absolute',
+                left: x - r,
+                top: lineY - r,
+                width: r * 2,
+                height: r * 2,
+                borderRadius: '50%',
+                background: past || (cur && pop > 0.05) ? t.accent : t.bg,
+                border: past || cur ? 'none' : `${3 * u}px solid ${muted}`,
+                boxSizing: 'border-box',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: x - 160 * u,
+                width: 320 * u,
+                top: lineY + 32 * u,
+                textAlign: 'center',
+                fontFamily: FONT.sans,
+                fontSize: 38 * u,
+                fontWeight: cur ? 800 : 600,
+                color: cur ? t.accent : past ? alpha(t.ink, 0.7) : alpha(t.ink, 0.35),
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {label}
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
 
 export const Chapter: React.FC<ChapterProps> = (p) => {
   const {start} = useScene();
@@ -210,6 +296,7 @@ export const Chapter: React.FC<ChapterProps> = (p) => {
       ) : null}
       <KText text={p.title} at={at + 0.3} size={110 * u} weight={900} />
       {p.sub ? <SubLine text={p.sub} at={at + 0.7} /> : null}
+      {p.road && p.road.length > 1 ? <Road road={p.road} index={p.roadIndex ?? 0} at={at + 0.6} /> : null}
     </AbsoluteFill>
   );
 };

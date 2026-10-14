@@ -71,7 +71,8 @@ export const KText: React.FC<{
         <div key={li} style={{display: 'block'}}>
           {tokenize(line).map((tok, ti) => {
             const i = wi++;
-            const at_i = times?.[i] ?? base + i * gap;
+            // times 가 단어보다 적으면 남은 단어는 마지막 시각 뒤로 (예전: base 기준이라 끝 단어가 먼저 떴다 — test-916 "배")
+            const at_i = times?.[i] ?? (times?.length ? times[times.length - 1] + (i - times.length + 1) * gap : base + i * gap);
             const f0 = Math.round((at_i - start) * fps);
             const s = spring({frame: frame - f0, fps, config: SPRING.pop});
             const y = interpolate(s, [0, 1], [105, 0]);

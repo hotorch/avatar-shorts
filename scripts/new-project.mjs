@@ -64,16 +64,20 @@ const probe = JSON.parse(
   execFileSync('ffprobe', ['-v', 'error', '-print_format', 'json', '-show_streams', '-show_format', src]).toString(),
 );
 const v = probe.streams.find((s) => s.codec_type === 'video');
-const ok = v?.codec_name === 'h264' && /mp4|mov/.test(probe.format.format_name) && path.extname(src).toLowerCase() === '.mp4';
+// 29.97·23.976·59.94 처럼 소수점 fps 는 렌더(30fps)에서 "No frame found at position" 으로 멈춘다 (DeepBrain 아바타, ep01-long) → 30fps 로
+const [fn, fd] = (v?.avg_frame_rate || '30/1').split('/').map(Number);
+const srcFps = fd ? fn / fd : 30;
+const oddFps = Math.abs(srcFps - Math.round(srcFps)) > 0.01;
+const ok = v?.codec_name === 'h264' && /mp4|mov/.test(probe.format.format_name) && path.extname(src).toLowerCase() === '.mp4' && !oddFps;
 const dst = path.join(dir, 'input.mp4');
 if (ok) {
   // 하드링크는 쓰지 않는다: 나중에 input.mp4 를 덮어쓰면 사용자 원본까지 바뀐다. (APFS/Btrfs 는 복제라 빠르고 용량도 안 든다)
   fs.copyFileSync(src, dst, fs.constants.COPYFILE_FICLONE);
 } else {
-  console.log(`영상 형식(${v?.codec_name})을 H.264 mp4 로 변환합니다…`);
+  console.log(oddFps ? `프레임 속도 ${srcFps.toFixed(2)}fps 를 30fps 로 맞춥니다 (렌더 안정성)…` : `영상 형식(${v?.codec_name})을 H.264 mp4 로 변환합니다…`);
   const r = spawnSync(
     'ffmpeg',
-    ['-loglevel', 'error', '-y', '-i', src, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', dst],
+    ['-loglevel', 'error', '-y', '-i', src, ...(oddFps ? ['-r', '30'] : []), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', dst],
     {stdio: 'inherit'},
   );
   if (r.status !== 0) process.exit(r.status ?? 1);

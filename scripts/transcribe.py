@@ -14,10 +14,36 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+
+def recognize(WhisperModel, a, audio, device):
+    """음성 배열 → (단어 [{text,start,end,prob}], 구간 줄). device: auto | cpu | cuda"""
+    model = WhisperModel(a.model, device=device, compute_type="int8")
+    segments, info = model.transcribe(
+        audio,
+        language="ko",
+        word_timestamps=True,
+        vad_filter=True,
+        vad_parameters={"min_silence_duration_ms": 300},
+        beam_size=5,
+        condition_on_previous_text=False,
+        # 예시에 "음, 어" 를 넣어 둬야 whisper 가 군더더기를 지우지 않고 받아 적는다 (edit.py 가 그걸 보고 잘라냄)
+        initial_prompt="음, 어, 그러니까 말한 그대로 받아 적은 한국어 영상입니다." + (f" 등장 단어: {a.hint}" if a.hint else ""),
+    )
+    words, lines = [], []
+    for seg in segments:  # 실제 계산은 여기서 (GPU 라이브러리 오류도 여기서 난다)
+        lines.append(f"[{seg.start:6.2f}–{seg.end:6.2f}] {seg.text.strip()}")
+        for w in seg.words or []:
+            t = w.word.strip()
+            if not t:
+                continue
+            words.append({"text": t, "start": round(w.start, 3), "end": round(w.end, 3), "prob": round(w.probability, 3)})
+    return words, lines
 
 
 def main():
@@ -45,31 +71,20 @@ def main():
             check=True,
         )
         print(f"음성 인식 중… (모델 {a.model}, 처음 한 번은 모델을 내려받습니다)", flush=True)
-        model = WhisperModel(a.model, device=a.device, compute_type="int8")
         # wav 를 직접 읽어 배열로 넘긴다 — faster-whisper 의 PyAV 디코더는 av 버전에 따라 깨진다 (av 19: metadata_errors)
         import wave
         import numpy as np
         with wave.open(str(wav), "rb") as wf:
             audio = np.frombuffer(wf.readframes(wf.getnframes()), np.int16).astype(np.float32) / 32768.0
-        segments, info = model.transcribe(
-            audio,
-            language="ko",
-            word_timestamps=True,
-            vad_filter=True,
-            vad_parameters={"min_silence_duration_ms": 300},
-            beam_size=5,
-            condition_on_previous_text=False,
-            # 예시에 "음, 어" 를 넣어 둬야 whisper 가 군더더기를 지우지 않고 받아 적는다 (edit.py 가 그걸 보고 잘라냄)
-            initial_prompt="음, 어, 그러니까 말한 그대로 받아 적은 한국어 영상입니다." + (f" 등장 단어: {a.hint}" if a.hint else ""),
-        )
-        words, lines = [], []
-        for seg in segments:
-            lines.append(f"[{seg.start:6.2f}–{seg.end:6.2f}] {seg.text.strip()}")
-            for w in seg.words or []:
-                t = w.word.strip()
-                if not t:
-                    continue
-                words.append({"text": t, "start": round(w.start, 3), "end": round(w.end, 3), "prob": round(w.probability, 3)})
+        try:
+            words, lines = recognize(WhisperModel, a, audio, a.device)
+        except RuntimeError as e:
+            # NVIDIA 그래픽카드는 있는데 CUDA 라이브러리(cublas·cudnn)가 없으면 auto 가 GPU 를 골랐다가
+            # 첫 계산에서 죽는다 (모델을 만들 때가 아니라 segments 를 돌 때) → CPU 로 다시
+            if a.device == "cpu" or not re.search(r"cublas|cudnn|cuda", str(e), re.I):
+                raise
+            print(f"GPU 라이브러리가 없어 CPU 로 다시 합니다 ({str(e).splitlines()[0]})", flush=True)
+            words, lines = recognize(WhisperModel, a, audio, "cpu")
 
     words = fix_overlaps(words)
     (proj / "words.raw.json").write_text(json.dumps(words, ensure_ascii=False, indent=1), encoding="utf-8")

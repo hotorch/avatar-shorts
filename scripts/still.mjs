@@ -3,6 +3,7 @@
 //   npm run still -- <이름> 16.3 17.0          원본 시간(plan.json·words.json 과 같은 기준)
 //   npm run still -- <이름> 3.2 --edit          편집 시간(edit.mp4 / 결과 영상 기준)
 //   npm run still -- <이름> --scene 06          그 장면의 시작·가운데·끝
+//   npm run still -- <이름> 12.0 --full         원래 해상도(1배) — 썸네일 바탕용 (기본은 0.4배로 빠르게)
 // → projects/<이름>/out/still.png (여러 장이면 가로로 이어 붙임)
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
@@ -13,11 +14,12 @@ import {COMP_FPS, loadCuts, mapTime, toFrame} from './timeline.mjs';
 const args = process.argv.slice(2);
 const slug = args.find((a) => !a.startsWith('--') && isNaN(Number(a)));
 if (!slug) {
-  console.error('사용법: npm run still -- <이름> <초…> [--edit] [--scene <id>]');
+  console.error('사용법: npm run still -- <이름> <초…> [--edit] [--scene <id>] [--full]');
   process.exit(1);
 }
 const dir = path.join('projects', slug);
 const editTime = args.includes('--edit');
+const full = args.includes('--full');
 const sceneId = args.includes('--scene') ? args[args.indexOf('--scene') + 1] : null;
 let times = args.filter((a) => a !== sceneId && !isNaN(Number(a))).map(Number);
 
@@ -47,7 +49,7 @@ fs.mkdirSync(out, {recursive: true});
 const files = times.map((t, i) => {
   const f = path.join(out, `.still_${i}.png`);
   const frame = toFrame(toEdit(t), COMP_FPS);
-  const r = remotion(['still', 'Short', f, `--frame=${frame}`, `--props=${path.join(dir, '.props.json')}`, '--scale=0.4', '--log=error'], {encoding: 'utf8'});
+  const r = remotion(['still', 'Short', f, `--frame=${frame}`, `--props=${path.join(dir, '.props.json')}`, `--scale=${full ? 1 : 0.4}`, '--log=error'], {encoding: 'utf8'});
   if (r.status !== 0) {
     process.stdout.write(r.stdout + r.stderr);
     process.exit(1);

@@ -21,7 +21,7 @@ if (i >= 0 && !fs.existsSync(rest[i]) && fs.existsSync(path.join('projects', res
 let cmd = VENV_PY;
 let pre = [];
 if (!hasVenv()) {
-  const sys = /(transcribe|face|sfx)\.py$/.test(script) ? null : findPython();
+  const sys = /(transcribe|face|sfx|matte)\.py$/.test(script) ? null : findPython();
   if (!sys) {
     console.error('❌ 파이썬 가상환경(.venv)이 없습니다 → npm run setup');
     process.exit(1);

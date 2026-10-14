@@ -22,11 +22,14 @@
     "density": "high",
     "framing": "varied",
     "variety": "normal",
-    "exit": "avatar-grow"
+    "exit": "avatar-grow",
+    "camera": "drift",
+    "roadmap": true
   },
 
   "captions": {
-    "scale": 1.0
+    "scale": 1.0,
+    "karaoke": true
   },
 
   "sound": {

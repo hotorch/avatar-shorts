@@ -53,6 +53,7 @@ const {w, h, u, wide, kind} = useStage(); // 무대 크기, u=기준 스케일(�
 | `<Counter at to prefix suffix/>` | kit/Parts | 숫자 카운트업 |
 | `<TypeText text at cps/>` `<Bubble/>` `<AppWindow/>` `<Bar/>` | kit/Parts | 타이핑, 말풍선, 앱 창, 막대 |
 | `<GradientPanel w h x y at/>` `gradientSurface(triad,w,h)` `<PaletteCard w/>` | kit/Gradient | 트라이어드 그라디언트 면 (정책 레시피), 3색 팔레트 카드. `Card tone="gradient"` 도 가능 |
+| `fitIso(points,w,h)` `<IsoBox/>` `<IsoGlass part="back"/"front"/>` `<IsoMoney/>` `<IsoCoin/>` `<IsoFloor/>` `along()` `coinStream()` | kit/Iso | 2.5D 아이소메트릭 (SVG). 돈·물건이 움직이는 **원리를 그림으로** (CoinVault·TwinVault 가 예). 뒤 → 앞 순서로 그린다(유리 back → 내용물 → 유리 front). 색은 `t.triad`. 동전 흐름은 프레임만으로 위치가 정해진다 |
 | `useTheme()` `alpha()` `FONT` | kit/theme | 팔레트 색·트라이어드(`t.triad`)·면(`t.surface`)·글꼴 스택 |
 | `fitSize(text, size, maxW)` `textWidth()` | kit/measure | 폭에 맞춰 글자 크기 |
 
@@ -65,7 +66,7 @@ const {w, h, u, wide, kind} = useStage(); // 무대 크기, u=기준 스케일(�
 
 ## Remotion 규칙 (렌더가 깨지지 않게)
 - 모든 움직임은 프레임의 함수: `spring`, `interpolate` 만. **CSS transition / @keyframes / setTimeout / Math.random 금지** (랜덤은 `random('seed')`).
-- 이미지는 `<Img>`, 영상은 `<OffthreadVideo>`, 파일은 `staticFile('objects/…')`.
+- 이미지는 `<Img>`, 영상은 `@remotion/media` 의 `<Video objectFit="cover">` (`<OffthreadVideo>` 는 메모리가 모자라면 롱폼 렌더가 "No frame found" 로 멈춤), 파일은 `staticFile('objects/…')`.
 - `interpolate` 입력 범위는 반드시 증가 순서. 짧은 장면에서 겹치지 않게 `Math.min` 으로 보호.
 - 글꼴은 이미 로드됨 (`FONT.sans` 등). 외부 URL 폰트·CDN 금지 (오프라인 렌더).
 - 한글은 `wordBreak: 'keep-all'`.

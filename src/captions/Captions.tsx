@@ -22,6 +22,8 @@ export const Captions: React.FC<{
   x?: number;
   /** 자막 뒤가 영상이면 video, 장면 배경이면 backdrop (big 스타일 색이 바뀜) */
   surface?: 'video' | 'backdrop';
+  /** 노래방식: 지금 말하는 단어에 강조 블록 (cue.w 가 있을 때) */
+  karaoke?: boolean;
 }> = ({
   cues,
   y,
@@ -31,6 +33,7 @@ export const Captions: React.FC<{
   align = 'center',
   x,
   surface = 'video',
+  karaoke = false,
 }) => {
   const frame = useCurrentFrame();
   const {fps, width} = useVideoConfig();
@@ -51,7 +54,11 @@ export const Captions: React.FC<{
         opacity: fadeIn,
       }}
     >
-      {cue.style === 'big' ? <BigCue cue={cue} size={bigSize} maxW={maxW} onBackdrop={surface === 'backdrop'} /> : <StripCue cue={cue} size={size} maxW={maxW} />}
+      {cue.style === 'big' ? (
+        <BigCue cue={cue} size={bigSize} maxW={maxW} onBackdrop={surface === 'backdrop'} karaoke={karaoke} now={now} />
+      ) : (
+        <StripCue cue={cue} size={size} maxW={maxW} karaoke={karaoke} now={now} />
+      )}
     </div>
   );
 };
@@ -83,7 +90,54 @@ const Spans: React.FC<{cue: Cue; accent: string}> = ({cue, accent}) => {
   );
 };
 
-const StripCue: React.FC<{cue: Cue; size: number; maxW: number}> = ({cue, size, maxW}) => {
+/**
+ * 노래방식 자막 (온돌 롱폼 참고): 지금 말하는 단어만 강조색 블록, 지난 단어는 진하게, 아직 안 한 단어는 흐리게.
+ * cue.w(단어별 시작, render 가 words.json 에서) 가 띄어쓰기 단어 수와 같을 때만. 아니면 예전처럼 한 번에.
+ * 색만 바뀌고 자리는 그대로 (줄 길이가 흔들리지 않게). 강조 단어(emph)는 말한 뒤 제 색으로.
+ */
+type Look = 'strip' | 'big' | 'bigBackdrop';
+const Karaoke: React.FC<{cue: Cue; accent: string; look: Look; now: number}> = ({cue, accent, look, now}) => {
+  const t = useTheme();
+  const toks: {text: string; a: number; b: number}[] = [];
+  let pos = 0;
+  for (const w of cue.text.split(' ')) {
+    toks.push({text: w, a: pos, b: pos + w.length});
+    pos += w.length + 1;
+  }
+  const ranges: {a: number; b: number; color: string}[] = [];
+  for (const e of (cue.emph ?? []).slice(0, 2)) {
+    const i = cue.text.indexOf(e.text);
+    if (i >= 0) ranges.push({a: i, b: i + e.text.length, color: e.tone && e.tone !== 'key' ? TONE[e.tone] : accent});
+  }
+  const w = cue.w ?? [];
+  const ink = look === 'big' ? '#FFFFFF' : look === 'bigBackdrop' ? t.ink : '#17171C';
+  const block = look === 'strip' ? accent : look === 'big' ? (t.dark ? t.accent : '#FFD84D') : accent;
+  return (
+    <>
+      {toks.map((tk, i) => {
+        const emph = ranges.find((r) => tk.a < r.b && tk.b > r.a)?.color;
+        const next = i + 1 < w.length ? w[i + 1] : cue.end;
+        const active = now >= w[i] && now < next;
+        const spoken = now >= next;
+        const pop = active ? interpolate(now, [w[i], w[i] + 0.1], [0.92, 1], {extrapolateRight: 'clamp'}) : 1;
+        let style: React.CSSProperties;
+        if (active && look === 'strip') style = {background: block, color: '#FFFFFF', borderRadius: 6, boxShadow: `0 0 0 0.08em ${block}`};
+        else if (active) style = {color: block};
+        else if (spoken) style = {color: emph ?? ink};
+        else style = {color: emph ?? ink, opacity: look === 'big' ? 0.72 : 0.38}; // 영상 위 큰 흰 글자는 흰 셔츠 깃·밝은 바탕 위에서 0.5 면 안 읽혔다 (ep01 쇼츠)
+        return (
+          <React.Fragment key={i}>
+            {i ? ' ' : ''}
+            <span style={{display: 'inline-block', transform: pop !== 1 ? `scale(${pop})` : undefined, ...style}}>{tk.text}</span>
+          </React.Fragment>
+        );
+      })}
+    </>
+  );
+};
+const useKaraoke = (cue: Cue, on: boolean) => on && !!cue.w && cue.w.length === cue.text.split(' ').length;
+
+const StripCue: React.FC<{cue: Cue; size: number; maxW: number; karaoke?: boolean; now?: number}> = ({cue, size, maxW, karaoke = false, now = 0}) => {
   const t = useTheme();
   const fs = fitSize(cue.text, size, maxW - 56, 52);
   // 강조색이 흰 띠 위에서 약하면(대비 < 2.5) 트라이어드 진한색, 그것도 약하면 짙은 보라로 대체
@@ -105,18 +159,19 @@ const StripCue: React.FC<{cue: Cue; size: number; maxW: number}> = ({cue, size, 
         whiteSpace: 'nowrap',
       }}
     >
-      <Spans cue={cue} accent={acc} />
+      {useKaraoke(cue, karaoke) ? <Karaoke cue={cue} accent={acc} look="strip" now={now} /> : <Spans cue={cue} accent={acc} />}
     </div>
   );
 };
 
-const BigCue: React.FC<{cue: Cue; size: number; maxW: number; onBackdrop?: boolean}> = ({cue, size, maxW, onBackdrop}) => {
+const BigCue: React.FC<{cue: Cue; size: number; maxW: number; onBackdrop?: boolean; karaoke?: boolean; now?: number}> = ({cue, size, maxW, onBackdrop, karaoke = false, now = 0}) => {
   const t = useTheme();
   const fs = fitSize(cue.text, size, maxW, 60);
+  const k = useKaraoke(cue, karaoke);
   if (onBackdrop) {
     return (
       <div style={{fontFamily: FONT.emph, fontSize: fs, lineHeight: 1.15, color: t.ink, whiteSpace: 'nowrap', letterSpacing: '-0.01em'}}>
-        <Spans cue={cue} accent={t.accent} />
+        {k ? <Karaoke cue={cue} accent={t.accent} look="bigBackdrop" now={now} /> : <Spans cue={cue} accent={t.accent} />}
       </div>
     );
   }
@@ -134,7 +189,7 @@ const BigCue: React.FC<{cue: Cue; size: number; maxW: number; onBackdrop?: boole
         paintOrder: 'stroke fill',
       }}
     >
-      <Spans cue={cue} accent={t.dark ? t.accent : '#FFD84D'} />
+      {k ? <Karaoke cue={cue} accent={t.dark ? t.accent : '#FFD84D'} look="big" now={now} /> : <Spans cue={cue} accent={t.dark ? t.accent : '#FFD84D'} />}
     </div>
   );
 };

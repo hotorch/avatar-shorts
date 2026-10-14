@@ -26,7 +26,11 @@ export const FRAME: {
   H: number;
   SAFE_TOP: number;
   UI_BOTTOM: number;
+  UI_RIGHT: number;
+  UI_RIGHT_Y: number;
   CAPTION_Y: number;
+  CAP_X: number;
+  CAP_W: number;
   CAP_H: number;
   CAP_GAP: number;
   GAP: number;
@@ -40,6 +44,7 @@ export const FRAME: {
   MERGE_GAP: number;
   RAMP: number;
 };
+export function cutStage(F?: typeof FRAME): {x: number; y: number; w: number; h: number};
 export function headBox(video: Video | undefined, a?: number, b?: number): Head;
 export function fitFrame(mode: FrameMode, h: Head, opts?: Partial<typeof FRAME>): Fit;
 export function buildFraming(scenes: Scene[], video: Video | undefined, opts?: Partial<typeof FRAME>): Segment[];

@@ -76,5 +76,8 @@
 | `broll.variety` | `normal` / `strict` | 이웃 장면 지문(배치·모션·주인공·첫 효과음)에서 같아도 되는 축 수. normal = 정책 한계(1개), strict = 0개(전부 달라야). 정책보다 느슨하게는 못 한다 |
 | `broll.exit` | `wipe` / `avatar-grow` | 컷어웨이(화면 전체)에서 얼굴로 돌아올 때. wipe = 둥근 창이 닫힘, avatar-grow = 가운데 작은 아바타 틀이 3계단으로 확 커져 꽉 찬 얼굴로 이어짐 (바로 뒤가 다른 장면이면 wipe) |
 | `broll.framing` | `varied` / `split` | varied = 머리 위 카드·턱 아래 카드·분할·전체를 섞는다, split = 분할·전체만 (예전 방식). 어느 쪽이든 얼굴은 가리지 않는다(정책 `face`) |
+| `broll.camera` | `drift` / `off` | drift = 장면마다 처음→끝 아주 느린 줌인(3.5%). 대사가 세부를 가리키면 장면에 `camera: {at, x, y, scale}` 로 다가가기 |
+| `broll.roadmap` | `true` / `false` | chapter 가 3개 이상이면 장 카드마다 같은 길 지도(장 이름 = chapter `props.label`)에 지금 장만 불이 켜짐 |
 | `captions.scale` | 0.8 ~ 1.3 | 자막 크기 |
+| `captions.karaoke` | `true` / `false` | 노래방식: 지금 말하는 단어에 강조색 블록, 지난 단어는 진하게, 남은 단어는 흐리게 |
 | `sound.sfxVolume` | 0 ~ 1 | 효과음 |

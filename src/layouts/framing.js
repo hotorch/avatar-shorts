@@ -13,24 +13,36 @@
 export const FRAME = {
   W: 1080,
   H: 1920,
-  SAFE_TOP: 120, // 위쪽 플랫폼 UI
-  UI_BOTTOM: 1670, // 이 아래는 플랫폼 UI (자막도 이 위에서 끝난다)
-  CAPTION_Y: 1470, // 기본 자막 위치(위 끝)
+  // 유튜브 쇼츠 화면 위 UI (2026 기준, 1080×1920): 위 ~240 검색·카메라 줄 / 아래 ~420 제목·채널·구독·음악·진행 막대 /
+  // 오른쪽 ~190 좋아요·댓글·공유 버튼 열 (화면 가운데 아래부터). 예전 값(위 120·아래 250·오른쪽 없음)은 자막·카드 끝이 가려졌다 (ep01 쇼츠)
+  SAFE_TOP: 180, // 위쪽 플랫폼 UI (광고 기준 240 이지만 일반 쇼츠의 위 줄은 오른쪽 아이콘 두 개뿐 — 판 글자 크기와 맞바꿈)
+  UI_BOTTOM: 1500, // 이 아래는 플랫폼 UI (자막도 이 위에서 끝난다)
+  UI_RIGHT: 190, // 오른쪽 버튼 열 너비
+  UI_RIGHT_Y: 880, // 버튼 열이 시작하는 높이 — 이 아래로 내려오는 글자·카드는 오른쪽 190px 을 비운다
+  CAPTION_Y: 1330, // 기본 자막 위치(위 끝)
+  CAP_X: 60, // 자막 왼쪽 끝 — 오른쪽 버튼 열을 피해 가운데보다 조금 왼쪽
+  CAP_W: 820,
   CAP_H: 120, // 자막 한 줄 자리 (big 포함)
   CAP_GAP: 28, // 턱·카드와 자막 사이
   GAP: 36, // 머리와 판·카드 사이 (정책 face.gapPx 가 덮어쓴다)
-  PANEL_MAX: 1010,
-  PANEL_MIN: 760,
+  PANEL_MAX: 900, // 판 아래 끝이 오른쪽 버튼 열(UI_RIGHT_Y) 근처를 넘지 않게
+  PANEL_MIN: 780, // 판이 이보다 작으면 글자가 폰에서 안 읽힌다 → 대신 아바타를 줄인다 (S_MIN 까지)
   FLOAT_X: 60, // 떠 있는 카드 좌우 여백
   ABOVE: {min: 300, want: 400, max: 480},
   BELOW: {min: 340, want: 440, max: 560},
   HEAD_TOP_MIN: 70, // 아바타를 올릴 때 정수리 한계
-  S_MIN: 0.8, // 아바타를 이보다 작게 줄이지 않는다
+  S_MIN: 0.66, // 아바타를 이보다 작게 줄이지 않는다 (쇼츠 UI 를 피하느라 0.8 → 0.66: 크게 잘라 키운 영상은 머리가 화면의 40%)
   MERGE_GAP: 0.6,
   RAMP: 0.4, // 들어오고 나가는 시간(초)
 };
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+/** 떠 있는 카드 상자: 버튼 열 높이까지 내려오면 오른쪽 버튼 열을 비운다 */
+const floatBox = (F, y, h) => ({x: F.FLOAT_X, y, w: F.W - F.FLOAT_X - (y + h > F.UI_RIGHT_Y ? F.UI_RIGHT : F.FLOAT_X), h});
+
+/** 세로 컷어웨이 무대: 위는 SAFE_TOP, 아래는 자막 위. 아래쪽이 버튼 열 높이까지 내려오므로 오른쪽 버튼 열을 비운다 */
+export const cutStage = (F = FRAME) => ({x: 40, y: F.SAFE_TOP, w: F.W - 40 - F.UI_RIGHT, h: F.CAPTION_Y - F.SAFE_TOP - 40});
 
 /** 원본 영상 기준 0~1 좌표 → 화면 px (object-fit: cover) */
 const toScreen = (video, n) => {
@@ -91,13 +103,14 @@ export const fitFrame = (mode, h, opts = {}) => {
     const limit = (sc) => F.UI_BOTTOM - F.CAP_H - F.CAP_GAP - sc * h.chin; // 턱+자막이 들어가는 한 내릴 수 있는 만큼
     const want = F.SAFE_TOP + F.ABOVE.want + F.GAP; // 머리 위가 이만큼 안 되면 내린다
     if (h.top < want) ty = Math.max(0, Math.min(want - h.top, limit(1)));
-    if (h.top + ty - F.GAP - F.SAFE_TOP < F.ABOVE.min) {
+    // 머리 위가 모자라거나, 원래 크기로는 턱+자막이 쇼츠 아래 UI 위에 안 들어가면 (얼굴이 큰 영상) 줄인다
+    if (h.top + ty - F.GAP - F.SAFE_TOP < F.ABOVE.min || limit(1) < ty) {
       s = clamp((F.UI_BOTTOM - F.CAP_H - F.CAP_GAP - (F.SAFE_TOP + F.ABOVE.min + F.GAP)) / hh, F.S_MIN, 1);
       ty = F.SAFE_TOP + F.ABOVE.min + F.GAP - s * h.top;
     }
     const bottom = s * h.top + ty - F.GAP;
     const bh = Math.min(F.ABOVE.max, bottom - F.SAFE_TOP);
-    box = {x: F.FLOAT_X, y: bottom - bh, w: F.W - 2 * F.FLOAT_X, h: bh};
+    box = floatBox(F, bottom - bh, bh);
     capY = capFor(s * h.chin + ty);
     if (bh < F.ABOVE.min - 1) issues.push(`머리 위 공간이 ${Math.round(bh)}px 뿐입니다 (최소 ${F.ABOVE.min}) → below 나 panel 로`);
   } else if (mode === 'below') {
@@ -111,10 +124,13 @@ export const fitFrame = (mode, h, opts = {}) => {
     }
     const y = s * h.chin + ty + F.GAP;
     const bh = Math.min(F.BELOW.max, capY - F.CAP_GAP - y);
-    box = {x: F.FLOAT_X, y, w: F.W - 2 * F.FLOAT_X, h: bh};
+    box = floatBox(F, y, bh);
     if (bh < F.BELOW.min - 1) issues.push(`턱 아래 공간이 ${Math.round(bh)}px 뿐입니다 (최소 ${F.BELOW.min}) → above 나 panel 로`);
   } else {
-    capY = mode === 'cutaway' ? F.CAPTION_Y : capFor(h.chin);
+    // 얼굴만: 턱+자막이 아래 UI 위에 안 들어가면(얼굴이 큰 영상) 아바타를 그만큼 올린다 (정수리는 HEAD_TOP_MIN 까지)
+    const over = h.chin + F.CAP_GAP + F.CAP_H - F.UI_BOTTOM;
+    if (mode === 'face' && over > 0) ty = -Math.min(over, Math.max(0, h.top - F.HEAD_TOP_MIN));
+    capY = mode === 'cutaway' ? F.CAPTION_Y : capFor(h.chin + ty);
   }
 
   // 가로: 원래 크기면 머리 x 를 그대로 두고(화면이 비지 않게), 줄였으면 가운데로
@@ -171,18 +187,19 @@ export const ramp = (a, b, now, dur = FRAME.RAMP) => {
 
 /** now 초의 아바타 변환·자막 위치 (구간끼리 부드럽게 섞음) */
 export const frameAt = (segs, base, now) => {
-  let s = 1;
-  let tx = 0;
-  let ty = 0;
+  // 얼굴만일 때의 배치(base)에서 출발 — 얼굴이 큰 영상은 base 도 아바타를 올려 둔다 (쇼츠 아래 UI)
+  let s = base.s;
+  let tx = base.tx;
+  let ty = base.ty;
   let capY = base.capY;
   let k = 0;
-  let fill = 0;
+  let fill = base.fill ? 1 : 0;
   for (const g of segs) {
     const w = ramp(g.in, g.out, now);
     if (w <= 0) continue;
-    s += w * (g.fit.s - 1);
-    tx += w * g.fit.tx;
-    ty += w * g.fit.ty;
+    s += w * (g.fit.s - base.s);
+    tx += w * (g.fit.tx - base.tx);
+    ty += w * (g.fit.ty - base.ty);
     capY += w * (g.fit.capY - base.capY);
     k = Math.max(k, w);
     if (g.fit.fill) fill = Math.max(fill, w);

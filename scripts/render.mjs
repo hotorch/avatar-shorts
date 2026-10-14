@@ -6,9 +6,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {buildFraming, faceFrame, headBox} from '../src/layouts/framing.js';
+import {addRoad} from './chapters.mjs';
 import {remotion} from './platform.mjs';
 import {resolveStyle} from './style.mjs';
-import {firstBeat, loadCuts, mapTime, remapScene} from './timeline.mjs';
+import {firstBeat, frontLoaded, loadCuts, mapTime, remapScene} from './timeline.mjs';
 import {varietyProblems} from './variety.mjs';
 
 const args = process.argv.slice(2);
@@ -36,8 +37,31 @@ const video = read('video.json', null);
 const cuts = loadCuts(dir);
 const edited = !!cuts;
 const captions = plan.captions ?? read(edited ? 'captions.edit.json' : 'captions.json', []);
+// 노래방식 자막: 단어별 시작 시각을 큐에 붙인다 (words.json 의 cue 번호 = captions 순서). 띄어쓰기 단어 수가 맞을 때만
+if (!plan.captions) {
+  const words = read(edited ? 'words.edit.json' : 'words.json', []);
+  const byCue = new Map();
+  for (const w of Array.isArray(words) ? words : []) if (w.cue != null) (byCue.get(w.cue) ?? byCue.set(w.cue, []).get(w.cue)).push(w.start);
+  captions.forEach((c, i) => {
+    const ws = byCue.get(i);
+    if (ws && ws.length === c.text.split(' ').length) c.w = ws.map((t) => +t.toFixed(3));
+  });
+}
 const style = resolveStyle(slug, plan);
 const pol = style.policy;
+// 배경 지운 진행자 (npm run matte): 가로는 카드 대신 사람만, 세로는 회색 배경 대신 Backdrop. 편집본을 다시 만들었으면 예전 투명 영상은 시간이 안 맞는다
+const matteProblems = [];
+const matte = (() => {
+  const m = read('matte.json', null);
+  if (!m) return null;
+  const srcFile = path.join(dir, edited ? 'edit.mp4' : 'input.mp4');
+  const out = path.join(dir, m.file);
+  if (!fs.existsSync(out) || m.source !== path.basename(srcFile) || fs.statSync(out).mtimeMs < fs.statSync(srcFile).mtimeMs) {
+    matteProblems.push(`배경 지운 아바타(${m.file})가 지금 영상과 맞지 않습니다 → npm run matte -- ${slug} (카드로 돌리려면 matte.json 을 지우세요)`);
+    return null;
+  }
+  return m;
+})();
 
 // ── 시간 옮기기: plan.json 은 원본 시간(words.json)으로 쓴다. 편집본이 있으면 편집 시간으로 바꾼다 (scripts/timeline.mjs).
 //    그래서 무음 기준·순서를 바꿔 edit.py 를 다시 돌려도 plan 은 그대로 둔다.
@@ -65,6 +89,8 @@ const props = {
   theme: style.theme,
   sfxVolume: plan.sfxVolume ?? style.taste.sound?.sfxVolume ?? 0.5,
   captionScale: plan.captionScale ?? style.taste.captions?.scale ?? 1,
+  captionKaraoke: plan.captionKaraoke ?? style.taste.captions?.karaoke ?? true,
+  cameraDrift: plan.cameraDrift ?? (style.taste.broll?.camera === 'off' ? 0 : 0.035),
   layout: plan.layout ?? video?.layout ?? 'vertical',
   duration: plan.duration ?? (edited ? cuts.duration : video?.duration) ?? 30,
   captions,
@@ -76,13 +102,15 @@ const props = {
         height: video.height,
         faceX: video.faceX ?? 0.5,
         faceY: video.faceY ?? 0.36,
+        ...(video.inset ? {inset: video.inset} : {}), // 바깥 띠 덮기 (probe.py)
+        ...(matte ? {matte: {src: `${live}/${matte.file}`, crop: matte.crop}} : {}), // 배경 지운 진행자 (matte.py)
         ...(video.head ? {head: video.head, track} : {}),
       }
     : null,
 };
 
 // ── 검사
-const problems = [...style.problems, ...remapProblems];
+const problems = [...style.problems, ...remapProblems, ...matteProblems];
 const warn = [...style.warn];
 const P = {scenes: {minSec: 1.2, maxSec: 10, maxSameTemplateRun: 2, ...pol.scenes}, captions: {maxChars: 18, maxEmphPerCue: 2, bigMaxRatio: 0.3, ...pol.captions}, hook: pol.content?.hookFaceSeconds ?? 1};
 if (edited) {
@@ -112,14 +140,16 @@ const walkObjects = (v, where) => {
 const AG = {durationSec: 0.8, steps: [], settleSec: 0.7, faceAfterSec: 1.0, minBrollSec: 0.8, ...pol.avatarGrow}; // 정책 avatarGrow
 props.avatarGrow = {durationSec: AG.durationSec, steps: AG.steps, settleSec: AG.settleSec};
 const GROW = AG.durationSec;
+const side = props.layout === 'side'; // 가로: 아바타는 왼쪽 카드라 커지며 돌아올 화면이 없다 (Side.tsx 는 exit 를 안 씀)
 scenes.forEach((s, i) => {
   const next = scenes[i + 1];
   const faceAfter = !next || next.in - s.out >= AG.faceAfterSec; // 커진 아바타가 settleSec 더 남는다
-  if (s.mode === 'cutaway' && !s.exit) s.exit = style.taste.broll?.exit === 'avatar-grow' && faceAfter && s.out < props.duration - 0.05 ? 'avatar-grow' : 'wipe';
+  if (s.mode === 'cutaway' && !s.exit && !side) s.exit = style.taste.broll?.exit === 'avatar-grow' && faceAfter && s.out < props.duration - 0.05 ? 'avatar-grow' : 'wipe';
 });
 scenes.forEach((s, i) => {
   const w = `장면 ${s.id ?? i + 1}`;
   if (s.exit === 'avatar-grow') {
+    if (side) problems.push(`${w}: exit avatar-grow 는 세로 영상에서만 됩니다 (가로는 아바타가 카드)`);
     if (s.mode !== 'cutaway') problems.push(`${w}: exit avatar-grow 는 cutaway 에서만 됩니다`);
     if (s.out - s.in < GROW + AG.minBrollSec) warn.push(`${w}: ${(s.out - s.in).toFixed(1)}초라 아바타가 커지는 ${GROW}초가 B-roll 을 거의 다 가립니다 — out 을 늘리세요`);
   }
@@ -135,16 +165,36 @@ scenes.forEach((s, i) => {
   const next = scenes[i + 1];
   if (next && next.in < s.out - 0.01) problems.push(`${w} 와 장면 ${next.id}: 시간이 겹칩니다`);
   if (!MODES.includes(s.mode)) problems.push(`${w}: mode "${s.mode}" 없음 (${MODES.join(', ')})`);
-  if ((s.mode === 'above' || s.mode === 'below') && !FLOAT_OK.includes(s.template) && s.template !== 'custom')
+  if (!side && (s.mode === 'above' || s.mode === 'below') && !FLOAT_OK.includes(s.template) && s.template !== 'custom') // 가로는 above/below 도 panel 로 그린다 (plan.ts)
     problems.push(`${w}: ${s.template} 는 납작한 머리 위/아래 카드(${s.mode})에 안 맞습니다 → ${FLOAT_OK.join(', ')} 중에서, 또는 panel`);
   if (s.in < P.hook && s.mode === 'cutaway') problems.push(`정책 ${w}: 첫 ${P.hook}초(훅)는 얼굴입니다 — 컷어웨이 금지`);
   walkObjects(s.props, w);
+  // 단어별 등장 시각: 글자(text·title) 의 단어 수와 times·titleTimes 개수가 다르면 남는 단어가 엉뚱한 때 나온다 (KText)
+  for (const [tk, ck] of [['text', 'times'], ['title', 'titleTimes']]) {
+    const txt = s.props?.[tk];
+    const ts = s.props?.[ck];
+    if (typeof txt !== 'string' || !Array.isArray(ts)) continue;
+    const n = txt.split('\n').reduce((a, l) => a + l.split(/\s+/).filter(Boolean).length, 0);
+    if (n !== ts.length) warn.push(`${w}: ${tk} "${txt.replace(/\n/g, ' ')}" 는 ${n}단어인데 ${ck} 가 ${ts.length}개 — 단어마다 하나씩 (npm run words)`);
+  }
+  if (s.props?.avatar !== undefined) { // 아바타 좌우 바꾸기 (src/layouts/sideSwap.js): chapter 장면에서만, 가로에서만
+    if (s.template !== 'chapter' || !['left', 'right'].includes(s.props.avatar)) problems.push(`${w}: props.avatar 는 chapter 장면에 'left' 또는 'right' 로만 씁니다`);
+    else if (!side) warn.push(`${w}: props.avatar 는 가로 영상에서만 씁니다 (세로에선 무시)`);
+  }
   // 빈 화면: 장면이 열리고 첫 요소가 늦게 나오면 판만 보인다 (morph 는 첫 상태의 t 에 나타난다)
   //   custom 은 속을 알 수 없어 건너뛴다. 다른 템플릿은 제목·카드가 먼저 나오기도 해서 경고만.
   const fb = s.template === 'custom' ? null : firstBeat(s);
   const gap = fb == null ? 0 : fb - s.in;
   if (s.template === 'morph' && gap > 0.8) problems.push(`${w}: 시작 후 ${gap.toFixed(1)}초 동안 빈 판 — morph 첫 상태의 t 를 in 쪽으로 당기세요 (예: 알약을 먼저)`);
   else if (gap > 0.6) warn.push(`${w}: 첫 요소가 ${gap.toFixed(1)}초 늦게 나옵니다 — 의도한 게 아니면 당기세요`);
+  const fl = frontLoaded(s); // 앞에 몰림 (timeline.mjs)
+  if (fl) warn.push(`${w}: 등장이 앞 ${fl.last.toFixed(1)}초에 몰려 있고 ${fl.idle.toFixed(1)}초는 멈춰 있습니다 — 대사에 맞춰 나눠 띄우거나 camera 로 다가가기`);
+  if (s.camera) {
+    const c = s.camera;
+    if (!(c.x >= 0 && c.x <= 1 && c.y >= 0 && c.y <= 1)) problems.push(`${w}: camera x·y 는 무대 기준 0~1 입니다`);
+    if (!(c.scale >= 1 && c.scale <= 1.6)) problems.push(`${w}: camera scale 은 1~1.6 (더 크면 글자가 무대 밖으로)`);
+    if (!(c.at >= s.in && c.at < s.out)) problems.push(`${w}: camera at 이 장면 밖입니다`);
+  }
   for (const e of s.sfx ?? []) if (!sfx.has(e.cue)) problems.push(`${w}: 효과음 "${e.cue}" 없음 (${[...sfx].join(', ')})`);
   if (s.template === 'media') {
     const src = s.props?.src ?? '';
@@ -155,6 +205,9 @@ scenes.forEach((s, i) => {
     }
   }
 });
+// 챕터 길 지도: chapter 가 3개 이상이면 장 카드마다 같은 길을 그리고 지금 칸만 켠다 (온돌 롱폼 참고 — 장마다 "지금 어디쯤" 이 이어진다)
+//   길 이름은 chapter props.label (8자 이하 권장), 없으면 번호 (scripts/chapters.mjs addRoad)
+if (style.taste.broll?.roadmap !== false) warn.push(...addRoad(scenes));
 // 정책(다양성): 연속으로 비슷한 장면 막기 (scripts/variety.mjs)
 problems.push(...varietyProblems(scenes, pol.variety, style.taste.broll?.variety === 'strict'));
 for (const e of props.sfx ?? []) if (!sfx.has(e.cue)) problems.push(`효과음 "${e.cue}" 없음`);
@@ -192,7 +245,7 @@ if (props.layout !== 'side' && pol.face?.neverCovered !== false) {
   if (hit.length) problems.push(`정책(얼굴): 머리가 판·카드·자막에 가려지는 순간 ${hit.length}곳 — ${hit.slice(0, 4).join(', ')}${hit.length > 4 ? ' …' : ''}`);
   const base = faceFrame(props.video, opts);
   const inScene = (t) => scenes.some((x) => t >= x.in - 0.4 && t <= x.out + 0.4);
-  const low = track.filter((r) => !inScene(r[0]) && headBox(props.video, r[0], r[0]).chin > base.capY);
+  const low = track.filter((r) => !inScene(r[0]) && base.s * headBox(props.video, r[0], r[0]).chin + base.ty > base.capY);
   if (low.length) warn.push(`얼굴만 나오는 구간에서 자막이 턱에 닿는 순간 ${low.length}곳 (${low.slice(0, 3).map((r) => r[0].toFixed(1) + 's').join(', ')}) — 몸을 숙였을 때입니다`);
 }
 
@@ -223,6 +276,7 @@ const link = (from, to) => {
   }
 };
 if (video) link(path.join(dir, edited ? 'edit.mp4' : 'input.mp4'), path.join(liveDir, edited ? 'edit.mp4' : 'input.mp4'));
+if (matte) link(path.join(dir, matte.file), path.join(liveDir, matte.file));
 const broll = path.join(dir, 'broll');
 if (fs.existsSync(broll)) for (const f of fs.readdirSync(broll)) link(path.join(broll, f), path.join(liveDir, 'broll', f));
 
@@ -232,9 +286,19 @@ fs.writeFileSync(propsFile, JSON.stringify(props));
 if (checkOnly) process.exit(0);
 
 const outFile = path.join(dir, 'out', preview ? 'preview.mp4' : 'final.mp4');
-const r = remotion(
-  ['render', 'Short', outFile, `--props=${propsFile}`, ...(preview ? ['--scale=0.5', '--jpeg-quality=80'] : ['--crf=18'])],
-  {stdio: 'inherit'},
-);
+// 아바타 영상은 @remotion/media <Video> (Avatar.tsx). 그 프레임 캐시는 기본이 탭마다 "남은 메모리의 절반, 최소 500MB" 라
+// 동시 8탭이면 4GB 를 넘본다 → 탭당 256MB 로 묶는다 (최소 240MB. 롱폼 900프레임 시험에서 속도 차이 없음)
+const MEDIA_CACHE = 256 * 1024 * 1024;
+const base = [
+  'render', 'Short', outFile, `--props=${propsFile}`, `--media-cache-size-in-bytes=${MEDIA_CACHE}`,
+  ...(preview ? ['--scale=0.5', '--jpeg-quality=80'] : ['--crf=18']),
+];
+// 그래도 멈추면 동시 렌더 수를 줄여 두 번까지 다시 한다 (안전망. 진짜 오류면 세 번 다 같은 곳에서 멈춘다)
+let r;
+for (const [i, conc] of [[0, null], [1, 4], [2, 2]]) {
+  if (i) console.log(`\n⚠️  렌더가 멈췄습니다 — 동시 ${conc}개로 다시 합니다 (${i}/2)`);
+  r = remotion([...base, ...(conc ? [`--concurrency=${conc}`] : [])], {stdio: 'inherit'});
+  if (r.status === 0) break;
+}
 if (r.status === 0) console.log(`\n🎬 완성: ${outFile}`);
 process.exit(r.status ?? 1);

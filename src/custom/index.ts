@@ -1,4 +1,7 @@
 import type React from 'react';
+import {CoinVault} from './CoinVault';
+import {FlowDiagram} from './FlowDiagram';
+import {TwinVault} from './TwinVault';
 import {LightBloom} from './LightBloom';
 import {OrbitIdea} from './OrbitIdea';
 import {StackCarousel} from './StackCarousel';
@@ -12,4 +15,7 @@ export const CUSTOM: Record<string, React.FC<any>> = {
   LightBloom,
   TypeSpecimen,
   StackCarousel,
+  FlowDiagram,
+  CoinVault,
+  TwinVault,
 };

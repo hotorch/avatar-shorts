@@ -16,7 +16,12 @@ export type Cue = {
   emph?: Emph[];
   /** big = 훅·결론처럼 박스 없이 크게 (전체의 30~40% 이하) */
   style?: 'base' | 'big';
+  /** 단어별 시작 시각 (text 를 띄어쓰기로 나눈 순서, 렌더 시간). render 가 words.json 에서 채운다 → 노래방식 자막 */
+  w?: number[];
 };
+
+/** 장면 안 카메라: at 초부터 dur 초 동안 무대의 (x, y)(0~1) 쪽으로 scale 배 다가간다. 대사가 세부를 가리킬 때 */
+export type SceneCamera = {at: number; x: number; y: number; scale: number; dur?: number};
 
 export type Sfx = {t: number; cue: string; volume?: number};
 
@@ -40,6 +45,8 @@ export type Scene = {
    * 비워 두면 render 가 취향 broll.exit 로 채운다 (뒤가 얼굴일 때만).
    */
   exit?: 'wipe' | 'avatar-grow';
+  /** 장면 안 카메라 이동 (원본 시간 at). 없으면 취향 broll.camera 의 느린 줌인만 */
+  camera?: SceneCamera;
 };
 
 export type Plan = {
@@ -56,6 +63,10 @@ export type Plan = {
     /** 얼굴 중심 (0~1). side 레이아웃에서 아바타 카드 크롭 기준 */
     faceX?: number;
     faceY?: number;
+    /** 바깥 띠 (0~1, scripts/probe.py inset_frame): 아바타 도구가 인물 화면을 줄여 넣어 생긴 단색 테두리. 안쪽 배경색으로 덮는다 */
+    inset?: {top: number; left: number; right: number; colors: {top: string; left: string; right: string}} | null;
+    /** 배경을 지운 투명 아바타 (scripts/matte.py → avatar.webm, 소리 포함). 있으면 side 는 카드 대신 사람만, vertical 은 회색 배경 대신 Backdrop 위에 사람만. crop = 원본에서 잘라 낸 영역(px) */
+    matte?: {src: string; crop: {x: number; y: number; w: number; h: number}};
     /** 머리 상자 중앙값 (0~1, scripts/face.py) */
     head?: {top: number; chin: number; left: number; right: number};
     /** [렌더 시간 초, top, chin, left, right] — render 가 편집 시간으로 옮겨 넣는다 */
@@ -79,6 +90,10 @@ export type Plan = {
   avatarGrow?: {durationSec: number; steps: {before: number; scale: number}[]; settleSec: number};
   /** 자막 크기 배율 (취향 captions.scale) */
   captionScale?: number;
+  /** 노래방식 자막: 지금 말하는 단어에 강조 블록 (취향 captions.karaoke) */
+  captionKaraoke?: boolean;
+  /** 장면마다 처음→끝 느린 줌인 배율 (취향 broll.camera: drift = 0.035, off = 0) */
+  cameraDrift?: number;
   captions: Cue[];
   scenes: Scene[];
   sfx?: Sfx[];

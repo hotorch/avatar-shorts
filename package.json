@@ -16,6 +16,7 @@
     "edit": "node scripts/py.mjs edit",
     "look": "node scripts/py.mjs look",
     "probe": "node scripts/py.mjs probe",
+    "matte": "node scripts/py.mjs matte",
     "sfx": "node scripts/py.mjs sfx",
     "render": "node scripts/render.mjs",
     "typecheck": "tsc --noEmit",
@@ -25,11 +26,13 @@
     "reference": "node scripts/reference.mjs",
     "me": "node scripts/me.mjs",
     "words": "node scripts/words.mjs",
+    "chapters": "node scripts/chapters.mjs",
     "test": "node scripts/selftest.mjs"
   },
   "dependencies": {
     "@remotion/cli": "4.0.529",
     "@remotion/fonts": "4.0.529",
+    "@remotion/media": "4.0.529",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "remotion": "4.0.529"

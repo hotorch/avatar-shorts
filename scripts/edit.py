@@ -29,6 +29,26 @@ NOISE_DB = -35  # 이보다 조용하면 무음
 MIN_SILENCE = 0.10
 
 
+OUT_FPS = 30  # 편집본은 렌더 fps 로 (원본 29.97 그대로 두면 Remotion 이 "No frame found at position" 으로 멈춘다, ep01-long)
+GRAPH_ARG_MAX = 8000  # 이보다 긴 필터 그래프는 파일로. Windows 명령줄 한도는 약 32K 자 (롱폼은 조각 수백 개 → 넘음)
+
+
+def ffmpeg_major():
+    out = subprocess.run(["ffmpeg", "-version"], capture_output=True, encoding="utf-8", errors="replace").stdout
+    m = re.search(r"ffmpeg version n?(\d+)", out)
+    return int(m.group(1)) if m else 0
+
+
+def graph_args(graph, proj):
+    """짧으면 인자로 그대로 (ffmpeg 버전마다 파일 옵션이 다르다). 길면 파일에 쓰고
+    ffmpeg 7+ 는 `-/filter_complex <파일>`, 그 전은 `-filter_complex_script <파일>`."""
+    if len(graph) <= GRAPH_ARG_MAX:
+        return ["-filter_complex", graph]
+    f = proj / ".filter_graph.txt"
+    f.write_text(graph, encoding="utf-8")
+    return ["-/filter_complex" if ffmpeg_major() >= 7 else "-filter_complex_script", str(f)]
+
+
 def run_style(slug):
     r = subprocess.run(["node", "scripts/style.mjs", slug], capture_output=True, encoding="utf-8", errors="replace", check=True)
     return json.loads(r.stdout)
@@ -228,8 +248,9 @@ def main():
         labels.append(f"[v{i}][a{i}]")
     graph = ";".join(parts) + f";{''.join(labels)}concat=n={len(segs)}:v=1:a=1[v][a]"
     subprocess.run(
-        ["ffmpeg", "-loglevel", "error", "-y", "-i", str(src), "-filter_complex", graph, "-map", "[v]", "-map", "[a]",
-         "-r", f"{fps}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "17", "-pix_fmt", "yuv420p",
+        ["ffmpeg", "-loglevel", "error", "-y", "-i", str(src), *graph_args(graph, proj), "-map", "[v]", "-map", "[a]",
+         "-map_chapters", "-1",  # 원본의 장(chapter) 트랙은 자르기 전 시간이라 버린다 (ep01-long: 영상 380초에 389초짜리 data 트랙)
+         "-r", str(OUT_FPS), "-c:v", "libx264", "-preset", "veryfast", "-crf", "17", "-pix_fmt", "yuv420p",
          "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(proj / "edit.mp4")],
         check=True,
     )

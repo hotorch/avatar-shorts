@@ -13,6 +13,8 @@ export const useStage = () => {
   const s = useContext(StageCtx);
   const wide = s.w / s.h > 1.05;
   // 기준 스케일: 세로 전체(1080 폭)를 1 로
-  const u = s.kind === 'float' ? Math.min(1, s.w / 1000, s.h / 460) : Math.min(s.w / 1080, s.h / (wide ? 880 : 1300));
+  // 세로 위 판(panel)은 쇼츠 UI 를 피하느라 납작해졌다 (높이 ~570) → 880 기준이면 글자가 반 크기라 760 기준 (가로 side 무대는 그대로 880)
+  const u =
+    s.kind === 'float' ? Math.min(1, s.w / 1000, s.h / 460) : Math.min(s.w / 1080, s.h / (wide ? (s.kind === 'panel' ? 760 : 880) : 1300));
   return {...s, wide, u};
 };

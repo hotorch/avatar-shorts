@@ -47,11 +47,11 @@ export const remapScene = (cuts, sc) => {
     if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([kk, x]) => [kk, walk(x, kk)]));
     return v;
   };
-  return {scene: {...sc, props: walk(sc.props, ''), sfx: sc.sfx?.map((e) => ({...e, t: m(e.t)})), in: +a.t.toFixed(3), out: +b.t.toFixed(3)}};
+  return {scene: {...sc, props: walk(sc.props, ''), ...(sc.camera ? {camera: walk(sc.camera, '')} : {}), sfx: sc.sfx?.map((e) => ({...e, t: m(e.t)})), in: +a.t.toFixed(3), out: +b.t.toFixed(3)}};
 };
 
 /** 장면 props 안의 등장 시각들 (at · times · t · …At) */
-const beatTimes = (sc) => {
+export const beatTimes = (sc) => {
   const out = [];
   const walk = (v, k) => {
     if (typeof v === 'number' && TIME_KEY.test(k) && k !== 'in' && k !== 'out') out.push(v);
@@ -60,6 +60,19 @@ const beatTimes = (sc) => {
   };
   walk(sc.props, '');
   return out;
+};
+
+/**
+ * 앞에 몰림 (온돌 롱폼 참고: 처음에 다 띄우고 기다리면 PPT 다): 4초 넘는 장면에서 등장이 2개 이상인데 전부 앞 35% 안이면
+ * {last, idle} (마지막 등장까지 초, 그 뒤 멈춘 초), 아니면 null. camera 이동도 등장으로 친다 (끝나는 시각까지). custom 은 속을 몰라 건너뜀
+ */
+export const frontLoaded = (s) => {
+  if (s.template === 'custom') return null;
+  const beats = [...beatTimes(s), ...(s.camera ? [s.camera.at, s.camera.at + (s.camera.dur ?? 0.8)] : [])].filter((t) => t >= s.in - 0.05 && t <= s.out);
+  const len = s.out - s.in;
+  if (len < 4 || new Set(beats.map((t) => t.toFixed(2))).size < 2) return null;
+  const last = Math.max(...beats) - s.in;
+  return last < len * 0.35 ? {last, idle: len - last} : null;
 };
 
 /** 가장 이른 등장 시각 (빈 화면 검사용). 시간 값이 없으면 null */
