@@ -68,6 +68,7 @@ If something breaks, run `npm run doctor` first, then see [docs/TROUBLESHOOTING.
 - "I want it to look like this video" (with a video file you like) / "Show me my taste"
 - "Add this reference gradient to our policy"
 - "I want to make B-roll with Google Flow. Give me prompts"
+- "Put the product name behind my head when I say it" / "Add a tier list where I rank them" (six presenter effects — used only on the line that says it)
 
 **Good source video:** 15–90 s of Korean speech, a quiet room, facing the camera with a little space above your head, a half-beat pause between sentences. Numbers or results you **did not say** in the video never appear on screen.
 
@@ -76,7 +77,7 @@ If something breaks, run `npm run doctor` first, then see [docs/TROUBLESHOOTING.
 - [examples/avatar-v01/](examples/avatar-v01/): script, plan, and decision log for the video above
 - [style/README.md](style/README.md): policy (break it and the result is wrong, render blocks it) and taste (choices). Your personal taste is saved in `style/me.json`, on your PC only
 - [CLAUDE.md](CLAUDE.md): commands, code map, real pitfalls we hit
-- What's inside: 12 templates, 62 3D objects, 6 fonts, 11 synthesized sound effects, 9 skills (`.claude/skills/`)
+- What's inside: 12 templates, 6 presenter effects (the speaker is cut out so graphics sit behind and in front of them), 62 3D objects, 6 fonts, 11 synthesized sound effects, 9 skills (`.claude/skills/`)
 
 Docs inside the repo are written in Korean.
 

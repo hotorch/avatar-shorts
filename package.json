@@ -12,6 +12,7 @@
     "new": "node scripts/new-project.mjs",
     "transcribe": "node scripts/py.mjs transcribe",
     "face": "node scripts/py.mjs face",
+    "fx": "node scripts/fx.mjs",
     "align": "node scripts/py.mjs align",
     "edit": "node scripts/py.mjs edit",
     "look": "node scripts/py.mjs look",

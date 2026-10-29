@@ -8,6 +8,7 @@
 //     above   머리 위에 떠 있는 카드. 머리 위 공간이 모자라면 아바타를 내린다 (드러난 위쪽은 흐린 영상으로 채움)
 //     below   턱 아래 가슴 쪽 카드. 모자라면 자막을 내리고, 그래도 모자라면 아바타를 올린다
 //     cutaway 화면 전체 교체 (아바타는 그대로 두고 덮는다)
+//     fx      발표자 위 효과 (src/fx). 효과가 화면 전체를 그리므로 배치는 cutaway 처럼 건드리지 않는다
 //   이웃한 같은 방식 장면(0.6초 이내)은 한 구간으로 묶어 한 번만 배치한다 → 장면 사이에 아바타가 들썩이지 않는다.
 
 export const FRAME = {
@@ -140,10 +141,10 @@ export const fitFrame = (mode, h, opts = {}) => {
   };
 };
 
-/** 장면들 → 배치 구간 (같은 방식이 0.6초 안에 이어지면 묶음). 컷어웨이는 아바타를 움직이지 않는다 */
+/** 장면들 → 배치 구간 (같은 방식이 0.6초 안에 이어지면 묶음). 컷어웨이·fx 는 아바타를 움직이지 않는다 */
 export const buildFraming = (scenes, video, opts = {}) => {
   const segs = [];
-  for (const sc of [...scenes].filter((s) => s.mode !== 'cutaway').sort((a, b) => a.in - b.in)) {
+  for (const sc of [...scenes].filter((s) => s.mode !== 'cutaway' && s.mode !== 'fx').sort((a, b) => a.in - b.in)) {
     const mode = sc.mode === 'above' || sc.mode === 'below' ? sc.mode : 'panel';
     const last = segs[segs.length - 1];
     if (last && last.mode === mode && sc.in - last.out <= FRAME.MERGE_GAP) {

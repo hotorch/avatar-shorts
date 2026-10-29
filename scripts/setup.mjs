@@ -40,7 +40,7 @@ if (!hasVenv()) {
   console.log(`\n🐍 파이썬 가상환경(.venv) 만들기 (Python ${python.version})`);
   run(python.cmd, [...python.pre, '-m', 'venv', '.venv']);
 }
-console.log('\n🎙️  음성 인식(faster-whisper) · 얼굴 인식(OpenCV) 설치');
+console.log('\n🎙️  음성 인식(faster-whisper) · 얼굴 인식(OpenCV) · 사람 오려내기(rembg) 설치');
 run(VENV_PY, ['-m', 'pip', 'install', '-q', '--upgrade', 'pip']);
 run(VENV_PY, ['-m', 'pip', 'install', '-q', '-r', 'requirements.txt']);
 
@@ -55,6 +55,9 @@ console.log('\n🌐 렌더용 브라우저 받기 (≈100MB)');
 remotion(['browser', 'ensure'], {stdio: 'inherit'});
 console.log('\n🧠 음성 인식 모델(small) 받기 (≈500MB, 몇 분 걸릴 수 있어요)');
 spawnSync(VENV_PY, ['-c', "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8')"], {stdio: 'inherit', env: PY_ENV});
+
+console.log('\n✂️  사람 오려내기 모델(u2net) 받기 (≈170MB, 발표자 효과 npm run fx 용)');
+spawnSync(VENV_PY, ['-c', "from rembg import new_session; new_session('u2net')"], {stdio: 'inherit', env: PY_ENV});
 
 console.log('\n🩺 진단');
 spawnSync(process.execPath, ['scripts/doctor.mjs'], {stdio: 'inherit'});

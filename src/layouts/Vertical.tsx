@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Captions} from '../captions/Captions';
+import {FxHost, type FxScene} from '../fx';
 import {Backdrop} from '../kit/Backdrop';
 import {EASE, SPRING} from '../kit/motion';
 import {alpha, useTheme} from '../kit/theme';
@@ -16,6 +17,7 @@ import {SceneHost} from './SceneHost';
  *  - above: 머리 위에 떠 있는 카드 (모자라면 아바타를 내리고 드러난 위쪽은 흐린 영상)
  *  - below: 턱 아래 가슴 쪽 카드
  *  - cutaway: 화면 전체가 B-roll (자막은 계속)
+ *  - fx: 발표자 위 효과 (src/fx) — 효과가 발표자 자리에 화면 전체를 그린다. 자막은 기본 자리
  *  - 1670px 아래는 플랫폼 UI 자리라 비워 둔다.
  */
 export const W = FRAME.W;
@@ -32,6 +34,8 @@ export const Vertical: React.FC<{plan: Plan}> = ({plan}) => {
   const cutaways = plan.scenes.filter((s) => s.mode === 'cutaway');
   const grow = plan.avatarGrow ?? GROW_DEFAULT;
   const onCut = cutaways.some((s) => now >= s.in + 0.1 && now < s.out - 0.1);
+  const fxScenes = plan.scenes.filter((s) => s.mode === 'fx') as FxScene[];
+  const onFx = fxScenes.some((s) => now >= s.in && now < s.out);
 
   // 영상이 화면을 다 못 덮는 쪽(내리거나 줄였을 때)은 가장자리를 부드럽게 지워 흐린 영상과 잇는다
   const fadeTop = f.ty > 0 ? Math.min(160, f.ty) / f.s : 0;
@@ -87,9 +91,14 @@ export const Vertical: React.FC<{plan: Plan}> = ({plan}) => {
           </AvatarGrow>
         ))}
 
+      {/* 발표자 효과: 그 장면 동안 발표자 자리를 효과가 그린다 */}
+      {fxScenes.map((s) => (
+        <FxHost key={s.id} scene={s} video={plan.video} punch={plan.punch} />
+      ))}
+
       <Captions
         cues={plan.captions}
-        y={onCut ? FRAME.CAPTION_Y : f.capY}
+        y={onCut || onFx ? FRAME.CAPTION_Y : f.capY}
         maxW={960}
         size={64 * (plan.captionScale ?? 1)}
         bigSize={92 * (plan.captionScale ?? 1)}

@@ -27,9 +27,10 @@ export type Scene = {
   /**
    * cutaway = 화면 전체, panel = 위 칸 판(얼굴은 아래),
    * above = 머리 위에 떠 있는 카드, below = 턱 아래 카드 (가로 영상에선 둘 다 panel 처럼)
+   * fx = 발표자 위 효과 (세로만, template = src/fx 의 효과 이름. npm run fx 로 사람을 오려낸 뒤)
    */
-  mode: 'cutaway' | 'panel' | 'above' | 'below';
-  /** src/scenes 의 템플릿 이름, 또는 'custom' */
+  mode: 'cutaway' | 'panel' | 'above' | 'below' | 'fx';
+  /** src/scenes 의 템플릿 이름, 또는 'custom'. mode fx 면 효과 이름(freeze, text-behind, …) */
   template: string;
   /** template === 'custom' 일 때 src/custom/<component>.tsx */
   component?: string;
@@ -40,6 +41,8 @@ export type Scene = {
    * 비워 두면 render 가 취향 broll.exit 로 채운다 (뒤가 얼굴일 때만).
    */
   exit?: 'wipe' | 'avatar-grow';
+  /** mode fx: render 가 채운다 — 오려내기(public 경로)와 프레임마다 잰 머리·어깨 (scripts/fx_matte.py) */
+  fx?: {cutout: string; track: unknown};
 };
 
 export type Plan = {

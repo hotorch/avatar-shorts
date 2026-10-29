@@ -28,6 +28,7 @@ if (ff) {
   add(miss.length ? 'bad' : 'ok', 'ffmpeg 필터', miss.length ? `없음: ${miss.join(', ')}` : need.join(', '), how('전체 기능 빌드로 다시 설치 (winget install Gyan.FFmpeg)', '전체 기능 빌드의 ffmpeg 로 다시 설치 (brew install ffmpeg)'));
   const enc = run('ffmpeg', ['-hide_banner', '-encoders']) ?? '';
   add(/libx264/.test(enc) ? 'ok' : 'bad', 'H.264 인코더', /libx264/.test(enc) ? 'libx264' : '없음', 'libx264 가 포함된 ffmpeg 설치');
+  add(/libvpx-vp9/.test(enc) ? 'ok' : 'warn', 'VP9 인코더 (알파)', /libvpx-vp9/.test(enc) ? 'libvpx-vp9' : '없음', '발표자 효과 오려내기(npm run fx)에 필요 — 전체 기능 빌드 ffmpeg 로 (winget install Gyan.FFmpeg · brew install ffmpeg)');
 }
 add(run('ffprobe', ['-version']) ? 'ok' : 'bad', 'ffprobe', run('ffprobe', ['-version'])?.match(/version (\S+)/)?.[1] ?? '없음', 'ffmpeg 와 함께 설치됩니다');
 
@@ -45,6 +46,11 @@ const cv = hasVenv() ? run(py, ['-c', 'import cv2; print(cv2.__version__)']) : n
 add(cv ? 'ok' : 'bad', '얼굴 인식 (OpenCV)', cv ?? '없음', 'npm run setup (분할 화면에서 머리가 잘리지 않게 머리 위치를 잽니다)');
 const yunet = 'models/yunet/face_detection_yunet_2023mar.onnx';
 add(fs.existsSync(yunet) ? 'ok' : 'bad', '얼굴 인식 모델', fs.existsSync(yunet) ? 'YuNet' : '없음', `git 으로 다시 받기 (${yunet})`);
+
+const rb = hasVenv() ? run(py, ['-c', 'import rembg, onnxruntime; print(onnxruntime.__version__)']) : null;
+add(rb ? 'ok' : 'warn', '사람 오려내기 (rembg)', rb ? `onnxruntime ${rb}` : '없음', 'npm run setup (발표자 효과 npm run fx 에만 필요)');
+const u2 = path.join(process.env.U2NET_HOME ?? path.join(os.homedir(), '.u2net'), 'u2net.onnx');
+add(fs.existsSync(u2) ? 'ok' : 'warn', '오려내기 모델 (u2net)', fs.existsSync(u2) ? '있음' : '아직 안 받음', '첫 npm run fx 때 자동으로 받습니다 (≈170MB). 미리: npm run setup');
 
 const hf = path.join(process.env.HF_HOME ?? path.join(os.homedir(), '.cache', 'huggingface'), 'hub');
 const models = fs.existsSync(hf) ? fs.readdirSync(hf).filter((d) => /faster-whisper/.test(d)).map((d) => d.replace(/.*faster-whisper-/, '')) : [];
