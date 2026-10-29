@@ -15,6 +15,7 @@ In Claude Code, one line, `/shorts myvideo.mp4`, runs the whole job: transcripti
 
 - **Free, runs locally.** No API key needed. Speech recognition and rendering run on your own computer.
 - **Never covers your face.** It measures where your head is and places the explainer graphics above the head, below the chin, in a split screen, or full screen, whichever fits.
+- **Works on top of you, too.** It cuts you out of the frame to put a product name behind your head, cards behind your shoulders, or a tier list under your chin — only on the line that says it.
 - **Finishes without asking.** At the end it shows a table of what it decided and why. Point out only the parts you don't like.
 - **Learns your taste.** Give it videos you like, or fix a result, and the next video follows that taste.
 
@@ -44,7 +45,7 @@ Windows works in PowerShell without WSL. After installing everything, open a new
 ```bash
 git clone https://github.com/hotorch/avatar-shorts.git
 cd avatar-shorts
-npm run setup      # downloads packages, speech recognition, browser, then runs diagnostics
+npm run setup      # downloads packages, speech recognition, person cutout, browser, then runs diagnostics
 npm run demo       # renders demos without a video → projects/_demo/
 ```
 
@@ -100,5 +101,5 @@ If you change code, run `npm test` (under a minute). If you fix a bug, add one t
   avatar-shorts by @ai.sam_hottman (YouTube) · hotorch (GitHub)
   https://github.com/hotorch/avatar-shorts
   ```
-- Fonts OFL (`public/fonts/*-OFL.txt`) · 3D objects CC0 (`public/objects/LICENSE`) · face detection [YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) MIT (`models/yunet/LICENSE`)
+- Fonts OFL (`public/fonts/*-OFL.txt`) · 3D objects CC0 (`public/objects/LICENSE`) · face detection [YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) MIT (`models/yunet/LICENSE`) · person cutout [rembg](https://github.com/danielgatis/rembg) MIT + [U²-Net](https://github.com/xuebinqin/U-2-Net) model Apache-2.0 (downloaded at setup, not stored in the repo)
 - The render engine [Remotion](https://remotion.dev) is free for individuals and companies with 3 or fewer employees. Larger companies need a [company license](https://remotion.pro).
