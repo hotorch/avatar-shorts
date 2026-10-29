@@ -3,6 +3,7 @@
 //   길이·실물 개수가 하한을 채울 때만. 같은 효과는 영상당 한 번. 그래프 숫자는 데이터 파일에서만.
 import fs from 'node:fs';
 import path from 'node:path';
+import {FRAME, fxBox, shoulderScaleFor} from '../src/layouts/framing.js';
 
 /** 효과 이름 (src/fx/index.tsx FX_EFFECTS · 정책 presenterFx.effects · presenter-fx.md 와 같아야 한다 — 시험이 확인) */
 export const FX = ['freeze', 'text-behind', 'shoulder', 'grade-wipe', 'tier', 'glass-chart'];
@@ -38,6 +39,24 @@ export const saysWord = (words, w) => words.some((x) => bare(x.text).startsWith(
 /** 여러 단어 이름(“김 하나”)이 이어서 나오는가 */
 export const saysPhrase = (words, text) => words.map((x) => bare(x.text)).join('').includes(bare(text));
 
+/**
+ * shoulder 의 발표자 배율: 비어 있으면 잰 값(카드 자리에 필요한 만큼만), 하한은 이전부터 있던 S_MIN (아바타를 이보다 작게 줄이지 않는다).
+ * track = fx_matte 결과, video = props.video, punch = 장면 시작 펀치인 배율 → {scale, need, problem}
+ */
+export const shoulderFit = (track, video, punch = 1, scale) => {
+  const box = fxBox(video, punch);
+  const headTop = box.y + Math.min(...track.frames.map((f) => f.head_top)) * (box.w / track.summary.width);
+  const need = shoulderScaleFor(headTop);
+  const s = scale ?? need;
+  const problem =
+    s < FRAME.S_MIN - 1e-9
+      ? scale != null
+        ? `발표자 ${scale}배는 아바타 하한 ${FRAME.S_MIN}배보다 작습니다 — scale 을 지우면 필요한 만큼만 줄입니다`
+        : `머리가 높아 어깨 카드 자리를 내려면 발표자를 ${need}배로 줄여야 합니다 (하한 ${FRAME.S_MIN}배) → 다른 효과로`
+      : null;
+  return {scale: s, need, problem};
+};
+
 /** 효과에 필요한 실물 개수 (정책 effects.<이름>.minItems 와 비교) */
 const items = (sc, data) => {
   const p = sc.props ?? {};
@@ -50,12 +69,13 @@ const items = (sc, data) => {
 /**
  * fx 장면 검사. scenes = 렌더 시간, words = 렌더 시간 단어 전체.
  * ctx = {dir, src(영상 파일), layout, live(public 경로 앞부분)}  (오브젝트 이름은 render 가 장면 전체에서 확인)
- * → {problems, warn}. 통과한 장면에는 render 가 쓸 값(fx, props.words, props.chart, props.after)을 채운다.
+ * → {problems, warn, info}. 통과한 장면에는 render 가 쓸 값(fx, props.words, props.chart, props.after)을 채운다.
  */
 export const fxCheck = (scenes, words, pol = {}, ctx) => {
   const P = {oncePerVideo: true, faceMissMax: 0.3, effects: {}, ...pol};
   const problems = [];
   const warn = [];
+  const info = [];
   const used = {};
   for (const sc of scenes) {
     const w = `장면 ${sc.id}`;
@@ -146,11 +166,19 @@ export const fxCheck = (scenes, words, pol = {}, ctx) => {
       const miss = track.summary.face_miss_rate ?? 0;
       if (miss > P.faceMissMax) problems.push(`정책(fx) ${w}: 얼굴을 못 찾은 프레임이 ${Math.round(miss * 100)}% — 발표자가 화면에 있을 때만 (${Math.round(P.faceMissMax * 100)}% 까지)`);
       sc.fx = {cutout: `${ctx.live}/fx/${sc.id}.cutout.webm`, track};
+      if (sc.template === 'shoulder' && ctx.video) {
+        const punch = [...(ctx.punch ?? [])].reverse().find((x) => sc.in >= x.t)?.scale ?? 1;
+        const f = shoulderFit(track, ctx.video, punch, p.scale);
+        if (f.problem) problems.push(`정책(fx) ${w}: ${f.problem}`);
+        else {
+          sc.props = {...sc.props, scale: f.scale};
+          info.push(`${w} shoulder: 발표자 ${f.scale}배 (${p.scale != null ? '직접 적은 값' : '카드 자리를 재서 필요한 만큼'}, 하한 ${FRAME.S_MIN})`);
+        }
+      }
     }
-    if (sc.template === 'shoulder' && p.scale == null && P.shoulderScale) sc.props = {...sc.props, scale: P.shoulderScale};
     sc.props = {...sc.props, words: sw};
   }
   if (P.oncePerVideo)
     for (const [k, ids] of Object.entries(used)) if (ids.length > 1) problems.push(`정책(fx): ${k} 가 장면 ${ids.join(', ')} 에 두 번 — 같은 효과는 영상당 한 번`);
-  return {problems, warn};
+  return {problems, warn, info};
 };

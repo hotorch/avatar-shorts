@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {checkTriad} from './style.mjs';
 import {varietyProblems} from './variety.mjs';
-import {FX} from './fx-rules.mjs';
+import {FX, shoulderFit} from './fx-rules.mjs';
 import {loadCuts, remapScene} from './timeline.mjs';
 import {fitFrame, FRAME, headBox} from '../src/layouts/framing.js';
 
@@ -399,6 +399,19 @@ test('발표자 효과 막힘: 안 한 말 · 짧은 장면 · 같은 효과 두
   must(stale.code !== 0 && /장면 시간이 바뀌었습니다.*npm run fx/.test(stale.out), '낡은 오려내기가 통과');
   const cut = check({theme: {palette: 'darktech'}, scenes: [{...tb('c', 2.9, 5.9, '셋'), mode: 'cutaway'}]});
   must(cut.code !== 0 && /mode "fx"/.test(cut.out), '효과를 cutaway 로 쓴 게 통과');
+});
+
+test('어깨 효과 발표자 배율: 고정 0.74 가 아니라 잰 값, 하한은 이전 S_MIN 0.8 (이전 것과 부딪힐 때 기준)', () => {
+  // 예전(원본): 0.74배 고정 → 이 저장소의 '아바타 0.8배 아래로 안 줄임'과 충돌. 판정: 한계는 이전 것, 축소는 필요한 만큼만
+  const video = {width: 1080, height: 1920, faceX: 0.5, faceY: 0.36};
+  const tr = (top) => ({summary: {width: 1080}, frames: [{head_top: top}, {head_top: top + 20}]});
+  const low = shoulderFit(tr(400), video);
+  must(low.scale === 1 && !low.problem, `머리 위가 넉넉한데 줄임 ${JSON.stringify(low)}`);
+  const mid = shoulderFit(tr(192), video); // fx-check 시험 영상 정도
+  must(mid.scale > 0.8 && mid.scale < 0.9 && !mid.problem, `필요한 만큼이 아님 ${JSON.stringify(mid)}`);
+  must(shoulderFit(tr(0), video).problem?.includes('다른 효과로'), '0.8 아래가 필요한데 통과');
+  must(shoulderFit(tr(400), video, 1, 0.74).problem?.includes('하한'), '직접 적은 0.74 가 통과');
+  must(policy.presenterFx.shoulderScale === undefined, '정책에 고정 배율이 남아 있음 (잰 값과 두 곳)');
 });
 
 // ── 5. 렌더 한 프레임 (브라우저 필요)

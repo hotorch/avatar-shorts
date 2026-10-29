@@ -1,6 +1,6 @@
 import React from 'react';
 import {AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig} from 'remotion';
-import {FRAME} from '../layouts/framing.js';
+import {fxBox} from '../layouts/framing.js';
 import type {Plan, Scene} from '../plan';
 import {FreezeFrame, GlassChart, GradeWipe, OverShoulder, TextBehind, TierList} from './effects';
 import type {FxPresenter, Track, Word} from './fx';
@@ -18,18 +18,6 @@ export const FX_EFFECTS: Record<string, React.FC<any>> = {
 /** render 가 fx 장면에 채워 넣는 것: 오려내기 경로와 track (scripts/fx_matte.py), 장면 안 단어(장면 기준 초) */
 export type FxScene = Scene & {fx?: {cutout: string; track: Track}; props: Scene['props'] & {words?: Word[]}};
 
-/** 영상이 화면을 덮는 자리(cover) — 얼굴 화면과 같은 자리. 장면 시작의 펀치인 배율도 그대로 이어 받는다 */
-const coverBox = (video: NonNullable<Plan['video']>, scale: number) => {
-  const {W, H} = FRAME;
-  const k = Math.max(W / video.width, H / video.height);
-  const w = video.width * k;
-  const x = (W - w) / 2;
-  const y = (H - video.height * k) / 2;
-  const ox = x + (video.faceX ?? 0.5) * w;
-  const oy = y + (video.faceY ?? 0.36) * video.height * k;
-  return {x: ox + (x - ox) * scale, y: oy + (y - oy) * scale, w: w * scale};
-};
-
 /** fx 장면 하나를 발표자 자리에 그린다 (불투명 — 아래 얼굴 화면을 덮고, 목소리는 아래 영상에서 계속 나온다) */
 export const FxHost: React.FC<{scene: FxScene; video: Plan['video']; punch: Plan['punch']}> = ({scene, video, punch}) => {
   const {fps} = useVideoConfig();
@@ -38,7 +26,7 @@ export const FxHost: React.FC<{scene: FxScene; video: Plan['video']; punch: Plan
   const Comp = FX_EFFECTS[scene.template];
   if (!Comp || !scene.fx || !video?.src) return null; // render --check 가 먼저 막는다
   const scale = [...(punch ?? [])].reverse().find((p) => scene.in >= p.t)?.scale ?? 1;
-  const p: FxPresenter = {clip: video.src, cutout: scene.fx.cutout, track: scene.fx.track, box: coverBox(video, scale), aspect: video.height / video.width};
+  const p: FxPresenter = {clip: video.src, cutout: scene.fx.cutout, track: scene.fx.track, box: fxBox(video, scale), aspect: video.height / video.width};
   return (
     <Sequence from={from} durationInFrames={dur} layout="none" name={`${scene.id} fx:${scene.template}`}>
       <FxBody Comp={Comp} props={{...scene.props, p, start: from / fps, dur: dur / fps, words: scene.props.words ?? []}} />

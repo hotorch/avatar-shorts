@@ -7,6 +7,7 @@
  */
 import React from 'react';
 import {AbsoluteFill, Easing, Img, interpolate, spring, staticFile, useVideoConfig} from 'remotion';
+import {FRAME, shoulderScaleFor} from '../layouts/framing.js';
 import {objectSrc} from '../kit/Object3D';
 import {useTheme} from '../kit/theme';
 import {Check, FLAT, FONT, FX_FLOOR, FxBase, FxVideo, H, mix, motionPeakAt, onset, Plane, PlaneLayer, shotStats, TOP_SAFE, trackAt, W, glass, mapper} from './fx';
@@ -212,11 +213,11 @@ export type ShoulderProps = FxBase & {
   right: SideCard & {pill?: string};
   /** 편지가 왼쪽 카드를 떠나는 단어 (없으면 편지 없음) */
   sendWord?: string;
-  /** 발표자 배율: 셀피는 얼굴이 커서 머리 옆에 카드 자리를 내려고 줄인다 (정책 presenterFx.shoulderScale) */
+  /** 발표자 배율. 보통 비워 둔다 — render 가 카드 자리에 필요한 만큼만 재서 채운다 (framing.js shoulderScaleFor, 하한 S_MIN) */
   scale?: number;
 };
 const CARD_W = 430;
-const ABOVE_HEAD = 270; // 카드 내용은 머리 위 높이에 — 아무것도 안 가리는 자리
+const ABOVE_HEAD = FRAME.FX_ABOVE_HEAD; // 카드 내용은 머리 위 높이에 — 아무것도 안 가리는 자리
 
 const SessionCard: React.FC<{
   c: SideCard & {pill?: string};
@@ -301,7 +302,7 @@ export const OverShoulder: React.FC<ShoulderProps> = (b) => {
   const {fps} = useVideoConfig();
   const t = useTheme();
   const {lf, p} = b;
-  const S = b.scale ?? 0.74;
+  const S = b.scale ?? shoulderScaleFor(shotStats(b).headTop);
   const z = reframe(lf, fps);
   const rest: Plane = {s: S, ox: W / 2, oy: H, dx: 0, dy: 0};
   const pl: Plane = {...rest, s: 1 + (S - 1) * z};

@@ -166,9 +166,12 @@ if (scenes.some((s) => s.mode === 'fx' || FX.includes(s.template))) {
     src: video ? path.join(dir, edited ? 'edit.mp4' : 'input.mp4') : null,
     layout: props.layout,
     live,
+    video: props.video,
+    punch: props.punch,
   });
   problems.push(...fx.problems);
   warn.push(...fx.warn);
+  style.info.push(...fx.info);
 }
 // 정책(다양성): 연속으로 비슷한 장면 막기 (scripts/variety.mjs)
 problems.push(...varietyProblems(scenes, pol.variety, style.taste.broll?.variety === 'strict'));
