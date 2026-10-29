@@ -1,3 +1,5 @@
 faster-whisper>=1.1,<2
 numpy>=1.24
 opencv-python-headless>=4.8,<5
+# 발표자 효과(fx): 사람 오려내기 (u2net, CPU). npm run fx 가 쓴다
+rembg[cpu]>=2.0.57,<3

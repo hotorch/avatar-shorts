@@ -13,6 +13,7 @@
 | 어디에 어떤 B-roll 을 얹을지, 장면 수정 | `broll-plan` |
 | 렌더 전에 장면 미리 보기, "비슷한 장면이 반복돼" | `storyboard` |
 | 템플릿으로 안 되는 장면 직접 만들기, 템플릿 고치기 | `motion-kit` |
+| 발표자 위 효과 (머리 뒤 글자, 정지 스티커, 어깨 카드, 티어 표, 유리 그래프, 보정 와이프) | `broll-plan` → `references/presenter-fx.md` |
 | 레퍼런스·"앞으로 이렇게" → 정책/취향/부품 | `style-intake` |
 | 좋아하는 영상 → 내 취향, "이 영상처럼", "내 취향 보여줘" | `reference-taste` |
 | Google Flow 등 생성 도구로 B-roll 을 만들고 싶을 때 | `flow-prompts` |
@@ -35,6 +36,7 @@ npm run transcribe -- <이름> --hint "고유명사"   # 파이썬 스크립트�
 npm run face -- <이름>              # 머리 위치 추적 (npm run new 가 알아서)
 npm run align -- <이름>
 npm run edit -- <이름> [--list]     # 무음 제거 + edit.json(order, cut) → edit.mp4
+npm run fx -- <이름> [--force]     # 발표자 효과(mode fx) 장면만 사람 오려내기 → fx/<id>.cutout.webm·track.json (CPU, 바뀐 장면만)
 npm run words -- <이름> [글자…]    # 단어별 원본 시간 · 편집 시간 · 프레임 (plan 의 at/t 는 여기서)
 node scripts/style.mjs <이름>                     # 정책+취향 합친 결과·위반 확인
 npm run storyboard -- <이름>       # 렌더 전: 검사 + 장면마다 대표 프레임 시트(out/storyboard.png) + 지문 표(storyboard.md)
@@ -59,12 +61,13 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 ## 프로젝트 폴더 (`projects/<이름>/`, git 제외. 레퍼런스 측정은 `projects/_refs/<이름>/`)
 `input.mp4` 원본 **복사본** · `video.json` 크기/레이아웃/얼굴·머리 위치(head, track)/배경 색(tones) · `transcript.txt`, `words.raw.json` 음성 인식 원본 ·
 `script.txt` 교정 대본(한 줄=한 큐) · `words.json`, `captions.json` 정렬 결과 · `edit.json` 순서(`order`)·손으로 자를 곳(`cut`, 원본 초) · `edit.mp4`, `*.edit.json`, `cuts.json` 편집본 ·
-`taste.json` 프로젝트 취향 · `decisions.md` 결정 기록 · `plan.json` 장면 계획 · `storyboard.md` 장면 지문 표 · `broll/` 직접 넣는 이미지·영상 · `out/` 결과 · `.props.json` render 가 합친 최종 입력
+`taste.json` 프로젝트 취향 · `decisions.md` 결정 기록 · `plan.json` 장면 계획 · `storyboard.md` 장면 지문 표 · `broll/` 직접 넣는 이미지·영상·데이터 파일 · `fx/` 발표자 효과 오려내기(편집 시간 기준) · `out/` 결과 · `.props.json` render 가 합친 최종 입력
 
 ## 코드 지도
 - `src/Short.tsx` 메인 컴포지션 (plan 하나 = 영상 하나), `src/Root.tsx` 크기·길이 계산
 - `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이/아바타 확대 퇴장) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
 - `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면(StackCarousel · TypeSpecimen · LightBloom · OrbitIdea), `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
+- `src/fx/` 발표자 효과 6종 (fx.tsx 바닥 · effects.tsx · index.tsx 등록·FxHost). 기준·검사 `scripts/fx-rules.mjs`, 오려내기 `fx.mjs` → `fx_matte.py`(rembg u2net + YuNet), 머리 뒤 글자 가시성 `fx_check.py`
 - `src/captions/Captions.tsx` 자막
 - `scripts/` new-project · probe · face · transcribe · align · edit · words · style · me(내 취향) · reference(레퍼런스 측정) · timeline · variety(장면 지문·다양성 검사) · render · still · storyboard · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
 - `examples/demo/` 템플릿 데모 plan · `examples/avatar-v01/` 실제 영상 하나의 전 과정 파일
@@ -76,6 +79,7 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - 사용자 원본 파일은 수정·삭제하지 않는다. 작업은 `projects/` 안에서만 (하드링크 금지 — 복사).
 - 모든 애니메이션은 프레임 함수(spring/interpolate). CSS transition·Math.random 금지.
 - 렌더 후 반드시 `look.py` 시트를 직접 보고 확인한 뒤 결과를 알린다.
+- 다른 저장소·레퍼런스에서 들인 것이 이전 것과 부딪히면 `style/README.md` '이전 것과 새로 들인 것이 부딪힐 때' 4단계로 판정한다 (한계면 이전 것, 필요면 재서 필요한 만큼만, 보기 차이면 취향·기본은 이전 것, 우리 영상 스틸로 확인).
 - 정책(`style/policy.json`)은 사용자 한 명의 말로 바꾸지 않는다 → "이번 영상만 예외로 둘까요?" 로 묻는다. 취향은 바로 바꾸고 기억한다 (내 취향 `npm run me -- --set`. 공용 `style/taste.json` 은 팀이 정할 때만).
 - 레퍼런스 영상은 읽기만 하고, 구도·리듬만 배운다 (그림·글자·로고는 가져오지 않음).
 - 커스텀 장면(`src/custom/`)은 저장소 코드가 된다 → 일반적인 이름으로 만들고 결정 요약에 알린다.
@@ -101,4 +105,7 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - faster-whisper 에 wav 경로를 넘겼더니 PyAV 19 에서 `metadata_errors` TypeError 로 받아쓰기가 죽었다 → `transcribe.py` 가 wav 를 numpy 로 읽어 배열로 넘긴다.
 - 4초짜리 모션 레퍼런스를 `npm run reference` 숫자로만 봤더니 전환 1~2번·얼굴 비율로 엉뚱하게 읽혔다 → **콘택트 시트(fps=6 tile)를 직접 보고** 움직임을 문장으로 쪼갠다. 사용자가 좋다고 한 부분만 가져온다 (avatar-v03: 사진 틀이 커지는 것 ○, 굵은 표지 타이포 ✗) (`reference-taste` 2-1).
 - 아바타 확대 수치를 render.mjs 와 Vertical.tsx 에 따로 적었다 → 정책 `avatarGrow` 한 곳에서 render 가 plan 으로 넘긴다 (시험이 확인).
+- 발표자 효과를 '어울려 보이는 곳'에 뿌리면 순위를 말하지 않는 줄에 티어 표가 뜨는 장식이 된다 (reels-factory 2026-10-29) → 효과가 쓰는 단어가 그 장면에서 실제로 나와야, 길이·실물이 하한을 채워야, 영상당 한 번 (정책 `presenterFx`, render 가 막음).
+- 셀피 구도에서 미디엄 샷 어깨선 공식(얼굴 아래 + 0.55×얼굴 높이)은 가슴에 떨어진다 → 오려내기에서 몸이 화면 옆을 벗어나는 줄을 잰다 (`fx_matte.py` shoulder_l/r). u2net 은 벌린 입을 배경으로 읽어 작은 구멍은 메운다.
+- 발표자 효과 위치를 한 프레임에서 정하면 다른 프레임에서 머리가 카드·글자를 뚫는다 → 장면 모든 프레임의 최악값(`shotStats`). 오려내기는 편집 시간 기준이라 장면 in/out·편집본이 바뀌면 다시 (`npm run fx`, render 가 알림).
 - 새 함정을 고치면 `scripts/selftest.mjs` 에 시험 한 줄, 이 목록에 한 줄.

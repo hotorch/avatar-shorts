@@ -15,6 +15,7 @@ In Claude Code, one line, `/shorts myvideo.mp4`, runs the whole job: transcripti
 
 - **Free, runs locally.** No API key needed. Speech recognition and rendering run on your own computer.
 - **Never covers your face.** It measures where your head is and places the explainer graphics above the head, below the chin, in a split screen, or full screen, whichever fits.
+- **Works on top of you, too.** It cuts you out of the frame to put a product name behind your head, cards behind your shoulders, or a tier list under your chin — only on the line that says it.
 - **Finishes without asking.** At the end it shows a table of what it decided and why. Point out only the parts you don't like.
 - **Learns your taste.** Give it videos you like, or fix a result, and the next video follows that taste.
 
@@ -44,7 +45,7 @@ Windows works in PowerShell without WSL. After installing everything, open a new
 ```bash
 git clone https://github.com/hotorch/avatar-shorts.git
 cd avatar-shorts
-npm run setup      # downloads packages, speech recognition, browser, then runs diagnostics
+npm run setup      # downloads packages, speech recognition, person cutout, browser, then runs diagnostics
 npm run demo       # renders demos without a video → projects/_demo/
 ```
 
@@ -68,6 +69,7 @@ If something breaks, run `npm run doctor` first, then see [docs/TROUBLESHOOTING.
 - "I want it to look like this video" (with a video file you like) / "Show me my taste"
 - "Add this reference gradient to our policy"
 - "I want to make B-roll with Google Flow. Give me prompts"
+- "Put the product name behind my head when I say it" / "Add a tier list where I rank them" (six presenter effects — used only on the line that says it)
 
 **Good source video:** 15–90 s of Korean speech, a quiet room, facing the camera with a little space above your head, a half-beat pause between sentences. Numbers or results you **did not say** in the video never appear on screen.
 
@@ -76,7 +78,7 @@ If something breaks, run `npm run doctor` first, then see [docs/TROUBLESHOOTING.
 - [examples/avatar-v01/](examples/avatar-v01/): script, plan, and decision log for the video above
 - [style/README.md](style/README.md): policy (break it and the result is wrong, render blocks it) and taste (choices). Your personal taste is saved in `style/me.json`, on your PC only
 - [CLAUDE.md](CLAUDE.md): commands, code map, real pitfalls we hit
-- What's inside: 12 templates, 62 3D objects, 6 fonts, 11 synthesized sound effects, 9 skills (`.claude/skills/`)
+- What's inside: 12 templates, 6 presenter effects (the speaker is cut out so graphics sit behind and in front of them), 62 3D objects, 6 fonts, 11 synthesized sound effects, 9 skills (`.claude/skills/`)
 
 Docs inside the repo are written in Korean.
 
@@ -99,5 +101,5 @@ If you change code, run `npm test` (under a minute). If you fix a bug, add one t
   avatar-shorts by @ai.sam_hottman (YouTube) · hotorch (GitHub)
   https://github.com/hotorch/avatar-shorts
   ```
-- Fonts OFL (`public/fonts/*-OFL.txt`) · 3D objects CC0 (`public/objects/LICENSE`) · face detection [YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) MIT (`models/yunet/LICENSE`)
+- Fonts OFL (`public/fonts/*-OFL.txt`) · 3D objects CC0 (`public/objects/LICENSE`) · face detection [YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) MIT (`models/yunet/LICENSE`) · person cutout [rembg](https://github.com/danielgatis/rembg) MIT + [U²-Net](https://github.com/xuebinqin/U-2-Net) model Apache-2.0 (downloaded at setup, not stored in the repo)
 - The render engine [Remotion](https://remotion.dev) is free for individuals and companies with 3 or fewer employees. Larger companies need a [company license](https://remotion.pro).

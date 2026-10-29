@@ -15,6 +15,8 @@ description: 템플릿으로 표현할 수 없는 장면을 Remotion 커스텀 �
 4. 빠른 확인: `npm run still -- <이름> <원본 초…>` 또는 `--scene <id>` (시작·가운데·끝). 프레임·편집 시간 계산은 스크립트가 한다 — 직접 `remotion still --frame` 을 계산하지 않는다 (렌더 fps 30 ≠ 원본 fps, 편집으로 시간이 밀림).
 5. `npm test` 통과 확인 (타입 + 등록 누락 + 회귀). 새 템플릿이면 `src/scenes/index.tsx` · `scripts/render.mjs` 의 templates · `broll-plan/references/templates.md` 세 곳에 넣는다 (시험이 어긋나면 잡는다).
 
+발표자 위에 그래픽을 얹는 효과(사람을 오려내 머리 뒤·앞에 놓는 것)는 커스텀 장면이 아니라 `src/fx/` 다 — 바닥 `fx.tsx`(영상 시각 한 장 `FxVideo`, 장면 최악값 `shotStats`, 단어 시작 `onset`, 발표자 평면 `Plane`) 위에 효과를 더하고, `src/fx/index.tsx` · `scripts/fx-rules.mjs` `FX` · 정책 `presenterFx.effects` · `variety.motion` · `broll-plan/references/presenter-fx.md` 다섯 곳에 등록한다 (시험이 어긋나면 잡는다).
+
 ## 시계와 무대
 ```tsx
 const {start, end} = useScene();   // 이 장면의 원본 기준 시작/끝(초)

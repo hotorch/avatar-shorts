@@ -5,7 +5,7 @@ description: 자막(words.json, captions.json)을 보고 어느 문장에 어떤
 
 # B-roll 계획: 대사 → 장면
 
-먼저 읽기: `references/design-rules.md`(시각 규칙), `references/templates.md`(템플릿 props), `references/objects.md`(오브젝트 은유).
+먼저 읽기: `references/design-rules.md`(시각 규칙), `references/templates.md`(템플릿 props), `references/objects.md`(오브젝트 은유), `references/presenter-fx.md`(발표자 효과 6종 — 언제 쓰는지).
 양은 취향 `broll.density`(low/medium/high)를 따른다 — 묻지 않는다. 확인: `node scripts/style.mjs <이름>`.
 
 **시간 기준**: plan.json 의 모든 시간은 **원본 시간**(`words.json`)으로 쓴다. `edit.py` 로 편집했어도 마찬가지 — render 가 편집본 시간으로 옮긴다.
@@ -35,6 +35,8 @@ description: 자막(words.json, captions.json)을 보고 어느 문장에 어떤
   | `below` | 턱 아래 가슴 쪽 카드 | 핵심어 강조, 실제로 말한 숫자, 짧은 결론 | morph, keyword, stat, media |
   | `panel` | 위 칸 판, 얼굴은 아래 | UI 시연, 목록, 말을 이어가며 보여줄 때 | 전부 |
   | `cutaway` | 화면 전체 | 개념, 비교, 전환, 큰 3D 오브젝트 | 전부 |
+  | `fx` | 발표자 위 효과 — 사람을 오려내 그래픽을 머리 뒤·앞에 | 사람 소개, 제품 이름 한 단어, 둘 맞대기, 화면이 좋아짐, 순위, 잰 숫자 | 효과 6종 (`references/presenter-fx.md`) |
+  - `fx` 는 **랜덤이 아니라 기준**: 그 문장이 효과의 말을 할 때만, 길이·실물이 하한을 채울 때만, 같은 효과는 영상당 한 번. 맞는 문장이 없으면 0개. 쓰면 plan 다음에 `npm run fx -- <이름>` (사람 오려내기). 세로만.
   - 자리는 머리 위치(`video.json` track)로 **계산된다** (`src/layouts/framing.js`). `render --check` 가 ℹ️ 로 판 높이·카드 높이·아바타 이동을 보여 주고, 얼굴(정수리~턱)을 가리게 되면 ❌ (정책 `face`) → 다른 방식으로.
   - 머리 위가 좁은 영상은 above 에서 아바타를 내리고 드러난 위쪽을 흐린 영상으로 채운다. 얼굴이 화면을 꽉 채우면 panel 이 ❌ 일 수 있다 → above/below.
   - 같은 방식이 이어지면(0.6초 이내) 한 번에 배치된다. above↔below 를 바로 붙이면 아바타가 오르내리니, 붙일 거면 같은 방식으로 묶는다.

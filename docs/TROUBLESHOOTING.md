@@ -18,6 +18,8 @@
 | 모델 받기가 실패·멈춤 (회사망) | 프록시·방화벽이 huggingface.co 를 막음 | 다른 네트워크에서 `npm run setup` 한 번 (모델은 `~/.cache/huggingface` 에 남습니다) |
 | Windows: `render` 가 `public/_live 를 비우지 못했습니다` | `npm run studio` 가 영상 파일을 쥐고 있음 | Studio 창(터미널)을 닫고 다시 |
 | doctor 에 `얼굴 인식 (OpenCV)` ❌ | 예전에 설치한 `.venv` 에 OpenCV 가 없음 | `npm run setup` 한 번 더 |
+| doctor 에 `사람 오려내기 (rembg)` ⚠️ · `npm run fx` 가 `rembg 가 없습니다` | 발표자 효과가 들어오기 전에 만든 `.venv` | `npm run setup` 한 번 더 (발표자 효과를 안 쓰면 그대로 둬도 됩니다) |
+| 첫 `npm run fx` 가 한참 멈춘 듯 | 오려내기 모델(u2net ≈170MB)을 `~/.u2net` 에 받는 중 | 한 번만. `npm run setup` 이 미리 받아 둡니다. 회사망이면 GitHub 다운로드가 막혔을 수 있음 |
 | Windows: 자막·JSON 의 한글이 깨짐 (`UnicodeDecodeError`, `cp949`) | 파이썬 스크립트를 `npm run` 없이 직접 실행 | `npm run edit -- <이름>` 처럼 `npm run` 으로 (UTF-8 모드로 실행됩니다) |
 
 ## Claude Code
@@ -69,6 +71,10 @@
 | 스틸이 예전 장면을 보여 줌 | (예전 버전) 검사가 .props.json 을 안 씀 | 지금은 `--check` 와 `npm run still` 이 항상 새로 씁니다 |
 | 스틸 시각이 어긋남 | 원본 fps(25)·렌더 fps(30)·편집 시간이 다름 | 직접 계산하지 말고 `npm run still -- <이름> <원본 초>` (`--edit` 는 결과 영상 기준) |
 | 오브젝트/카드가 한쪽으로 치우침 | kit 부품의 `x, y` 는 **가운데** 좌표 | motion-kit 스킬의 좌표 규칙 참고 |
+| `장면 NN: 오려내기가 없습니다 → npm run fx` · `장면 시간이 바뀌었습니다` ❌ | 발표자 효과(mode fx) 장면을 새로 넣었거나 in/out·편집본이 바뀜 | `npm run fx -- <이름>` (바뀐 장면만 다시 오려냄. CPU 로 영상 1초당 7~10초) |
+| `정책(fx) … 를 이 장면에서 말하지 않습니다` ❌ | 효과는 그 말을 할 때만 — 이름표·글자·atWord 가 그 장면 단어에 없음 | `npm run words -- <이름>` 으로 단어를 보고 장면 in/out 이나 단어를 맞추기, 아니면 그 문장은 일반 B-roll 로 |
+| `정책(fx) … 를 plan 에 직접 적었습니다` ❌ | 그래프 숫자를 손으로 침 | 출처(`source`)가 적힌 데이터 파일 `broll/<이름>.json` 을 만들고 `"data": "broll/<이름>.json"` |
+| `머리가 글자를 너무 가립니다` (npm run fx) | text-behind 글자가 머리에 30 % 넘게 가림 | 짧은 단어로, `width`·`font` 를 줄이기, 또는 다른 효과로 |
 
 ## 결과물
 

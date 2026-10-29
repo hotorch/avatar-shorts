@@ -7,6 +7,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {checkTriad} from './style.mjs';
 import {varietyProblems} from './variety.mjs';
+import {FX, shoulderFit} from './fx-rules.mjs';
+import {loadCuts, remapScene} from './timeline.mjs';
 import {fitFrame, FRAME, headBox} from '../src/layouts/framing.js';
 
 const quick = process.argv.includes('--quick');
@@ -63,6 +65,34 @@ test('모든 템플릿에 등장 모션 계열이 있음 (policy variety.motion 
   const rnd = JSON.parse(fs.readFileSync('scripts/render.mjs', 'utf8').match(/const templates = (\[[^\]]+\])/)[1].replace(/'/g, '"')).filter((t) => t !== 'custom');
   const miss = rnd.filter((t) => !policy.variety.motion[t]);
   must(!miss.length, `motion 없음: ${miss.join(', ')}`);
+});
+test('발표자 효과 목록 4곳 일치 (src/fx/index.tsx · fx-rules.mjs · 정책 presenterFx · presenter-fx.md) + 모션 계열', () => {
+  const idx = [...fs.readFileSync('src/fx/index.tsx', 'utf8').matchAll(/^\s+'?([\w-]+)'?: \w+, \/\//gm)].map((m) => m[1]).sort();
+  const pol = Object.keys(policy.presenterFx?.effects ?? {}).sort();
+  const md = [...fs.readFileSync('.claude/skills/broll-plan/references/presenter-fx.md', 'utf8').matchAll(/^### ([\w-]+) —/gm)].map((m) => m[1]).sort();
+  must(idx.join() === [...FX].sort().join(), `index.tsx [${idx}] ≠ fx-rules.mjs [${FX}]`);
+  must(idx.join() === pol.join(), `index.tsx [${idx}] ≠ 정책 presenterFx.effects [${pol}]`);
+  must(idx.join() === md.join(), `index.tsx [${idx}] ≠ presenter-fx.md [${md}]`);
+  const miss = FX.filter((t) => !policy.variety.motion[t]);
+  must(!miss.length, `variety.motion 없음: ${miss.join(', ')}`);
+});
+test('머리 뒤 글자 가시성(fx_check.py): 글자를 절반 가리면 ❌, 20 % 면 ✅', () => {
+  // 원본(reels-factory)은 scipy 로 쟀다 → 여기는 OpenCV 연결 덩어리 (새 의존성 없이)
+  const D = path.join('projects', '.selftest-fxcheck');
+  fs.rmSync(D, {recursive: true, force: true});
+  fs.mkdirSync(path.join(D, 'half'), {recursive: true});
+  fs.mkdirSync(path.join(D, 'fifth'), {recursive: true});
+  const png = (out, boxes) => sh('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'color=c=black:s=300x200:d=1', '-vf',
+    boxes.map(([x, y, w, h]) => `drawbox=x=${x}:y=${y}:w=${w}:h=${h}:color=white:t=fill`).join(','), '-frames:v', '1', out]);
+  png(path.join(D, 'word.png'), [[20, 20, 60, 100], [120, 20, 60, 100], [220, 20, 60, 100]]); // 글자 3개
+  png(path.join(D, 'half', 'f1.png'), [[120, 70, 60, 50]]); // 가운데 글자 아래 절반을 머리가 가림
+  png(path.join(D, 'fifth', 'f1.png'), [[120, 100, 60, 20]]); // 아래 20 %
+  const run = (dir) => sh(process.execPath, ['scripts/py.mjs', 'fx_check', path.join(D, 'word.png'), path.join(D, dir)]);
+  const a = run('half');
+  const b = run('fifth');
+  fs.rmSync(D, {recursive: true, force: true});
+  must(a.code === 1 && /글자 2: .*50% 보임/.test(a.out), `절반 가림이 통과: ${a.out.trim()}`);
+  must(b.code === 0 && /글자 3개/.test(b.out), `20 % 가림이 막힘: ${b.out.trim()}`);
 });
 test('아바타 확대 레시피: Vertical.tsx 기본값 = 정책 avatarGrow, 마지막 계단은 꽉 채움(1)', () => {
   // 예전: 0.8초·계단 크기가 render.mjs 와 Vertical.tsx 에 따로 적혀 있었다 (avatar-v03)
@@ -318,11 +348,87 @@ test('통과: 배치만 같고 모션·주인공이 다른 두 장면 (strict �
   must(p.code === 0, '프로젝트 취향이 내 취향을 못 덮음');
 });
 
+// 발표자 효과(fx): 고르는 기준(정책 presenterFx)과 오려내기. 오려내기는 rembg 없이 가짜 track·cutout 으로 (scripts/fx_matte.py 의 모양 그대로)
+const fakeFx = (sc, {stale = false} = {}) => {
+  const r = remapScene(loadCuts(T), sc).scene;
+  const D = path.join(T, 'fx');
+  fs.mkdirSync(D, {recursive: true});
+  const n = Math.round((r.out - r.in) * 25) + 1;
+  const frame = {face: [110, 120, 100, 120], face_missed: false, chin: 250, head_top: 90, shoulder_l: 420, shoulder_r: 420, motion: 0};
+  const summary = {frames: n, fps: 25, width: 320, height: 568, t0: r.in, src: 'edit.mp4', from: stale ? r.in + 0.5 : r.in, to: r.out, face_miss_rate: 0};
+  fs.writeFileSync(path.join(D, `${sc.id}.track.json`), JSON.stringify({summary, frames: Array.from({length: n}, (_, f) => ({f, ...frame}))}));
+  // 투명 바탕에 불투명 사각형 하나 = 발표자 (VP9 알파)
+  sh('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'lavfi', '-i', `color=c=black@0.0:s=320x568:r=25:d=${(r.out - r.in + 0.2).toFixed(2)}`, '-vf',
+    'format=yuva420p,drawbox=x=110:y=90:w=100:h=478:color=white@1:t=fill', '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-auto-alt-ref', '0', path.join(D, `${sc.id}.cutout.webm`)]);
+  return r;
+};
+const tb = (id, a, b, text) => ({id, in: a, out: b, mode: 'fx', template: 'text-behind', props: {text}, sfx: [{t: a, cue: 'whoosh'}]});
+test('발표자 효과 통과: 그 장면에서 말한 단어 + 길이 + 최신 오려내기 → .props.json 에 오려내기·장면 단어', () => {
+  fs.rmSync(path.join(T, 'fx'), {recursive: true, force: true});
+  const sc = tb('fx1', 2.9, 5.9, '셋');
+  const r0 = fakeFx(sc);
+  const r = check({theme: {palette: 'darktech'}, scenes: [sc]});
+  must(r.code === 0, r.out.trim().split('\n').filter((l) => l.startsWith('❌')).join(' | '));
+  const p = json(path.join(T, '.props.json')).scenes[0];
+  must(p.fx?.cutout?.endsWith('fx/fx1.cutout.webm') && p.fx.track.frames.length > 10, '오려내기·track 이 props 에 없음');
+  const w = p.props.words.find((x) => x.text === '셋');
+  must(w && w.start >= 0 && w.start < r0.out - r0.in, `장면 단어가 장면 기준 초가 아님 ${JSON.stringify(p.props.words)}`);
+  must(fs.existsSync(path.join('public', '_live', '.selftest', 'fx', 'fx1.cutout.webm')), 'public/_live 에 오려내기가 없음');
+});
+test('발표자 효과 막힘: 안 한 말 · 짧은 장면 · 같은 효과 두 번 · plan 에 직접 적은 그래프 숫자 · 낡은 오려내기 · fx 가 아닌 mode', () => {
+  // 기준: 랜덤 배치 금지 — 효과가 쓰는 단어는 그 장면에서 실제로 나와야 하고, 길이·실물이 하한을 채우고, 같은 효과는 한 번
+  const nx = tb('x', 2.9, 5.9, '넷');
+  fakeFx(nx);
+  const said = check({theme: {palette: 'darktech'}, scenes: [nx]});
+  must(said.code !== 0 && /"넷".*말하지 않습니다/.test(said.out), '말하지 않은 단어가 통과');
+  const fz = {id: 'f', in: 2.9, out: 5.9, mode: 'fx', template: 'freeze', props: {name: '셋'}};
+  fakeFx(fz);
+  const short = check({theme: {palette: 'darktech'}, scenes: [fz]});
+  must(short.code !== 0 && /freeze 는 2초 이상/.test(short.out), `짧은 freeze 가 통과 ${short.out.trim().split('\n').pop()}`);
+  const two = [tb('a', 0.3, 2.9, '둘'), {...tb('b', 2.9, 5.9, '셋'), sfx: [{t: 2.9, cue: 'pop'}]}];
+  two.forEach((x) => fakeFx(x));
+  const twice = check({theme: {palette: 'darktech'}, scenes: two});
+  must(twice.code !== 0 && /text-behind 가 장면 a, b 에 두 번/.test(twice.out), '같은 효과 두 번이 통과');
+  const gc = {id: 'g', in: 2.9, out: 5.9, mode: 'fx', template: 'glass-chart', props: {total: 3, bars: [{label: 'x', value: 3}]}};
+  fakeFx(gc);
+  const typed = check({theme: {palette: 'darktech'}, scenes: [gc]});
+  must(typed.code !== 0 && /직접 적었습니다/.test(typed.out), '손으로 친 그래프 숫자가 통과');
+  const st = tb('s', 2.9, 5.9, '셋');
+  fakeFx(st, {stale: true});
+  const stale = check({theme: {palette: 'darktech'}, scenes: [st]});
+  must(stale.code !== 0 && /장면 시간이 바뀌었습니다.*npm run fx/.test(stale.out), '낡은 오려내기가 통과');
+  const cut = check({theme: {palette: 'darktech'}, scenes: [{...tb('c', 2.9, 5.9, '셋'), mode: 'cutaway'}]});
+  must(cut.code !== 0 && /mode "fx"/.test(cut.out), '효과를 cutaway 로 쓴 게 통과');
+});
+
+test('어깨 효과 발표자 배율: 고정 0.74 가 아니라 잰 값, 하한은 이전 S_MIN 0.8 (이전 것과 부딪힐 때 기준)', () => {
+  // 예전(원본): 0.74배 고정 → 이 저장소의 '아바타 0.8배 아래로 안 줄임'과 충돌. 판정: 한계는 이전 것, 축소는 필요한 만큼만
+  const video = {width: 1080, height: 1920, faceX: 0.5, faceY: 0.36};
+  const tr = (top) => ({summary: {width: 1080}, frames: [{head_top: top}, {head_top: top + 20}]});
+  const low = shoulderFit(tr(400), video);
+  must(low.scale === 1 && !low.problem, `머리 위가 넉넉한데 줄임 ${JSON.stringify(low)}`);
+  const mid = shoulderFit(tr(192), video); // fx-check 시험 영상 정도
+  must(mid.scale > 0.8 && mid.scale < 0.9 && !mid.problem, `필요한 만큼이 아님 ${JSON.stringify(mid)}`);
+  must(shoulderFit(tr(0), video).problem?.includes('다른 효과로'), '0.8 아래가 필요한데 통과');
+  must(shoulderFit(tr(400), video, 1, 0.74).problem?.includes('하한'), '직접 적은 0.74 가 통과');
+  must(policy.presenterFx.shoulderScale === undefined, '정책에 고정 배율이 남아 있음 (잰 값과 두 곳)');
+});
+
 // ── 5. 렌더 한 프레임 (브라우저 필요)
 if (!quick)
   test('스틸 렌더 (npm run still)', () => {
     check({theme: {palette: 'darktech'}, scenes: [hero('a', 4.5, 5.9)]});
     const r = sh(process.execPath, ['scripts/still.mjs', '.selftest', '5.2']);
+    must(r.code === 0 && fs.existsSync(path.join(T, 'out', 'still.png')), r.out.trim().split('\n').pop());
+  });
+if (!quick)
+  test('발표자 효과 스틸: 오려내기(VP9 알파)를 발표자 자리에 그려 렌더됨 (npm run still)', () => {
+    fs.rmSync(path.join(T, 'fx'), {recursive: true, force: true});
+    const sc = tb('fx1', 2.9, 5.9, '셋');
+    fakeFx(sc);
+    const c = check({theme: {palette: 'darktech'}, scenes: [sc]});
+    must(c.code === 0, c.out.trim().split('\n').pop());
+    const r = sh(process.execPath, ['scripts/still.mjs', '.selftest', '5.5']);
     must(r.code === 0 && fs.existsSync(path.join(T, 'out', 'still.png')), r.out.trim().split('\n').pop());
   });
 if (!quick)

@@ -44,7 +44,28 @@
       "chapter": "wipe",
       "morph": "morph",
       "media": "ken-burns",
-      "palette": "card-stack"
+      "palette": "card-stack",
+      "freeze": "freeze-sticker",
+      "text-behind": "type-behind-head",
+      "shoulder": "cards-behind-shoulders",
+      "grade-wipe": "line-wipe",
+      "tier": "tiles-fly-in",
+      "glass-chart": "count-up"
+    }
+  },
+
+  "presenterFx": {
+    "$doc": "발표자 위 효과 6종(mode fx, src/fx). 사람을 오려내(scripts/fx_matte.py, rembg u2net) 그래픽을 발표자 뒤·앞에 놓는다. 랜덤 배치 없음: 그 장면의 말이 효과의 말과 맞을 때만 — 효과가 쓰는 단어(이름표·글자·atWord)가 그 장면에서 실제로 나와야 하고, 발표자 얼굴이 화면에 있고(faceMissMax), 길이(minSec)·실물 개수(minItems)가 하한을 채울 때만. 같은 효과는 영상당 한 번(oncePerVideo). 그래프 숫자는 출처(source)가 적힌 데이터 파일에서만(손으로 친 숫자 금지). 어깨 효과는 카드 내용(머리 위)이 위 UI 아래에 들어갈 만큼만 발표자를 줄인다 — 원본의 고정 0.74배가 아니라 장면마다 잰 값(src/layouts/framing.js shoulderScaleFor), 하한은 이전부터 있던 아바타 하한 S_MIN 0.8 (그보다 줄여야 하면 ❌, 다른 효과로). 판정 근거: style/README '이전 것과 새로 들인 것이 부딪힐 때'. 출처: reels-factory presenter-fx (2026-10-29, 프롬프트 팩 6효과를 우리 아바타에 다시 지은 것). 고르는 법: .claude/skills/broll-plan/references/presenter-fx.md.",
+    "oncePerVideo": true,
+    "faceMissMax": 0.3,
+    "textBehindMinVisible": 0.7,
+    "effects": {
+      "freeze": {"minSec": 2.0, "minItems": 0, "says": "사람 이름·소개 (이름표 = 그 장면에서 말한 이름)"},
+      "text-behind": {"minSec": 1.5, "minItems": 0, "says": "도구·제품 이름을 처음 부를 때, 한 단어"},
+      "shoulder": {"minSec": 2.5, "minItems": 2, "says": "둘을 맞대기, 하나가 다른 하나로 넘기기"},
+      "grade-wipe": {"minSec": 1.5, "minItems": 0, "says": "화면·색·화질 자체가 좋아질 때만"},
+      "tier": {"minSec": 3.0, "minItems": 3, "says": "순위 매기기·고르기"},
+      "glass-chart": {"minSec": 2.0, "minItems": 1, "says": "실제로 잰 숫자가 오르내릴 때 (데이터 파일)"}
     }
   },
 

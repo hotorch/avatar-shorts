@@ -8,6 +8,7 @@
 //     above   머리 위에 떠 있는 카드. 머리 위 공간이 모자라면 아바타를 내린다 (드러난 위쪽은 흐린 영상으로 채움)
 //     below   턱 아래 가슴 쪽 카드. 모자라면 자막을 내리고, 그래도 모자라면 아바타를 올린다
 //     cutaway 화면 전체 교체 (아바타는 그대로 두고 덮는다)
+//     fx      발표자 위 효과 (src/fx). 효과가 화면 전체를 그리므로 배치는 cutaway 처럼 건드리지 않는다
 //   이웃한 같은 방식 장면(0.6초 이내)은 한 구간으로 묶어 한 번만 배치한다 → 장면 사이에 아바타가 들썩이지 않는다.
 
 export const FRAME = {
@@ -28,6 +29,7 @@ export const FRAME = {
   S_MIN: 0.8, // 아바타를 이보다 작게 줄이지 않는다
   MERGE_GAP: 0.6,
   RAMP: 0.4, // 들어오고 나가는 시간(초)
+  FX_ABOVE_HEAD: 270, // 발표자 효과 shoulder: 카드 내용이 머리 위에 놓이는 높이
 };
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -140,10 +142,10 @@ export const fitFrame = (mode, h, opts = {}) => {
   };
 };
 
-/** 장면들 → 배치 구간 (같은 방식이 0.6초 안에 이어지면 묶음). 컷어웨이는 아바타를 움직이지 않는다 */
+/** 장면들 → 배치 구간 (같은 방식이 0.6초 안에 이어지면 묶음). 컷어웨이·fx 는 아바타를 움직이지 않는다 */
 export const buildFraming = (scenes, video, opts = {}) => {
   const segs = [];
-  for (const sc of [...scenes].filter((s) => s.mode !== 'cutaway').sort((a, b) => a.in - b.in)) {
+  for (const sc of [...scenes].filter((s) => s.mode !== 'cutaway' && s.mode !== 'fx').sort((a, b) => a.in - b.in)) {
     const mode = sc.mode === 'above' || sc.mode === 'below' ? sc.mode : 'panel';
     const last = segs[segs.length - 1];
     if (last && last.mode === mode && sc.in - last.out <= FRAME.MERGE_GAP) {
@@ -152,6 +154,28 @@ export const buildFraming = (scenes, video, opts = {}) => {
     } else segs.push({mode, in: sc.in, out: sc.out, scenes: [sc]});
   }
   return segs.map((g) => ({...g, fit: fitFrame(g.mode, headBox(video, g.in, g.out), opts)}));
+};
+
+/** 발표자 효과(src/fx): 영상이 화면을 덮는 상자 — 얼굴 화면과 같은 자리. scale = 장면 시작의 펀치인 배율(얼굴 중심 기준) */
+export const fxBox = (video, scale = 1) => {
+  const {W, H} = FRAME;
+  const k = Math.max(W / video.width, H / video.height);
+  const w = video.width * k;
+  const x = (W - w) / 2;
+  const y = (H - video.height * k) / 2;
+  const ox = x + (video.faceX ?? 0.5) * w;
+  const oy = y + (video.faceY ?? 0.36) * video.height * k;
+  return {x: ox + (x - ox) * scale, y: oy + (y - oy) * scale, w: w * scale};
+};
+
+/**
+ * 발표자 효과 shoulder 의 발표자 배율 — 고정값이 아니라 잰 값. 카드 내용(머리 위 FX_ABOVE_HEAD)이 위 UI 아래에 들어갈 만큼만 줄인다
+ * (화면 아래 가운데 기준). headTop = 장면 모든 프레임 중 가장 높은 정수리(화면 px). 1 = 안 줄여도 됨.
+ * 이 값이 S_MIN 보다 작으면 그 영상엔 어깨 카드 자리가 없다 — 이전부터 있던 한계(S_MIN)를 낮추지 않는다 (style/README '부딪힐 때').
+ */
+export const shoulderScaleFor = (headTop) => {
+  const {H, SAFE_TOP, FX_ABOVE_HEAD} = FRAME;
+  return Math.min(1, Math.floor(((H - SAFE_TOP - FX_ABOVE_HEAD) / (H - headTop)) * 100) / 100);
 };
 
 /** 장면이 없을 때(얼굴만)의 배치: 자막이 턱을 가리지 않는 자리 */

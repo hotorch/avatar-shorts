@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {buildFraming, faceFrame, headBox} from '../src/layouts/framing.js';
+import {FX, fxCheck} from './fx-rules.mjs';
 import {remotion} from './platform.mjs';
 import {resolveStyle} from './style.mjs';
 import {firstBeat, loadCuts, mapTime, remapScene} from './timeline.mjs';
@@ -94,7 +95,7 @@ const objects = new Set(fs.readdirSync('public/objects/clay').map((f) => f.repla
 const sfx = new Set(fs.existsSync('public/sfx') ? fs.readdirSync('public/sfx').map((f) => f.replace('.wav', '')) : []);
 const customSrc = fs.readFileSync('src/custom/index.ts', 'utf8');
 const scenes = [...(props.scenes ?? [])].sort((a, b) => a.in - b.in);
-const MODES = ['cutaway', 'panel', 'above', 'below'];
+const MODES = ['cutaway', 'panel', 'above', 'below', 'fx'];
 const FLOAT_OK = ['morph', 'keyword', 'stat', 'media'];
 
 const walkObjects = (v, where) => {
@@ -130,7 +131,7 @@ scenes.forEach((s, i) => {
   const run = scenes.slice(Math.max(0, i - P.scenes.maxSameTemplateRun), i + 1);
   if (run.length > P.scenes.maxSameTemplateRun && run.every((x) => x.template === s.template && x.component === s.component))
     problems.push(`정책 ${w}: 같은 템플릿(${s.template})이 ${run.length}번 연속입니다`);
-  if (!templates.includes(s.template)) problems.push(`${w}: 템플릿 "${s.template}" 없음 (${templates.join(', ')})`);
+  if (!templates.includes(s.template) && !(s.mode === 'fx' && FX.includes(s.template))) problems.push(`${w}: 템플릿 "${s.template}" 없음 (${templates.join(', ')})`);
   if (s.template === 'custom' && !new RegExp(`\\b${s.component}\\b`).test(customSrc)) problems.push(`${w}: 커스텀 "${s.component}" 가 src/custom/index.ts 에 등록되지 않았습니다`);
   const next = scenes[i + 1];
   if (next && next.in < s.out - 0.01) problems.push(`${w} 와 장면 ${next.id}: 시간이 겹칩니다`);
@@ -155,6 +156,23 @@ scenes.forEach((s, i) => {
     }
   }
 });
+// 정책(fx): 발표자 효과는 그 말을 할 때만, 길이·실물이 하한을 채울 때만, 영상당 한 번 (scripts/fx-rules.mjs)
+if (scenes.some((s) => s.mode === 'fx' || FX.includes(s.template))) {
+  const wf = edited ? 'words.edit.json' : 'words.json';
+  const words = fs.existsSync(path.join(dir, wf)) ? read(wf) : [];
+  if (!words.length) problems.push(`발표자 효과는 단어 시각이 필요합니다 (${wf} 없음) → npm run align -- ${slug}`);
+  const fx = fxCheck(scenes, words, pol.presenterFx, {
+    dir,
+    src: video ? path.join(dir, edited ? 'edit.mp4' : 'input.mp4') : null,
+    layout: props.layout,
+    live,
+    video: props.video,
+    punch: props.punch,
+  });
+  problems.push(...fx.problems);
+  warn.push(...fx.warn);
+  style.info.push(...fx.info);
+}
 // 정책(다양성): 연속으로 비슷한 장면 막기 (scripts/variety.mjs)
 problems.push(...varietyProblems(scenes, pol.variety, style.taste.broll?.variety === 'strict'));
 for (const e of props.sfx ?? []) if (!sfx.has(e.cue)) problems.push(`효과음 "${e.cue}" 없음`);
@@ -225,6 +243,8 @@ const link = (from, to) => {
 if (video) link(path.join(dir, edited ? 'edit.mp4' : 'input.mp4'), path.join(liveDir, edited ? 'edit.mp4' : 'input.mp4'));
 const broll = path.join(dir, 'broll');
 if (fs.existsSync(broll)) for (const f of fs.readdirSync(broll)) link(path.join(broll, f), path.join(liveDir, 'broll', f));
+// 발표자 효과: 지금 plan 의 fx 장면 오려내기만
+for (const s of scenes.filter((x) => x.fx)) link(path.join(dir, 'fx', `${s.id}.cutout.webm`), path.join(liveDir, 'fx', `${s.id}.cutout.webm`));
 
 // 검사만 해도 .props.json 과 public/_live 는 만들어 둔다 → npm run still / studio 가 바로 된다
 const propsFile = path.join(dir, '.props.json');

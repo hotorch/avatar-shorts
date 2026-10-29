@@ -39,10 +39,13 @@ export const FRAME: {
   S_MIN: number;
   MERGE_GAP: number;
   RAMP: number;
+  FX_ABOVE_HEAD: number;
 };
 export function headBox(video: Video | undefined, a?: number, b?: number): Head;
 export function fitFrame(mode: FrameMode, h: Head, opts?: Partial<typeof FRAME>): Fit;
 export function buildFraming(scenes: Scene[], video: Video | undefined, opts?: Partial<typeof FRAME>): Segment[];
 export function faceFrame(video: Video | undefined, opts?: Partial<typeof FRAME>): Fit;
+export function fxBox(video: NonNullable<Video>, scale?: number): {x: number; y: number; w: number};
+export function shoulderScaleFor(headTop: number): number;
 export function ramp(a: number, b: number, now: number, dur?: number): number;
 export function frameAt(segs: Segment[], base: Fit, now: number): {s: number; tx: number; ty: number; capY: number; k: number; fill: number};
