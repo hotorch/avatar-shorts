@@ -77,7 +77,7 @@ export const StackCarousel: React.FC<{items: Item[]; label?: string}> = ({items,
         const i = ((j % n) + n) % n;
         const it = items[i];
         const bg = tile(i);
-        const ink = contrast(bg, '#FFFFFF') >= 3 ? '#FFFFFF' : t.ink;
+        const ink = contrast(bg, '#FFFFFF') >= 3 ? '#FFFFFF' : t.dark ? t.bg : t.ink; // 다크 팔레트의 t.ink 는 밝아서 밝은 타일 위에서 사라진다
         const titleOn = interpolate(d, [0, 0.4], [1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'});
         return (
           <div

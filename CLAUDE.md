@@ -36,6 +36,7 @@ npm run new -- <영상> [이름]         # projects/<이름>/ 생성(원본 복�
 npm run transcribe -- <이름> --hint "고유명사"   # 파이썬 스크립트는 전부 npm run (scripts/py.mjs → .venv 파이썬, UTF-8)
 npm run face -- <이름>              # 머리 위치 추적 (npm run new 가 알아서)
 npm run align -- <이름>
+npm run recheck -- <이름>           # 편집본을 다시 받아써 자막 시각·빠진 말 확인 (npm run edit 다음에)
 npm run edit -- <이름> [--list]     # 무음 제거 + edit.json(order, cut) → edit.mp4
 npm run fx -- <이름> [--force]     # 발표자 효과(mode fx) 장면만 사람 오려내기 → fx/<id>.cutout.webm·track.json (CPU, 바뀐 장면만)
 npm run words -- <이름> [글자…]    # 단어별 원본 시간 · 편집 시간 · 프레임 (plan 의 at/t 는 여기서)
@@ -69,10 +70,10 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 ## 코드 지도
 - `src/Short.tsx` 메인 컴포지션 (plan 하나 = 영상 하나), `src/Root.tsx` 크기·길이 계산
 - `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이/아바타 확대 퇴장) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
-- `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면(StackCarousel · TypeSpecimen · LightBloom · OrbitIdea), `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
+- `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면(StackCarousel · TypeSpecimen · LightBloom · OrbitIdea · CloneGrid · TokenSheet), `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
 - `src/fx/` 발표자 효과 6종 (fx.tsx 바닥 · effects.tsx · index.tsx 등록·FxHost). 기준·검사 `scripts/fx-rules.mjs`, 오려내기 `fx.mjs` → `fx_matte.py`(rembg u2net + YuNet), 머리 뒤 글자 가시성 `fx_check.py`
 - `src/captions/Captions.tsx` 자막 (모양 6 · 움직임 6, 승인 목록과 세트는 정책 `captions`, 합치는 곳 `style.mjs resolveCaptions`)
-- `scripts/` new-project · probe · face · transcribe · align · edit · words · style · me(내 취향) · brand(브랜드 문서 → 색) · sample(내 디자인 1장) · reference(레퍼런스 측정) · timeline · variety(장면 지문·다양성 검사) · render · still · storyboard · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
+- `scripts/` new-project · probe · face · transcribe · align · edit · recheck(자막·소리 재확인) · words · style · me(내 취향) · brand(브랜드 문서 → 색) · sample(내 디자인 1장) · reference(레퍼런스 측정) · timeline · variety(장면 지문·다양성 검사) · render · still · storyboard · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
 - `examples/demo/` 템플릿 데모 plan · `examples/avatar-v01/` 실제 영상 하나의 전 과정 파일
 - `models/yunet` 얼굴 인식 모델(MIT, git 에 포함) · `public/fonts` 글꼴(OFL) · `public/objects` 3D 오브젝트 62종 · `public/sfx` 합성 효과음 11종 (git 에 포함. 지워지면 `sfx.py`)
 
@@ -115,4 +116,8 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - rembg 가 모델 자리를 `~/.u2net` 에서 `~/.rembg/models/u2net` 로 옮겨서, 받아 놓고도 doctor 가 "아직 안 받음" ⚠️ 을 띄웠다 → 자리는 `u2netPaths`(platform.mjs) 한 곳에서, 설치된 rembg 의 답과 시험으로 맞춘다.
 - 상자 없는 흰 자막(`outline`)은 영상 위에선 읽혀도 밝은 장면 바탕(브랜드 흰 바탕)에선 사라졌다 → 밝은 바탕이면 본문 글자색. 새 자막 모양은 어두운·밝은 바탕 스틸 둘 다 본다.
 - 브랜드 문서를 3색 대비만 통과시키면 "맞는 색"인지 모른다 (금색 띠가 바탕으로 잡힌 문서가 대비는 통과) → 추출을 바꾸면 실제 문서 여러 개의 표를 눈으로 읽는다. 머리말 색 줄 끝에 `# 설명` 이 붙는 문서가 있다.
+- 다크 팔레트의 `t.ink` 는 밝은 색이라 트라이어드 밝은 타일 위 글자가 사라졌다 (kakao-1106 StackCarousel "Nike") → 밝은 면 위 글자는 `t.dark ? t.bg : t.ink`.
+- 음성 인식이 첫 단어 시작을 1초 가까이 늦게 잡아 자막이 소리보다 밀린 적이 있다 (kakao-1106 getdesign.md, 긴 영문 한 단어) → `npm run edit` 다음에 `npm run recheck`, 어긋난 단어만 `words.raw.json` 에서 고쳐 align 을 다시 돌린다.
+- `-문제-였어요` 처럼 닫는 `-` 뒤에 조사가 붙으면 표기로 안 읽혀 자막에 `-` 가 그대로 나올 뻔했다 (kakao-1106) → 닫는 쪽은 영문·숫자만 막는다 (`align.py` EMPH).
+- 스토리보드 대표 프레임이 아바타가 커지는 순간에 찍혀 컷어웨이 내용을 가렸다 (kakao-1106) → 커지기 직전으로 찍는다. 끝이 살짝 넘는 큐는 대사 칸에서 빠지지 않게 겹침 40 % 로 본다.
 - 새 함정을 고치면 `scripts/selftest.mjs` 에 시험 한 줄, 이 목록에 한 줄.

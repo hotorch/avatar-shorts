@@ -44,6 +44,40 @@ test('타입 검사 (tsc)', () => {
 
 // ── 2. 정책 파일끼리, 정책과 코드가 어긋나지 않는지
 const policy = json('style/policy.json');
+test('StackCarousel 제목: 다크 팔레트의 밝은 타일에서 밝은 글자를 쓰지 않음', () => {
+  must(/t\.dark \? t\.bg : t\.ink/.test(fs.readFileSync('src/custom/StackCarousel.tsx', 'utf8')), '밝은 타일 위 글자색이 t.ink 그대로입니다');
+});
+
+test('자막 표기: -문제- 뒤에 조사가 붙어도 글자에 - 가 남지 않음, 단어 속 - 는 그대로 (align.py)', () => {
+  const D = path.join('projects', '.selftest-emph');
+  fs.rmSync(D, {recursive: true, force: true});
+  fs.mkdirSync(D, {recursive: true});
+  const said = ['보라색', '사이트였어요', 'A-B', '방식'];
+  fs.writeFileSync(path.join(D, 'words.raw.json'), JSON.stringify(said.map((text, i) => ({text, start: i, end: i + 0.8, prob: 1}))));
+  fs.writeFileSync(path.join(D, 'script.txt'), '-보라색 사이트-였어요\nA-B 방식\n');
+  const r = sh(process.execPath, ['scripts/py.mjs', 'align', D]);
+  const caps = r.code === 0 ? JSON.parse(fs.readFileSync(path.join(D, 'captions.json'), 'utf8')) : [];
+  fs.rmSync(D, {recursive: true, force: true});
+  must(r.code === 0, r.out);
+  must(caps[0]?.text === '보라색 사이트였어요' && caps[0]?.emph?.length === 1, `표기가 남음: ${JSON.stringify(caps[0])}`);
+  must(caps[1]?.text === 'A-B 방식', `단어 속 - 가 사라짐: ${JSON.stringify(caps[1])}`);
+});
+test('자막·소리 재확인(recheck.py): 늦게 잡힌 단어는 ❌ 와 원본 시각, 표기만 달라도 잡고, 맞으면 ✅', () => {
+  const D = path.join('projects', '.selftest-recheck');
+  fs.rmSync(D, {recursive: true, force: true});
+  fs.mkdirSync(D, {recursive: true});
+  fs.writeFileSync(path.join(D, 'words.edit.json'), JSON.stringify([{text: '사이트가', start: 10, end: 10.5}, {text: 'getdesign.md예요', start: 12.5, end: 13}, {text: '쓰는', start: 13.4, end: 13.6}]));
+  fs.writeFileSync(path.join(D, 'cuts.json'), JSON.stringify({segments: [{src: [20, 30], out: [8, 18]}]}));
+  const heard = (file, rows) => fs.writeFileSync(path.join(D, file), JSON.stringify(rows));
+  heard('late.json', [['사이트가', 10, 10.5], ['getdesign', 11.6, 12.3], ['.md에요', 12.4, 13], ['쓰는', 13.4, 13.6]]);
+  heard('same.json', [['사이트가', 10.1, 10.5], ['getdesign.md예요', 12.4, 13], ['쓰는', 13.3, 13.6]]);
+  const run = (f) => sh(process.execPath, ['scripts/py.mjs', 'recheck', D, '--heard', path.join(D, f)]);
+  const a = run('late.json');
+  const b = run('same.json');
+  fs.rmSync(D, {recursive: true, force: true});
+  must(a.code === 1 && /원본 23\.60초/.test(a.out), `어긋남을 못 잡음: ${a.out}`);
+  must(b.code === 0, `맞는데 막힘: ${b.out}`);
+});
 test('승인된 트라이어드가 전부 대비 정책을 통과', () => {
   const bad = Object.entries(policy.triad.approved).flatMap(([k, v]) => checkTriad(v.c, policy.triad).map((m) => `${k}: ${m}`));
   must(!bad.length, bad.join(' / '));

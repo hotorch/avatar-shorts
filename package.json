@@ -14,6 +14,7 @@
     "face": "node scripts/py.mjs face",
     "fx": "node scripts/fx.mjs",
     "align": "node scripts/py.mjs align",
+    "recheck": "node scripts/py.mjs recheck",
     "edit": "node scripts/py.mjs edit",
     "look": "node scripts/py.mjs look",
     "probe": "node scripts/py.mjs probe",

@@ -39,7 +39,7 @@ export const remapScene = (cuts, sc) => {
     return {problem: `장면 ${sc.id}: 원본 ${sc.in}–${sc.out}s 가 편집으로 잘렸거나 순서가 바뀐 경계를 넘습니다 — 나누거나 edit.json 을 확인하세요`};
   for (let i = a.i; i < b.i; i++)
     if (Math.abs(cuts.segments[i + 1].src[0] - cuts.segments[i].src[1]) > 3)
-      return {problem: `장면 ${sc.id}: 재배치된 두 부분에 걸쳐 있습니다 — 한쪽에만 두세요`};
+      return {problem: `장면 ${sc.id}: 편집으로 3초 넘게 잘린 곳(재배치·긴 무음·뺀 문장)에 걸쳐 있습니다 — 잘린 곳 앞이나 뒤 한쪽에만 두세요`};
   const m = (v) => +((mapTime(cuts, v, 'start') ?? {t: v}).t.toFixed(3));
   const walk = (v, k) => {
     if (typeof v === 'number' && TIME_KEY.test(k)) return m(v);

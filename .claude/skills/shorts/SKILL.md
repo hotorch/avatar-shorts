@@ -50,7 +50,7 @@ argument-hint: <영상 경로> [대본]
 받아쓰기 → 교정(`script.txt`) → `align.py`. 고친 곳은 결정 요약에 표로.
 
 ## ③ 말 편집 → `viral-edit`
-`edit.structure` 가 hook-first 면 `edit.json` 을 쓰고, `npm run edit -- <이름>`. 무음 제거는 항상 (정도는 취향).
+`edit.structure` 가 hook-first 면 `edit.json` 을 쓰고, `npm run edit -- <이름>`. 무음 제거는 항상 (정도는 취향). 끝나면 `npm run recheck -- <이름>` 으로 자막과 소리가 맞는지 본다 (⚠️ 는 B-roll 전에 고친다 — plan 시각이 그 단어를 따라간다).
 
 ## ④ 스타일·B-roll → `broll-plan`
 - plan.json 을 **원본 시간(words.json)** 으로 쓴다 (render 가 편집본 시간으로 옮긴다).

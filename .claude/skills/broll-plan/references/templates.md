@@ -102,4 +102,6 @@ object 는 하프톤 콜라주로 모서리에 붙는다.
 | `StackCarousel` | 종류 3~5개를 차례로 말할 때 (cutaway). 세로로 쌓인 띠 중 가운데 한 장이 펼쳐지고, at 마다 다음 띠로 넘어가며 바탕색이 트라이어드를 따라 바뀜 | `{"label": "영상 소스", "items": [{"title": "분위기 있는 비롤", "object": "video-camera", "at": 32.56}, …]}` |
 | `TypeSpecimen` | 글꼴·서체를 말할 때 (panel). 글꼴 이름을 그 글꼴로 쓴 카드가 차례로 | `{"items": [{"sample": "얇은 명조", "font": "myeongjo", "label": "고급스럽게", "at": 16.76}, {"sample": "고딕", "font": "sans", "weight": 800}, {"sample": "손글씨", "font": "hand"}]}` |
 | `LightBloom` | "빛이 번지죠" 같은 화면 전환을 말할 때 | `{"from": "picture", "to": "star", "bloomAt": 12.3}` |
+| `CloneGrid` | "다 똑같이 생겼다", 전부 비슷하다고 말할 때 (cutaway). 내용 없는 웹페이지 틀 한 장이 뜨고 copyAt 에 복제돼 격자를 채움 | `{"firstAt": 1.18, "copyAt": 2.5, "title": "다 *똑같이*", "titleTimes": [2.22, 2.5]}` |
+| `TokenSheet` | 디자인 기준의 구성(색·글꼴·컴포넌트)을 차례로 말할 때 (cutaway). 문서 창의 세 칸이 at 마다 채워짐. 값은 안 씀 | `{"file": "design.md", "color": {"label": "색깔", "at": 40.6}, "type": {"label": "글꼴과 간격", "at": 41.99}, "component": {"label": "컴포넌트", "at": 44.31}}` |
 | `OrbitIdea` | 중심 개념 + 주변 요소 | `{"center": "bulb", "satellites": ["chat", "rocket", "target"]}` |
