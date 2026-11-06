@@ -34,7 +34,7 @@ argument-hint: [내 선택 메모]
   - 자막 세트 바꾸기 → 안 고른 세트 중 어울리는 3개를 고르게 하고 다시 `npm run sample`. 색 바꾸기 → 질문 2만 다시.
   - 두 번 바꿨으면 더 묻지 않는다: "나머지는 '자막 세트 다큐로'처럼 말로 바꿀 수 있어요" 하고 5번으로.
 
-**묻지 않는 것** (기본값 그대로, 원하는 사람이 말하면 바꾼다): 폰트·모양·움직임 칸, 자막 크기, 훅, 최대 길이, 효과음, 내 채널 규칙. 질문을 늘리고 싶으면 다른 질문을 뺀다. 3개를 넘기지 않는다 (시험이 확인).
+**묻지 않는 것** (기본값 그대로, 원하는 사람이 말하면 바꾼다): 폰트 조합(기본 `auto` 라 영상 주제로 고른다, `font-pairing`), 폰트·모양·움직임 칸, 자막 크기, 훅, 최대 길이, 효과음, 내 채널 규칙. 질문을 늘리고 싶으면 다른 질문을 뺀다. 3개를 넘기지 않는다 (시험이 확인).
 
 ## 1. 메모 → 취향
 
@@ -44,6 +44,7 @@ argument-hint: [내 선택 메모]
 |---|---|---|
 | 자막 세트 | `captions.set` | 기본 `basic` · 예능 `variety` · 뉴스 `news` · 다큐 `docu` · 터미널 `terminal` · 테크 `tech` · 에세이 `essay` |
 | 폰트 | `captions.font` | SUIT `suit` · Pretendard `pretendard` · 나눔명조 `myeongjo` · 알림장 `allimjang` · Plex Mono `mono` |
+| 폰트 조합 | `type.pair` | 기본 `channel` · 클린 테크 `clean-tech` · 리서치 리포트 `report` · 다큐 명조 `docu-serif` · 이벤트 붓글씨 `event-brush` · 오스퀘어 임팩트 `impact` · 동네 가게 `local-shop` · 공부 노트 `study-note` · 을지로 레트로 `retro` · 영상마다 주제로 `auto` |
 | 자막 모양 | `captions.shape` | 흰 띠 `strip` · 검은 띠 `band` · 유리 `glass` · 글자만 `outline` · 노란 글자 `pop` · 터미널 `console` |
 | 자막 움직임 | `captions.motion` | 없음 `none` · 쾅 `slam` · 쑥 `rise` · 초점 `focus` · 타자 `type` · 단어씩 `word` |
 | 자막 크기 | `captions.scale` | 0.8 ~ 1.3 |

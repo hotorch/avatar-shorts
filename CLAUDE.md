@@ -13,6 +13,7 @@
 | 어디에 어떤 B-roll 을 얹을지, 장면 수정 | `broll-plan` |
 | 렌더 전에 장면 미리 보기, "비슷한 장면이 반복돼" | `storyboard` |
 | 템플릿으로 안 되는 장면 직접 만들기, 템플릿 고치기 | `motion-kit` |
+| 폰트 조합 고르기·칸 섞기·비교 시트·내 폰트 넣기 | `font-pairing` |
 | 발표자 위 효과 (머리 뒤 글자, 정지 스티커, 어깨 카드, 티어 표, 유리 그래프, 보정 와이프) | `broll-plan` → `references/presenter-fx.md` |
 | 내 취향 세팅(메모가 없으면 질문 3개 인터뷰)·고른 메모("온보딩:")·자막 세트·브랜드 색·DESIGN.md 붙여 넣기 | `onboarding` |
 | 레퍼런스·"앞으로 이렇게" → 정책/취향/부품 | `style-intake` |
@@ -46,6 +47,7 @@ npm run reference -- <영상> [이름]  # 좋아하는 영상을 재서 내 취�
 npm run me [-- --set 키=값 --why …]  # 내 취향 카드 / 직접 정하기 (--unset, --remove <레퍼런스>)
 npm run brand [-- <문서> --accent "#…" --background "#…" --dry --reset]  # 브랜드 문서(DESIGN.md)·내 색 → 내 취향 (색 값만)
 npm run sample [-- --taste '{…}' --out <png>]  # 내 디자인 1장: 지금 취향을 예시 영상에 입혀 스틸 3칸 → projects/taste-sample/out/my-design.png
+npm run fonts [-- sheet <이름> --pairs a,b,c | add <파일> --as 이름 | remove 이름]  # 폰트 조합 목록 / 같은 문장 비교 시트 → out/font-pairs.png / 내 폰트 넣기(이 PC 에만)
 npm run render -- <이름> --check   # 검사 (+ .props.json, public/_live 준비)
 npm run still -- <이름> 16.3 17.0  # 그 순간 스틸 (원본 시간. --edit = 결과 영상 시간, --scene 06)
 npm run render -- <이름> --preview # 절반 해상도
@@ -72,10 +74,11 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이/아바타 확대 퇴장) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
 - `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면(StackCarousel · TypeSpecimen · LightBloom · OrbitIdea · CloneGrid · TokenSheet), `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
 - `src/fx/` 발표자 효과 6종 (fx.tsx 바닥 · effects.tsx · index.tsx 등록·FxHost). 기준·검사 `scripts/fx-rules.mjs`, 오려내기 `fx.mjs` → `fx_matte.py`(rembg u2net + YuNet), 머리 뒤 글자 가시성 `fx_check.py`
+- `src/kit/fonts.ts`·`theme.tsx` 글꼴 칸(`FONT.head` 강조 · `FONT.sans` 본문 · `FONT.serif` 강조 단어, 조합을 고르면 CSS 변수로 바뀜) · `scripts/style.mjs resolveType` 조합 합치기 · `scripts/fonts.mjs` + `font_info.py` 목록·시트·내 폰트 · `src/TypeSheet.tsx` 비교 시트
 - `src/captions/Captions.tsx` 자막 (모양 6 · 움직임 6, 승인 목록과 세트는 정책 `captions`, 합치는 곳 `style.mjs resolveCaptions`)
 - `scripts/` new-project · probe · face · transcribe · align · edit · recheck(자막·소리 재확인) · words · style · me(내 취향) · brand(브랜드 문서 → 색) · sample(내 디자인 1장) · reference(레퍼런스 측정) · timeline · variety(장면 지문·다양성 검사) · render · still · storyboard · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
 - `examples/demo/` 템플릿 데모 plan · `examples/avatar-v01/` 실제 영상 하나의 전 과정 파일
-- `models/yunet` 얼굴 인식 모델(MIT, git 에 포함) · `public/fonts` 글꼴(OFL) · `public/objects` 3D 오브젝트 62종 · `public/sfx` 합성 효과음 11종 (git 에 포함. 지워지면 `sfx.py`)
+- `models/yunet` 얼굴 인식 모델(MIT, git 에 포함) · `public/fonts` 글꼴(라이선스 `public/fonts/README.md`, `local/` 은 내 폰트·git 제외) · `public/objects` 3D 오브젝트 62종 · `public/sfx` 합성 효과음 11종 (git 에 포함. 지워지면 `sfx.py`)
 
 ## 규칙
 - 영상에서 말하지 않은 숫자·가격·결과·인용을 화면에 만들지 않는다.
@@ -84,6 +87,7 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - 모든 애니메이션은 프레임 함수(spring/interpolate). CSS transition·Math.random 금지.
 - 렌더 후 반드시 `look.py` 시트를 직접 보고 확인한 뒤 결과를 알린다.
 - 다른 저장소·레퍼런스에서 들인 것이 이전 것과 부딪히면 `style/README.md` '이전 것과 새로 들인 것이 부딪힐 때' 4단계로 판정한다 (한계면 이전 것, 필요면 재서 필요한 만큼만, 보기 차이면 취향·기본은 이전 것, 우리 영상 스틸로 확인).
+- 폰트는 하나로 정하지 않는다. 칸(강조·본문·영문)과 조합으로 영상마다 고르고, 재배포가 안 되는 폰트 파일은 저장소에 넣지 않는다 (`npm run fonts -- add`, 이 PC 에만).
 - 정책(`style/policy.json`)은 사용자 한 명의 말로 바꾸지 않는다 → "이번 영상만 예외로 둘까요?" 로 묻는다. 취향은 바로 바꾸고 기억한다 (내 취향 `npm run me -- --set`. 공용 `style/taste.json` 은 팀이 정할 때만).
 - 레퍼런스 영상은 읽기만 하고, 구도·리듬만 배운다 (그림·글자·로고는 가져오지 않음).
 - 브랜드 문서(DESIGN.md)에서는 색 값만 가져온다. 이름·로고·서체는 화면에 넣지 않고, 문서는 git 에 올리지 않고, 내 취향(`style/me.json`)까지만 간다.
@@ -120,4 +124,7 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - 음성 인식이 첫 단어 시작을 1초 가까이 늦게 잡아 자막이 소리보다 밀린 적이 있다 (kakao-1106 getdesign.md, 긴 영문 한 단어) → `npm run edit` 다음에 `npm run recheck`, 어긋난 단어만 `words.raw.json` 에서 고쳐 align 을 다시 돌린다.
 - `-문제-였어요` 처럼 닫는 `-` 뒤에 조사가 붙으면 표기로 안 읽혀 자막에 `-` 가 그대로 나올 뻔했다 (kakao-1106) → 닫는 쪽은 영문·숫자만 막는다 (`align.py` EMPH).
 - 스토리보드 대표 프레임이 아바타가 커지는 순간에 찍혀 컷어웨이 내용을 가렸다 (kakao-1106) → 커지기 직전으로 찍는다. 끝이 살짝 넘는 큐는 대사 칸에서 빠지지 않게 겹침 40 % 로 본다.
+- 강조 폰트를 작은 라벨까지 쓰면 명조는 가늘어지고 굵은 고딕은 뭉갠다 → 라벨·목록은 코드에서 늘 본문 칸 (`FONT.sans`), 제목·큰 숫자만 `FONT.head`. 새 장면도 폰트 이름을 직접 적지 않는다.
+- 영문 짝을 시트로 보니 옛 숫자 폰트는 "90%" 가 "9o%" 로, Yellowtail 은 "AI" 가 "A/" 로 읽혔다 → 숫자는 `lining-nums`, 폰트별 못 읽히는 낱말은 정책 `avoid` 로 render 가 ⚠️. 새 폰트는 `npm run fonts -- sheet` 로 숫자·영어를 먼저 본다.
+- 한 굵기뿐인 폰트에 `fontWeight: 800` 을 주면 가짜 굵기가 생긴다 → 조합을 쓰면 `font-synthesis: none` (`typeVars`).
 - 새 함정을 고치면 `scripts/selftest.mjs` 에 시험 한 줄, 이 목록에 한 줄.

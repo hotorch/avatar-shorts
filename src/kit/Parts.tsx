@@ -233,12 +233,12 @@ export const Counter: React.FC<{
   return (
     <div
       style={{
-        fontFamily: FONT.sans,
+        fontFamily: FONT.head,
         fontWeight: 900,
         fontSize: size,
         letterSpacing: '-0.05em',
         color: color ?? t.ink,
-        fontVariantNumeric: 'tabular-nums',
+        fontVariantNumeric: 'tabular-nums lining-nums',
         lineHeight: 1,
         transform: `scale(${interpolate(s, [0, 1], [0.8, 1])})`,
         opacity: Math.min(1, s * 2),

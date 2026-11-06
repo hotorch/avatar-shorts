@@ -43,7 +43,7 @@ export const TokenSheet: React.FC<{
   const label = (text: string, i: number) => (
     <div style={{display: 'flex', alignItems: 'center', gap: 18 * u, marginBottom: 22 * u}}>
       <div style={{fontFamily: FONT.mono, fontWeight: 600, fontSize: 40 * u, color: t.accent}}>#</div>
-      <div style={{fontFamily: FONT.sans, fontWeight: 800, fontSize: 52 * u, color: t.ink, wordBreak: 'keep-all'}}>{text}</div>
+      <div style={{fontFamily: FONT.head, fontWeight: 800, fontSize: 52 * u, color: t.ink, wordBreak: 'keep-all'}}>{text}</div>
       <div style={{marginLeft: 'auto', fontFamily: FONT.mono, fontSize: 34 * u, color: t.muted}}>0{i + 1}</div>
     </div>
   );

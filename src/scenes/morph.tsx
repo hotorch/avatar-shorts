@@ -128,7 +128,7 @@ const Content: React.FC<{s: MorphState; u: number; size: {w: number; h: number};
   switch (s.kind) {
     case 'pill':
       return (
-        <div style={{display: 'flex', alignItems: 'center', gap: 20 * u, whiteSpace: 'nowrap', fontFamily: FONT.sans, fontWeight: 800, fontSize: 70 * u, color: t.ink, letterSpacing: '-0.03em'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 20 * u, whiteSpace: 'nowrap', fontFamily: FONT.head, fontWeight: 800, fontSize: 70 * u, color: t.ink, letterSpacing: '-0.03em'}}>
           {s.object ? <ObjIcon name={s.object} size={112 * u} /> : <div style={{width: 22 * u, height: 22 * u, borderRadius: 99, background: t.accent}} />}
           {s.text}
         </div>
@@ -178,7 +178,7 @@ const Content: React.FC<{s: MorphState; u: number; size: {w: number; h: number};
       const th = 112 * u;
       return (
         <div style={{display: 'flex', alignItems: 'center', gap: 40 * u, padding: `0 ${60 * u}px`, width: '100%', boxSizing: 'border-box', justifyContent: 'space-between'}}>
-          <div style={{fontFamily: FONT.sans, fontWeight: 800, fontSize: fitSize(s.label, 70 * u, size.w - tw - 160 * u), color: t.ink, letterSpacing: '-0.03em'}}>{s.label}</div>
+          <div style={{fontFamily: FONT.head, fontWeight: 800, fontSize: fitSize(s.label, 70 * u, size.w - tw - 160 * u), color: t.ink, letterSpacing: '-0.03em'}}>{s.label}</div>
           <div style={{width: tw, height: th, borderRadius: th, background: on > 0.5 ? t.accent : alpha(t.ink, 0.15), position: 'relative', flex: 'none'}}>
             <div style={{position: 'absolute', top: 10 * u, left: 10 * u + on * (tw - th), width: th - 20 * u, height: th - 20 * u, borderRadius: 99, background: '#fff', boxShadow: `0 6px 14px ${alpha('#000000', 0.2)}`}} />
           </div>

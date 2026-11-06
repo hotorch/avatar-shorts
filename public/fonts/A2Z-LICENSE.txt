@@ -1,0 +1,4 @@
+에이투지체 (A2z) — 오토노머스에이투지 X 이주임
+배포처: https://freesentation.blog/a2z  ·  눈누: https://noonnu.cc/font_page/1778
+조건 (눈누 페이지 기준, 2026-11-06 확인): 모든 상업적 사용 가능, 폰트의 수정·재배포 가능, 폰트 자체의 유료 판매 금지.
+저장소에는 ExtraBold 한 굵기만 원본 woff2 그대로 넣었다.

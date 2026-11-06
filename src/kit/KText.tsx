@@ -55,7 +55,7 @@ export const KText: React.FC<{
   return (
     <div
       style={{
-        fontFamily: font ?? FONT.sans,
+        fontFamily: font ?? FONT.head,
         fontSize: size,
         fontWeight: weight,
         lineHeight,

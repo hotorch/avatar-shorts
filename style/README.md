@@ -8,7 +8,7 @@
 | 누가 정하나 | 팀·채널 (git 에 올려 공유) | 사람·프로젝트 |
 | 어기면 | `render --check` 가 ❌ 로 막는다 | 경고 없음. 기본값일 뿐 |
 | Claude 는 | 절대 넘지 않는다 | 이 값으로 **묻지 않고** 결정하고, 사용자가 고치면 내 취향(`style/me.json`, 그 PC 에만)에 기억한다 |
-| 예 | 지어내지 않기, 첫 1초 얼굴, 아바타 확대 전환 레시피, 장면 색은 테마에서만, 얼굴(정수리~턱) 가리지 않기, 이웃 장면이 비슷하지 않기, 자막 18자, 그라디언트 레시피, 승인된 3색, 오프라인 폰트 | 팔레트, 그라디언트 면 쓸지, 무음을 얼마나 줄일지, 펀치인, 훅을 앞으로 뺄지, B-roll 양, B-roll 배치 섞기, 컷어웨이 퇴장(둥근 창 / 아바타 확대), 자막 크기 |
+| 예 | 지어내지 않기, 첫 1초 얼굴, 아바타 확대 전환 레시피, 장면 색은 테마에서만, 얼굴(정수리~턱) 가리지 않기, 이웃 장면이 비슷하지 않기, 자막 18자, 그라디언트 레시피, 승인된 3색, 오프라인 폰트 | 팔레트, 폰트 조합, 그라디언트 면 쓸지, 무음을 얼마나 줄일지, 펀치인, 훅을 앞으로 뺄지, B-roll 양, B-roll 배치 섞기, 컷어웨이 퇴장(둥근 창 / 아바타 확대), 자막 크기 |
 
 적용 순서: **정책(잠김) > plan.json 에 직접 쓴 값 > `projects/<이름>/taste.json` > `style/me.json`(내 취향) > `style/taste.json`**
 확인: `node scripts/style.mjs <이름>` (합친 결과와 정책 위반을 보여 준다)
@@ -116,3 +116,17 @@
 | `captions.set` | `basic` / `variety` / `news` / `docu` / `terminal` / `tech` / `essay` | 폰트·모양·움직임을 묶은 세트 (정책 `captions.sets`) |
 | `captions.font` · `shape` · `motion` | 정책 `captions.fonts` · `shapes` · `motions` 의 이름, 또는 `null` | 세트에서 한 칸만 바꾸기. `null` 이면 세트 값 |
 | `sound.sfxVolume` | 0 ~ 1 | 효과음 |
+
+### 예: 폰트 조합을 들였을 때 (2026-11-06)
+"폰트 하나가 정답이 아니다"를 지키려고 폰트가 아니라 **칸**을 정책에 두었다. 고르는 법은 `font-pairing` 스킬. 출처는 세로 쇼츠 2편으로 65쌍을 비교한 [실험 글](https://zexea-education.com/blog/motion-graphics-font-pairing).
+| 들어온 것 | 분류 | 들어간 곳 |
+|---|---|---|
+| 강조·본문·영문 세 칸, 추천 조합 8개 + 채널 기본 | 정책 (쓸 수 있는 목록) | `fonts.library` · `fonts.pairs` |
+| 어떤 조합을 쓸지, 칸을 어떻게 섞을지 | 취향 (기본 `auto` = 영상 주제로) | `type.pair` · `emph` · `body` · `latin` |
+| 없는 폰트, 칸에 안 맞는 글자 | 정책 (`render` 가 막음) | `style.mjs resolveType` |
+| 반대끼리 짝, 본문은 담백하게, 손글씨는 한두 낱말 | 경험칙이라 ⚠️·ℹ️ 까지만. 글쓴이도 "출발점"이라 함 | `resolveType` · `typeNotes` · 스킬 |
+| 기본 글꼴 | 부딪힘 → 3단계: 보기 차이라 기본은 이전 것 | `auto` 로 조합이 안 정해지면 이전 글꼴 스택 그대로 (시험이 확인) |
+| 작은 카드 라벨도 강조 폰트 (글의 조합들이 겪은 문제) | 대체 → 코드에서 라벨은 늘 본문 칸 | `FONT.head` / `FONT.sans` |
+| 폰트 파일은 나눠 주지 않음 (원본 스킬 규칙 12) | 정책과 충돌 → 대체: 렌더는 오프라인이라 파일이 필요. 재배포가 되는 폰트만 저장소에, 나머지는 `npm run fonts -- add` 로 이 PC 에만 | `public/fonts/` · `public/fonts/local/` (git 제외) |
+| 비교는 정지 화면 9장 | 도구 | `npm run fonts -- sheet` (같은 문장, 폰 크기, 밝은·어두운 바탕) |
+| 시트에서 새로 찾은 것: Young Serif·Playfair 옛 숫자 "9o%", Yellowtail "AI" → "A/" | 고침 | 숫자는 `lining-nums`, Yellowtail 은 글자만 + 낱말 경고(`avoid`) |

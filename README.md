@@ -79,7 +79,7 @@ If something breaks, run `npm run doctor` first, then see [docs/TROUBLESHOOTING.
 - [examples/avatar-v01/](examples/avatar-v01/): script, plan, and decision log for the video above
 - [style/README.md](style/README.md): policy (break it and the result is wrong, render blocks it) and taste (choices). Your personal taste is saved in `style/me.json`, on your PC only
 - [CLAUDE.md](CLAUDE.md): commands, code map, real pitfalls we hit
-- What's inside: 12 templates, 6 presenter effects (the speaker is cut out so graphics sit behind and in front of them), 7 caption sets, 62 3D objects, 6 fonts, 11 synthesized sound effects, 10 skills (`.claude/skills/`)
+- What's inside: 12 templates, 6 presenter effects (the speaker is cut out so graphics sit behind and in front of them), 7 caption sets, 62 3D objects, 22 fonts in 9 pairings, 11 synthesized sound effects, 11 skills (`.claude/skills/`)
 
 Docs inside the repo are written in Korean.
 
@@ -102,5 +102,5 @@ If you change code, run `npm test` (under a minute). If you fix a bug, add one t
   avatar-shorts by @ai.sam_hottman (YouTube) · hotorch (GitHub)
   https://github.com/hotorch/avatar-shorts
   ```
-- Fonts OFL (`public/fonts/*-OFL.txt`) · 3D objects CC0 (`public/objects/LICENSE`) · face detection [YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) MIT (`models/yunet/LICENSE`) · person cutout [rembg](https://github.com/danielgatis/rembg) MIT + [U²-Net](https://github.com/xuebinqin/U-2-Net) model Apache-2.0 (downloaded at setup, not stored in the repo)
+- Fonts OFL and others ([public/fonts/README.md](public/fonts/README.md)) · 3D objects CC0 (`public/objects/LICENSE`) · face detection [YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) MIT (`models/yunet/LICENSE`) · person cutout [rembg](https://github.com/danielgatis/rembg) MIT + [U²-Net](https://github.com/xuebinqin/U-2-Net) model Apache-2.0 (downloaded at setup, not stored in the repo)
 - The render engine [Remotion](https://remotion.dev) is free for individuals and companies with 3 or fewer employees. Larger companies need a [company license](https://remotion.pro).

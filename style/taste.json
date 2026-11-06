@@ -34,6 +34,13 @@
     "motion": null
   },
 
+  "type": {
+    "pair": "auto",
+    "emph": null,
+    "body": null,
+    "latin": null
+  },
+
   "sound": {
     "sfxVolume": 0.5
   }

@@ -88,6 +88,9 @@
 | `정책(fx) … 를 plan 에 직접 적었습니다` ❌ | 그래프 숫자를 손으로 침 | 출처(`source`)가 적힌 데이터 파일 `broll/<이름>.json` 을 만들고 `"data": "broll/<이름>.json"` |
 | `머리가 글자를 너무 가립니다` (npm run fx) | text-behind 글자가 머리에 30 % 넘게 가림 | 짧은 단어로, `width`·`font` 를 줄이기, 또는 다른 효과로 |
 
+| `"…" 파일이 이 PC 에 없습니다` ❌ | 저장소에 파일이 없는 폰트(카페24 아네모네·배민 을지로체)를 골랐음 | 안내된 곳에서 받아 `npm run fonts -- add <파일> --as <이름>`, 아니면 다른 조합으로 (`npm run fonts`) |
+| `fonttools 가 없습니다` (npm run fonts -- add) | 예전에 설치해서 폰트 검사 패키지가 없음 | `npm run setup` 다시 |
+
 ## 결과물
 
 | 증상 | 해결 |

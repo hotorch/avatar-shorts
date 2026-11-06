@@ -17,6 +17,7 @@ import {FONT as FONTS} from '../kit/theme';
 export const W = FRAME.W;
 export const H = FRAME.H;
 export const FONT = FONTS.sans;
+export const FONT_HEAD = FONTS.head;
 /** 그래픽은 자막 줄 위에서 끝난다 (fx 장면의 자막은 기본 자리 CAPTION_Y) */
 export const FX_FLOOR = FRAME.CAPTION_Y - 20;
 /** 위쪽 플랫폼 UI 아래에만 글자·카드 */

@@ -80,7 +80,7 @@ npm run demo       # 영상 없이 데모 렌더 → projects/_demo/
 - [docs/TASTE-MANUAL.md](docs/TASTE-MANUAL.md): 자막 세트·브랜드 색 고르기 견본. 고른 메모를 붙여 넣으면 내 취향이 됩니다
 - [style/README.md](style/README.md): 정책(어기면 틀림, 렌더가 막음)과 취향(고르는 것). 내 취향은 `style/me.json` 에 내 PC에만 저장
 - [CLAUDE.md](CLAUDE.md): 명령, 코드 지도, 실제로 겪은 함정
-- 들어 있는 것: 템플릿 12종, 발표자 효과 6종(사람을 오려내 그래픽을 머리 뒤·앞에), 자막 세트 7종, 3D 오브젝트 62종, 글꼴 6종, 합성 효과음 11종, 스킬 10개 (`.claude/skills/`)
+- 들어 있는 것: 템플릿 12종, 발표자 효과 6종(사람을 오려내 그래픽을 머리 뒤·앞에), 자막 세트 7종, 3D 오브젝트 62종, 글꼴 22종과 폰트 조합 9개, 합성 효과음 11종, 스킬 11개 (`.claude/skills/`)
 
 ## 자주 묻는 것
 
@@ -101,5 +101,5 @@ npm run demo       # 영상 없이 데모 렌더 → projects/_demo/
   avatar-shorts by @ai.sam_hottman (YouTube) · hotorch (GitHub)
   https://github.com/hotorch/avatar-shorts
   ```
-- 글꼴 OFL (`public/fonts/*-OFL.txt`) · 3D 오브젝트 CC0 (`public/objects/LICENSE`) · 얼굴 인식 [YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) MIT (`models/yunet/LICENSE`) · 사람 오려내기 [rembg](https://github.com/danielgatis/rembg) MIT + [U²-Net](https://github.com/xuebinqin/U-2-Net) 모델 Apache-2.0 (저장소에 넣지 않고 설치할 때 받음)
+- 글꼴 OFL 등 ([public/fonts/README.md](public/fonts/README.md)) · 3D 오브젝트 CC0 (`public/objects/LICENSE`) · 얼굴 인식 [YuNet](https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet) MIT (`models/yunet/LICENSE`) · 사람 오려내기 [rembg](https://github.com/danielgatis/rembg) MIT + [U²-Net](https://github.com/xuebinqin/U-2-Net) 모델 Apache-2.0 (저장소에 넣지 않고 설치할 때 받음)
 - 렌더 엔진 [Remotion](https://remotion.dev)은 개인과 직원 3명 이하 회사는 무료입니다. 그보다 큰 회사는 [회사 라이선스](https://remotion.pro)가 필요합니다.

@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {AbsoluteFill, Audio, continueRender, delayRender, Sequence, staticFile, useVideoConfig} from 'remotion';
 import {loadFonts} from './kit/fonts';
 import {FilterDefs} from './kit/Object3D';
-import {makeTheme, ThemeProvider} from './kit/theme';
+import {makeTheme, ThemeProvider, typeVars} from './kit/theme';
 import {Side} from './layouts/Side';
 import {Vertical} from './layouts/Vertical';
 import type {Plan, Sfx} from './plan';
@@ -10,13 +10,13 @@ import type {Plan, Sfx} from './plan';
 export const Short: React.FC<Plan> = (plan) => {
   const [handle] = useState(() => delayRender('fonts'));
   useEffect(() => {
-    loadFonts().then(() => continueRender(handle));
-  }, [handle]);
+    loadFonts(plan.typography?.load).then(() => continueRender(handle));
+  }, [handle, plan.typography]);
 
   const theme = makeTheme(plan.theme.palette, plan.theme.accent, plan.theme.triad, plan.theme.surface, plan.theme.accentFromTriad, plan.theme.background);
   return (
     <ThemeProvider value={theme}>
-      <AbsoluteFill style={{background: theme.bg}}>
+      <AbsoluteFill style={{background: theme.bg, ...typeVars(plan.typography?.stacks)}}>
         <FilterDefs />
         {plan.layout === 'side' ? <Side plan={plan} /> : <Vertical plan={plan} />}
         <SfxLayer plan={plan} />
