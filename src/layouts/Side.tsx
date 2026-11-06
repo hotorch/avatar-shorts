@@ -131,7 +131,7 @@ const TalkText: React.FC<{cues: Cue[]}> = ({cues}) => {
         {String(idx + 1).padStart(2, '0')}
         <span style={{display: 'inline-block', width: 60, height: 3, background: alpha(t.accent, 0.5), margin: '0 0 8px 16px'}} />
       </div>
-      <div style={{fontFamily: FONT.sans, fontWeight: 800, fontSize: size, lineHeight: 1.18, letterSpacing: '-0.035em', color: t.ink, wordBreak: 'keep-all'}}>
+      <div style={{fontFamily: FONT.head, fontWeight: 800, fontSize: size, lineHeight: 1.18, letterSpacing: '-0.035em', color: t.ink, wordBreak: 'keep-all'}}>
         {words.map((w, i) => {
           const at = cue.start + i * 0.07;
           const k = interpolate(now, [at, at + 0.28], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: EASE.out});

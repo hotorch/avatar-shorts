@@ -28,6 +28,7 @@
     "me": "node scripts/me.mjs",
     "brand": "node scripts/brand.mjs",
     "sample": "node scripts/sample.mjs",
+    "fonts": "node scripts/fonts.mjs",
     "words": "node scripts/words.mjs",
     "test": "node scripts/selftest.mjs"
   },

@@ -10,7 +10,7 @@ import {AbsoluteFill, Easing, Img, interpolate, spring, staticFile, useVideoConf
 import {FRAME, shoulderScaleFor} from '../layouts/framing.js';
 import {objectSrc} from '../kit/Object3D';
 import {useTheme} from '../kit/theme';
-import {Check, FLAT, FONT, FX_FLOOR, FxBase, FxVideo, H, mix, motionPeakAt, onset, Plane, PlaneLayer, shotStats, TOP_SAFE, trackAt, W, glass, mapper} from './fx';
+import {Check, FLAT, FONT, FONT_HEAD, FX_FLOOR, FxBase, FxVideo, H, mix, motionPeakAt, onset, Plane, PlaneLayer, shotStats, TOP_SAFE, trackAt, W, glass, mapper} from './fx';
 
 const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
@@ -173,7 +173,7 @@ export const TextBehind: React.FC<TextBehindProps> = (b) => {
           y={capH + 40}
           textLength={width}
           lengthAdjust="spacingAndGlyphs"
-          style={{fontFamily: FONT, fontWeight: 900, fontSize: font, fill: probe === 'word' ? '#fff' : th.triad.light}}
+          style={{fontFamily: FONT_HEAD, fontWeight: 900, fontSize: font, fill: probe === 'word' ? '#fff' : th.triad.light}}
         >
           {b.text}
         </text>

@@ -1,0 +1,4 @@
+마루 부리 (MaruBuri) — © NAVER Corp., 네이버문화재단
+배포처: https://hangeul.naver.com  ·  눈누: https://noonnu.cc/font_page/487
+조건 (눈누 페이지 기준, 2026-11-06 확인): 모든 사용자에게 무료, 수정·재배포 가능, 글꼴 자체의 유료 판매 금지, 출처 표기 권장.
+저장소에는 Regular·Bold 를 원본 woff2 그대로 넣었다.

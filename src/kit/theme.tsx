@@ -159,12 +159,18 @@ const Ctx = createContext<Theme>(makeTheme('editorial'));
 export const ThemeProvider = Ctx.Provider;
 export const useTheme = () => useContext(Ctx);
 
-// 글꼴 스택 (fonts.ts 에서 로드)
+// 글꼴 스택 (fonts.ts 에서 로드). 폰트 조합을 고르면 Short 가 CSS 변수로 칸을 바꾸고, 안 고르면 뒤의 기본 스택이 그대로 쓰인다
+const SANS = '"Pretendard", "SUIT", system-ui, sans-serif';
 export const FONT = {
-  sans: '"Pretendard", "SUIT", system-ui, sans-serif',
+  sans: `var(--font-body, ${SANS})`, // 본문 칸: 자막·목록·작은 라벨
+  head: `var(--font-head, ${SANS})`, // 강조 칸: 장면 제목·큰 숫자 (작은 라벨에는 쓰지 않는다)
   suit: '"SUIT", "Pretendard", sans-serif',
-  serif: '"Instrument Serif", "Nanum Myeongjo", serif', // 라틴은 Instrument, 한글은 명조로 떨어짐
+  serif: 'var(--font-accent, "Instrument Serif", "Nanum Myeongjo", serif)', // 라틴은 Instrument, 한글은 명조로 떨어짐
   myeongjo: '"Nanum Myeongjo", serif',
-  emph: '"Instrument Serif", "Hakgyoansim Allimjang", sans-serif', // 강조 레지스터
+  emph: 'var(--font-emph, "Instrument Serif", "Hakgyoansim Allimjang", sans-serif)', // 강조 레지스터 (훅 자막)
   mono: '"IBM Plex Mono", ui-monospace, monospace',
 };
+
+/** 폰트 조합 → 칸별 CSS 변수. font-synthesis 를 꺼서 한 굵기뿐인 폰트에 가짜 굵기가 생기지 않게, 숫자는 높이가 고른 모양으로 (옛 숫자는 90 이 9o 로 읽힌다) */
+export const typeVars = (stacks?: {head: string; emph: string; accent: string; body: string}): React.CSSProperties =>
+  stacks ? ({'--font-head': stacks.head, '--font-emph': stacks.emph, '--font-accent': stacks.accent, '--font-body': stacks.body, fontSynthesis: 'none', fontVariantNumeric: 'lining-nums'} as React.CSSProperties) : {};

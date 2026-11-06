@@ -42,7 +42,7 @@ export const Compare: React.FC<CompareProps> = (p) => {
         <Card at={at} w={colW} h={colH} z={isWin ? 0.9 : 0.5} from={which} tone={isWin && win > 0.5 ? 'paper' : 'paper'} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 * u, outline: isWin ? `${6 * u * win}px solid ${alpha(t.accent, win)}` : undefined}}>
           {s.tag ? <Pill at={at + 0.1} size={28 * u}>{s.tag}</Pill> : null}
           {s.object ? <ObjIcon name={s.object} size={(wide ? 210 : 230) * u} /> : null}
-          <div style={{fontFamily: FONT.sans, fontWeight: 800, fontSize: fitSize(s.title, 66 * u, colW - 60 * u), color: isWin ? t.accent : t.ink, textAlign: 'center', letterSpacing: '-0.03em'}}>
+          <div style={{fontFamily: FONT.head, fontWeight: 800, fontSize: fitSize(s.title, 66 * u, colW - 60 * u), color: isWin ? t.accent : t.ink, textAlign: 'center', letterSpacing: '-0.03em'}}>
             {s.title}
           </div>
           {(s.items ?? []).map((it, i) => (

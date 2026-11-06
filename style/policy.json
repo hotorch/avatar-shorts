@@ -177,7 +177,45 @@
   },
 
   "fonts": {
-    "$doc": "렌더는 오프라인. 외부 폰트(CDN) 금지. 레퍼런스가 Poppins 를 쓰면 Pretendard 로 대체.",
-    "allowed": ["Pretendard", "SUIT", "Instrument Serif", "Nanum Myeongjo", "Hakgyoansim Allimjang", "IBM Plex Mono"]
+    "$doc": "렌더는 오프라인. 외부 폰트(CDN) 금지. 레퍼런스가 Poppins 를 쓰면 Pretendard 로 대체. 한 화면의 글자는 세 칸(강조·본문·영문)으로 나눈다: emph = 훅 자막·장면 제목, body = 자막·목록·작은 라벨, latin = 강조 글자 안의 영어·숫자. 정답인 폰트는 없다: 어떤 조합을 쓸지, 칸을 어떻게 섞을지는 취향(type.pair · emph · body · latin). 여기는 쓸 수 있는 목록과, 어기면 정말 깨지는 것만 막는다 (없는 폰트, 칸에 안 맞는 글자). '성격이 반대인 짝' 같은 경험칙은 출발점이라 ⚠️·ℹ️ 까지만. 근거: 세로 쇼츠 2편으로 65쌍 비교 (zexea-education.com/blog/motion-graphics-font-pairing, 시작점 Sequence-st/font-pairing-skill MIT). 어두운 세로 영상만 시험한 값이라 밝은 바탕은 스틸로 본다. size = 글자가 작아 보이는 폰트를 맞추는 배율(@font-face size-adjust): 한글은 글자 폭, 영문은 대문자 높이를 Pretendard 쪽으로. range = 그 글자만 이 폰트로 (Yellowtail 숫자 9 가 낯설어 글자만). local = 저장소에 파일이 없어 사용자가 npm run fonts -- add 로 넣는 폰트.",
+    "allowed": ["Pretendard", "SUIT", "Instrument Serif", "Nanum Myeongjo", "Hakgyoansim Allimjang", "IBM Plex Mono", "A2z", "Black Han Sans", "Hahmlet", "Noto Serif KR", "Jua", "Nanum Pen Script", "Asta Sans", "Maru Buri", "Bricolage Grotesque", "Newsreader", "Playfair Display", "Yellowtail", "Archivo Black", "Young Serif", "Caveat", "Abril Fatface", "Cafe24 Ohsquare", "BM Euljiro"],
+    "defaultPair": "channel",
+    "handMaxChars": 12,
+    "library": {
+      "pretendard":  {"label": "프리텐다드",       "family": "Pretendard",            "kind": "gothic",  "script": "hangul", "weight": 800, "base": true},
+      "suit":        {"label": "SUIT",             "family": "SUIT",                  "kind": "gothic",  "script": "hangul", "weight": 700, "base": true},
+      "asta":        {"label": "아스타 산스",      "family": "Asta Sans",             "kind": "gothic",  "script": "hangul", "weight": 700, "faces": [{"file": "fonts/AstaSans-Variable.woff2", "weight": "300 800"}]},
+      "maruburi":    {"label": "마루 부리",        "family": "Maru Buri",             "kind": "serif",   "script": "hangul", "weight": 700, "faces": [{"file": "fonts/MaruBuri-Regular.woff2", "weight": "400"}, {"file": "fonts/MaruBuri-Bold.woff2", "weight": "700"}]},
+      "allimjang":   {"label": "학교안심 알림장",  "family": "Hakgyoansim Allimjang", "kind": "round",   "script": "hangul", "weight": 400, "base": true},
+      "myeongjo":    {"label": "나눔명조",         "family": "Nanum Myeongjo",        "kind": "serif",   "script": "hangul", "weight": 800, "base": true},
+      "a2z":         {"label": "에이투지체",       "family": "A2z",                   "kind": "wide",    "script": "hangul", "weight": 800, "faces": [{"file": "fonts/A2Z-ExtraBold.woff2", "weight": "800"}]},
+      "blackhan":    {"label": "검은고딕",         "family": "Black Han Sans",        "kind": "heavy",   "script": "hangul", "weight": 400, "faces": [{"file": "fonts/BlackHanSans-Regular.woff2", "weight": "400"}]},
+      "hahmlet":     {"label": "함렡",             "family": "Hahmlet",               "kind": "serif",   "script": "hangul", "weight": 700, "faces": [{"file": "fonts/Hahmlet-Bold.woff2", "weight": "700"}]},
+      "bonmyeongjo": {"label": "본명조",           "family": "Noto Serif KR",         "kind": "serif",   "script": "hangul", "weight": 700, "faces": [{"file": "fonts/NotoSerifKR-Bold.woff2", "weight": "700"}]},
+      "jua":         {"label": "주아",             "family": "Jua",                   "kind": "round",   "script": "hangul", "weight": 400, "faces": [{"file": "fonts/Jua-Regular.woff2", "weight": "400"}]},
+      "nanumpen":    {"label": "나눔손글씨 펜",    "family": "Nanum Pen Script",      "kind": "hand",    "script": "hangul", "weight": 400, "size": 1.25, "faces": [{"file": "fonts/NanumPenScript-Regular.woff2", "weight": "400"}]},
+      "ohsquare":    {"label": "카페24 아네모네",  "family": "Cafe24 Ohsquare",       "kind": "heavy",   "script": "hangul", "weight": 400, "local": true, "link": "https://fonts.cafe24.com"},
+      "euljiro":     {"label": "배민 을지로체",    "family": "BM Euljiro",            "kind": "display", "script": "hangul", "weight": 400, "local": true, "link": "https://www.woowahan.com/fonts"},
+      "instrument":  {"label": "Instrument Serif", "family": "Instrument Serif",      "kind": "serif",   "script": "latin",  "weight": 400, "base": true},
+      "bricolage":   {"label": "Bricolage Grotesque", "family": "Bricolage Grotesque", "kind": "gothic", "script": "latin",  "weight": 800, "size": 1.08, "faces": [{"file": "fonts/BricolageGrotesque-ExtraBold.woff2", "weight": "800"}]},
+      "newsreader":  {"label": "Newsreader",       "family": "Newsreader",            "kind": "serif",   "script": "latin",  "weight": 600, "size": 1.06, "faces": [{"file": "fonts/Newsreader-SemiBold.woff2", "weight": "600"}]},
+      "playfair":    {"label": "Playfair Display", "family": "Playfair Display",      "kind": "serif",   "script": "latin",  "weight": 700, "faces": [{"file": "fonts/PlayfairDisplay-Variable.woff2", "weight": "400 900"}]},
+      "yellowtail":  {"label": "Yellowtail",       "family": "Yellowtail",            "kind": "script",  "script": "latin",  "weight": 400, "size": 1.15, "range": "U+0041-005A, U+0061-007A", "avoid": {"word": "AI", "why": "대문자 I 가 빗금처럼 보여 A/ 로 읽힙니다"}, "faces": [{"file": "fonts/Yellowtail-Regular.woff2", "weight": "400"}]},
+      "archivoblack": {"label": "Archivo Black",   "family": "Archivo Black",         "kind": "heavy",   "script": "latin",  "weight": 400, "faces": [{"file": "fonts/ArchivoBlack-Regular.woff2", "weight": "400"}]},
+      "youngserif":  {"label": "Young Serif",      "family": "Young Serif",           "kind": "serif",   "script": "latin",  "weight": 400, "faces": [{"file": "fonts/YoungSerif-Regular.woff2", "weight": "400"}]},
+      "caveat":      {"label": "Caveat",           "family": "Caveat",                "kind": "hand",    "script": "latin",  "weight": 700, "size": 1.18, "faces": [{"file": "fonts/Caveat-Bold.woff2", "weight": "700"}]},
+      "abril":       {"label": "Abril Fatface",    "family": "Abril Fatface",         "kind": "serif",   "script": "latin",  "weight": 400, "faces": [{"file": "fonts/AbrilFatface-Regular.woff2", "weight": "400"}]}
+    },
+    "pairs": {
+      "channel":   {"label": "기본",          "emph": "allimjang",   "title": "pretendard", "body": "pretendard", "latin": "instrument",   "fit": "무엇이든. 복잡한 화면에서도 잘 버팀", "caution": "자막 글꼴은 자막 세트를 따른다"},
+      "clean-tech": {"label": "클린 테크",    "emph": "a2z",         "body": "pretendard",  "latin": "bricolage",    "fit": "AI 도구, 앱 소개, IT 팁", "caution": "고딕끼리라 대비가 작다. 굵기·폭 차이로 짝을 보여 준다"},
+      "report":    {"label": "리서치 리포트", "emph": "hahmlet",     "body": "asta",        "latin": "newsreader",   "fit": "리서치, 보고서, 비교 분석", "caution": "복잡한 화면과는 톤이 어긋날 수 있다"},
+      "docu-serif": {"label": "다큐 명조",    "emph": "bonmyeongjo", "body": "pretendard",  "latin": "playfair",     "fit": "다큐, 사회 이슈, 역사", "caution": "어두운 영상 위 명조는 획이 약해진다. 스틸로 본다"},
+      "event-brush": {"label": "이벤트 붓글씨", "emph": "blackhan",  "body": "pretendard",  "latin": "yellowtail",   "fit": "이벤트, 메뉴, 오픈 소식", "caution": "붓 느낌은 영어 낱말에만 있다. 숫자는 검은고딕으로 나온다. AI 는 A/ 로 읽혀서 AI 이야기에는 안 맞는다"},
+      "impact":    {"label": "오스퀘어 임팩트", "emph": "ohsquare",  "body": "pretendard",  "latin": "archivoblack", "fit": "짧은 훅, 랭킹", "caution": "굵고 빽빽해서 오래 보면 피로하다. 카페24 아네모네를 넣어야 쓸 수 있다"},
+      "local-shop": {"label": "동네 가게",    "emph": "jua",         "body": "maruburi",    "latin": "youngserif",   "fit": "디저트, 굿즈, 동네 가게", "caution": "개성 있는 폰트가 셋이라 긴 목록에는 무겁다"},
+      "study-note": {"label": "공부 노트",    "emph": "nanumpen",    "body": "pretendard",  "latin": "caveat",       "fit": "공부법, 짧은 메모", "caution": "손글씨는 한두 낱말에만. 긴 훅 자막은 약해진다"},
+      "retro":     {"label": "을지로 레트로", "emph": "euljiro",     "body": "suit",        "latin": "abril",        "fit": "노포, 맛집, 레트로", "caution": "레트로 인상이 강해 IT 소개에는 안 맞는다. 배민 을지로체를 넣어야 쓸 수 있다"}
+    }
   }
 }

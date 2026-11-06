@@ -239,8 +239,9 @@ const ShapeCue: React.FC<CueProps & {onBackdrop?: boolean}> = ({cue, size, maxW,
 const BigCue: React.FC<CueProps & {onBackdrop?: boolean}> = ({cue, size, maxW, onBackdrop, look, reveal}) => {
   const t = useTheme();
   const fs = fitSize(cue.text, size, maxW, 60);
-  const fontFamily = look.set === 'basic' ? FONT.emph : stack(look);
-  const fontWeight = look.set === 'basic' ? undefined : look.font.weight;
+  // 폰트 조합을 고르면 큰 자막은 강조 칸. 안 고르면 이전처럼 기본 세트만 강조 스택, 나머지는 자막 폰트
+  const fontFamily = look.big || look.set === 'basic' ? FONT.emph : stack(look);
+  const fontWeight = look.big ? look.big.weight : look.set === 'basic' ? undefined : look.font.weight;
   if (onBackdrop && look.shape !== 'pop') {
     return (
       <div style={{fontFamily, fontWeight, fontSize: fs, lineHeight: 1.15, color: t.ink, whiteSpace: 'nowrap', letterSpacing: '-0.01em'}}>

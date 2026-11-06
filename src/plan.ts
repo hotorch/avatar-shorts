@@ -29,6 +29,21 @@ export type CaptionStyle = {
   motionSec: number;
   /** 세트의 크기 배율 (취향 captions.scale 에 곱함) */
   scale: number;
+  /** 폰트 조합을 골랐을 때만: 큰 자막은 강조 칸 글꼴로 */
+  big?: {weight: number};
+};
+
+type TypeRole = {id: string; label: string; family: string; weight: number; kind: string};
+export type FontFile = {family: string; file: string; weight: string; size?: number; range?: string};
+/** 폰트 조합 (취향 type.* → scripts/style.mjs 가 합쳐 render 가 채움). 없으면 기본 글꼴 */
+export type Typography = {
+  pair: string;
+  label: string;
+  emph: TypeRole;
+  body: TypeRole;
+  latin: TypeRole;
+  stacks: {head: string; emph: string; accent: string; body: string};
+  load: FontFile[];
 };
 
 export type Sfx = {t: number; cue: string; volume?: number};
@@ -99,6 +114,7 @@ export type Plan = {
   captionScale?: number;
   /** 자막 모양 (취향 captions.set·font·shape·motion → scripts/style.mjs 가 합쳐 render 가 채움) */
   captionStyle?: CaptionStyle;
+  typography?: Typography;
   captions: Cue[];
   scenes: Scene[];
   sfx?: Sfx[];

@@ -15,7 +15,7 @@ export const mePath = () => process.env.AVATAR_SHORTS_ME ?? path.join(ROOT, 'sty
 export const readMe = () => (fs.existsSync(mePath()) ? JSON.parse(fs.readFileSync(mePath(), 'utf8')) : {});
 
 const DOC = '내 취향 — 이 PC 에만 (git 제외). npm run me 로 보기. 레퍼런스 영상(npm run reference)과 내가 고친 것(npm run me -- --set)에서 배운다. 우선순위: 정책 > plan > 프로젝트 taste.json > 이 파일 > style/taste.json';
-const LABEL = {'broll.density': 'B-roll 양', 'edit.silence': '무음', 'edit.maxLength': '최대 길이(초)', 'look.palette': '팔레트', 'look.surface': '면', 'captions.scale': '자막 크기', 'edit.punchIn': '펀치인', 'edit.structure': '구조', 'broll.framing': '배치', 'broll.variety': '다양성', 'sound.sfxVolume': '효과음', ask: '질문'};
+const LABEL = {'broll.density': 'B-roll 양', 'edit.silence': '무음', 'edit.maxLength': '최대 길이(초)', 'look.palette': '팔레트', 'look.surface': '면', 'captions.scale': '자막 크기', 'type.pair': '폰트 조합', 'type.emph': '강조 폰트', 'type.body': '본문 폰트', 'type.latin': '영문 폰트', 'edit.punchIn': '펀치인', 'edit.structure': '구조', 'broll.framing': '배치', 'broll.variety': '다양성', 'sound.sfxVolume': '효과음', ask: '질문'};
 const median = (xs) => {
   const s = xs.filter((x) => typeof x === 'number').sort((a, b) => a - b);
   return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : null;

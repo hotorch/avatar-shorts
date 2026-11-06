@@ -6,6 +6,7 @@ style/me.json
 style/brand/
 DESIGN.md
 public/_live/
+public/fonts/local/
 .DS_Store
 *.log
 __pycache__/

@@ -69,7 +69,7 @@ const {w, h, u, wide, kind} = useStage(); // 무대 크기, u=기준 스케일(�
 - 모든 움직임은 프레임의 함수: `spring`, `interpolate` 만. **CSS transition / @keyframes / setTimeout / Math.random 금지** (랜덤은 `random('seed')`).
 - 이미지는 `<Img>`, 영상은 `<OffthreadVideo>`, 파일은 `staticFile('objects/…')`.
 - `interpolate` 입력 범위는 반드시 증가 순서. 짧은 장면에서 겹치지 않게 `Math.min` 으로 보호.
-- 글꼴은 이미 로드됨 (`FONT.sans` 등). 외부 URL 폰트·CDN 금지 (오프라인 렌더).
+- 글꼴은 이미 로드됨. 칸으로 쓴다: 제목·큰 숫자 `FONT.head`, 자막·목록·작은 라벨 `FONT.sans`, 강조 단어 `FONT.serif`, 코드 `FONT.mono`. 폰트 이름을 직접 적으면 폰트 조합이 안 먹는다. 굵기는 그대로 적어도 된다 (없는 굵기는 가짜로 만들지 않음). 외부 URL 폰트·CDN 금지 (오프라인 렌더).
 - 한글은 `wordBreak: 'keep-all'`.
 - SVG 도형을 직접 그려도 좋다 (뇌, 눈, 모래시계 등 목록에 없는 오브젝트). 선은 `pathLength={1}` + `strokeDashoffset` 로 그려지게.
 

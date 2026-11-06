@@ -8,7 +8,7 @@ import path from 'node:path';
 import {buildFraming, faceFrame, headBox} from '../src/layouts/framing.js';
 import {FX, fxCheck} from './fx-rules.mjs';
 import {remotion} from './platform.mjs';
-import {resolveStyle} from './style.mjs';
+import {resolveStyle, typeNotes} from './style.mjs';
 import {firstBeat, loadCuts, mapTime, remapScene} from './timeline.mjs';
 import {varietyProblems} from './variety.mjs';
 
@@ -67,6 +67,7 @@ const props = {
   sfxVolume: plan.sfxVolume ?? style.taste.sound?.sfxVolume ?? 0.5,
   captionScale: plan.captionScale ?? style.taste.captions?.scale ?? 1,
   captionStyle: style.captionStyle,
+  ...(style.typography ? {typography: style.typography} : {}),
   layout: plan.layout ?? video?.layout ?? 'vertical',
   duration: plan.duration ?? (edited ? cuts.duration : video?.duration) ?? 30,
   captions,
@@ -85,7 +86,7 @@ const props = {
 
 // ── 검사
 const problems = [...style.problems, ...remapProblems];
-const warn = [...style.warn];
+const warn = [...style.warn, ...typeNotes(style.typography, captions, style.policy.fonts.handMaxChars)];
 const P = {scenes: {minSec: 1.2, maxSec: 10, maxSameTemplateRun: 2, ...pol.scenes}, captions: {maxChars: 18, maxEmphPerCue: 2, bigMaxRatio: 0.3, ...pol.captions}, hook: pol.content?.hookFaceSeconds ?? 1};
 if (edited) {
   const newer = ['words.json', 'captions.json'].some((f) => fs.existsSync(path.join(dir, f)) && fs.statSync(path.join(dir, f)).mtimeMs > fs.statSync(path.join(dir, 'cuts.json')).mtimeMs);

@@ -5,7 +5,8 @@
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import {checkTriad} from './style.mjs';
+import {fontChecks, sheetText, sizeFor} from './fonts.mjs';
+import {checkTriad, resolveType, typeNotes} from './style.mjs';
 import {varietyProblems} from './variety.mjs';
 import {brandTriad, parseBrand, tokensFromAccent} from './brand.mjs';
 import {FX, shoulderFit} from './fx-rules.mjs';
@@ -17,6 +18,7 @@ const quick = process.argv.includes('--quick');
 // 이 PC 의 내 취향(style/me.json)이 시험 결과를 바꾸지 않게: 시험용 경로로 (자식 프로세스도 물려받는다)
 const ME = path.resolve('projects', '.selftest-me.json');
 process.env.AVATAR_SHORTS_ME = ME;
+process.env.AVATAR_SHORTS_FONTS = path.resolve('projects', '.selftest-fonts.json'); // 내가 넣은 폰트가 시험을 바꾸지 않게
 fs.rmSync(ME, {force: true});
 const results = [];
 const test = (name, fn) => {
@@ -470,6 +472,105 @@ test('어깨 효과 발표자 배율: 고정 0.74 가 아니라 잰 값, 하한�
   must(policy.presenterFx.shoulderScale === undefined, '정책에 고정 배율이 남아 있음 (잰 값과 두 곳)');
 });
 
+// ── 폰트 조합 (폰트 하나가 정답이 아니다: 칸을 고른 값이 영상까지 가고, 기본은 이전 모습)
+const pf = policy.fonts;
+test('폰트 목록 = 파일: 조합의 칸이 목록에 있고 글자 종류가 맞고, 파일·라이선스가 저장소에, 목록의 이름은 허용 목록', () => {
+  const ignored = sh('git', ['check-ignore', ...Object.values(pf.library).flatMap((f) => (f.faces ?? []).map((x) => `public/${x.file}`))]).out.trim();
+  must(!ignored, `렌더에 필요한 폰트가 .gitignore 에 걸림: ${ignored}`);
+  must(sh('git', ['check-ignore', 'public/fonts/local/x.ttf']).code === 0, '내 폰트 폴더가 git 에 올라감');
+  const licenses = fs.readFileSync('public/fonts/README.md', 'utf8');
+  for (const [k, f] of Object.entries(pf.library)) {
+    must(pf.allowed.includes(f.family), `${k}: ${f.family} 가 허용 목록에 없음`);
+    must(f.base || f.local || f.faces?.length, `${k}: 파일이 없음`);
+    must(!(f.local && f.faces), `${k}: 저장소에 없는 폰트인데 파일이 적힘`);
+    must(!(f.script === 'hangul' && f.range), `${k}: 한글 폰트에 글자 범위`);
+    for (const x of f.faces ?? []) {
+      must(fs.existsSync(`public/${x.file}`), `${k}: ${x.file} 없음`);
+      must(licenses.includes(path.basename(x.file).split(/[-.]/)[0]), `${k}: public/fonts/README.md 에 출처 없음`);
+    }
+  }
+  for (const [k, p] of Object.entries(pf.pairs)) {
+    must(pf.library[p.emph]?.script === 'hangul' && pf.library[p.body]?.script === 'hangul', `조합 ${k}: 강조·본문이 한글 폰트가 아님`);
+    must(pf.library[p.latin]?.script === 'latin', `조합 ${k}: 영문 칸이 영문 폰트가 아님`);
+    must(p.fit && p.caution, `조합 ${k}: 어울리는 곳·주의점 없음`);
+  }
+  must(Object.keys(pf.pairs).length > 1 && pf.pairs[pf.defaultPair], '조합이 하나뿐이거나 기본 조합이 없음');
+  must(!fs.readdirSync('public/fonts').some((f) => /\.(ttf|otf)$/.test(f)), 'public/fonts 에 압축 안 한 폰트');
+});
+test('스킬·매뉴얼이 조합을 다 받음, 라벨은 본문 칸 (font-pairing · onboarding · TASTE-MANUAL)', () => {
+  const skill = fs.readFileSync('.claude/skills/font-pairing/SKILL.md', 'utf8');
+  const onb = fs.readFileSync('.claude/skills/onboarding/SKILL.md', 'utf8');
+  const man = fs.readFileSync('docs/TASTE-MANUAL.md', 'utf8');
+  for (const [k, p] of Object.entries(pf.pairs)) {
+    must(skill.includes(`\`${k}\``) && onb.includes(`\`${k}\``), `스킬에 조합 ${k} 없음`);
+    must(man.includes(`| ${p.label} |`), `매뉴얼에 ${p.label} 없음`);
+  }
+  const src = fs.readFileSync('src/kit/theme.tsx', 'utf8');
+  must(src.includes('var(--font-body, ${SANS})') && src.includes('"Pretendard", "SUIT", system-ui, sans-serif'), '기본 글꼴 스택이 바뀜');
+  must(!/FONT\.head/.test(fs.readFileSync('src/scenes/basic.tsx', 'utf8').split('const SubLine')[1]?.split('};')[0] ?? ''), '작은 줄에 강조 칸');
+});
+test('내 폰트 재기: 깨지는 것만 ❌, 작은 폰트만 키움, 시트는 영상의 말로 (fonts.mjs)', () => {
+  const ok = {hangul: 2350, latin: 52, space: true, digits: true, advance: 0.9, cap: 0.7};
+  must(fontChecks(ok).bad.length === 0 && fontChecks(ok).note.length === 0, '멀쩡한 폰트에 경고');
+  must(fontChecks({...ok, hangul: 0, latin: 0}).bad.length === 1, '글자 없는 폰트가 통과');
+  must(fontChecks({...ok, space: false}).note.some((n) => n.includes('띄어쓰기')), '띄어쓰기 없는 폰트를 안 알림 (리디바탕 등)');
+  must(fontChecks({...ok, hangul: 900}).note.some((n) => n.includes('900자')), '글자가 적은 폰트를 안 알림');
+  must(sizeFor({hangul: 11172, advance: 0.667}) === 1.3 && sizeFor({hangul: 11172, advance: 0.97}) === undefined, '한글 크기 맞춤이 다름');
+  must(sizeFor({hangul: 0, cap: 0.61}) === 1.18 && sizeFor({hangul: 0, cap: 0.75}) === undefined, '영문 크기 맞춤이 다름');
+  const t = sheetText([{text: '안녕하세요', style: 'base'}, {text: '세 줄 요약', style: 'big'}, {text: 'Claude 쓰기'}, {text: '2026년 이야기'}]);
+  must(t.hook === '세 줄 요약' && t.caption === 'Claude 쓰기' && t.title === '2026년 이야기', `시트 문장 ${JSON.stringify(t)}`);
+  must(sheetText([]).hook, '문장이 없을 때 빈 시트');
+});
+test('폰트 경험칙은 ⚠️ 까지: 손글씨 긴 훅, 못 읽히는 낱말, 본문에 장식체 (막지 않음)', () => {
+  const big = (text) => ({text, style: 'big'});
+  const study = resolveType({pair: 'study-note'}, pf);
+  must(typeNotes(study, [big('한두 낱말')]).length === 0, '짧은 손글씨에 경고');
+  must(/손글씨/.test(typeNotes(study, [big('이건 아주 길고 길고 긴 큰 자막입니다')])[0]), '긴 손글씨 훅을 안 알림');
+  must(/AI/.test(typeNotes(resolveType({pair: 'event-brush'}, pf), [big('AI 도구')])[0]), 'Yellowtail AI 를 안 알림');
+  must(typeNotes(null, [big('AI 도구')]).length === 0, '기본 조합에 경고');
+  const p = [];
+  const w = [];
+  must(resolveType({pair: 'report', body: 'nanumpen'}, pf, p, w) && !p.length && w.some((x) => x.includes('본문 칸')), '장식 본문을 안 알리거나 막음');
+});
+test('폰트 조합이 영상까지: 기본은 이전 모습, 조합·칸 섞기·내 취향 → .props.json, 없는 폰트·안 맞는 칸은 막힘', () => {
+  const taste = path.join(T, 'taste.json');
+  const props = () => json(path.join(T, '.props.json'));
+  const plan = {theme: {palette: 'darktech'}, scenes: [hero('a', 4.5, 5.9)]};
+  const set = (o) => fs.writeFileSync(taste, JSON.stringify(o));
+  try {
+    must(check(plan).code === 0 && !props().typography && !props().captionStyle.big && props().captionStyle.font.family === 'SUIT', '기본이 이전 글꼴이 아님');
+    set({type: {pair: 'report'}});
+    must(check(plan).code === 0, '조합이 안 통과');
+    let p = props();
+    must(p.typography.pair === 'report' && p.typography.emph.family === 'Hahmlet' && p.captionStyle.font.family === 'Asta Sans' && p.captionStyle.big, `조합이 다름 ${JSON.stringify(p.typography?.emph)}`);
+    must(p.typography.stacks.emph.startsWith('"Newsreader", "Hahmlet"') && p.typography.load.every((f) => fs.existsSync(`public/${f.file}`)), '강조 스택·파일이 다름');
+    must(p.typography.load.filter((f) => f.family === 'Newsreader').every((f) => f.range), '영문 폰트가 한글 자리까지 먹음');
+    set({type: {pair: 'report', emph: 'blackhan'}, captions: {font: 'suit'}});
+    must(check(plan).code === 0, '칸 섞기가 안 통과');
+    p = props();
+    must(p.typography.emph.family === 'Black Han Sans' && p.typography.body.family === 'Asta Sans' && p.captionStyle.font.family === 'SUIT', '칸 덮어쓰기가 안 먹음');
+    set({type: {latin: 'bricolage'}});
+    must(check(plan).code === 0 && props().typography.stacks.head.startsWith('"Pretendard"') && props().typography.stacks.emph.startsWith('"Bricolage Grotesque"'), '기본 조합의 칸 하나만 바꾸기가 다름');
+    set({type: {pair: 'report'}, captions: {set: 'terminal'}});
+    must(check(plan).code === 0 && props().captionStyle.font.family === 'IBM Plex Mono', '터미널 자막이 고정폭을 잃음');
+    set({type: {pair: 'comic'}});
+    must(/폰트 조합 "comic"/.test(check(plan).out), '없는 조합이 통과');
+    set({type: {pair: 'impact'}});
+    const miss = check(plan);
+    must(miss.code !== 0 && /--as ohsquare/.test(miss.out), '파일 없는 폰트가 통과하거나 받는 법을 안 알림');
+    set({type: {latin: 'hahmlet'}});
+    must(check(plan).code !== 0, '한글 폰트가 영문 칸에 통과');
+    set({type: {emph: 'bricolage'}});
+    must(check(plan).code !== 0, '영문 폰트가 강조 칸에 통과');
+    fs.rmSync(taste);
+    const me = sh(process.execPath, ['scripts/me.mjs', '--set', 'type.pair=clean-tech']);
+    must(me.code === 0 && check(plan).code === 0 && props().typography.pair === 'clean-tech', `내 취향이 안 먹음 ${me.out.split('\n').pop()}`);
+  } finally {
+    fs.rmSync(taste, {force: true});
+    fs.rmSync(ME, {force: true});
+  }
+});
+
 // ── 자막 세트·브랜드 색 (온보딩: 고른 값이 정말 영상까지 가는지)
 const pc = policy.captions;
 test('자막 승인 목록 = 코드: 모양·움직임이 Captions.tsx·plan.ts 와 같고, 세트는 있는 칸만, 폰트는 허용 목록, 움직임은 정책 시간 안', () => {
@@ -596,6 +697,23 @@ if (!quick)
     }
   });
 if (!quick)
+  test('폰트 조합 스틸·비교 시트: 영상에 입혀 렌더되고, 시트가 조합마다 칸을 그림 (npm run still · fonts sheet)', () => {
+    const taste = path.join(T, 'taste.json');
+    try {
+      for (const pair of ['clean-tech', 'study-note']) {
+        fs.writeFileSync(taste, JSON.stringify({type: {pair}}));
+        const r = sh(process.execPath, ['scripts/still.mjs', '.selftest', '5.2']);
+        must(r.code === 0 && fs.existsSync(path.join(T, 'out', 'still.png')), `${pair}: ${r.out.trim().split('\n').pop()}`);
+      }
+    } finally {
+      fs.rmSync(taste, {force: true});
+    }
+    const r = sh(process.execPath, ['scripts/fonts.mjs', 'sheet', '.selftest', '--pairs', 'channel,report,local-shop']);
+    const sheet = path.join(T, 'out', 'font-pairs.png');
+    must(r.code === 0 && fs.existsSync(sheet), r.out.trim().split('\n').pop());
+    const w = Number(sh('ffprobe', ['-v', 'error', '-show_entries', 'stream=width', '-of', 'csv=p=0', sheet]).out.trim());
+    must(w > 1100, `시트 폭 ${w}px — 세 칸이 아님`);
+  });
   test('발표자 효과 스틸: 오려내기(VP9 알파)를 발표자 자리에 그려 렌더됨 (npm run still)', () => {
     fs.rmSync(path.join(T, 'fx'), {recursive: true, force: true});
     const sc = tb('fx1', 2.9, 5.9, '셋');
