@@ -10,7 +10,7 @@
                          face(얼굴 상자) · chin · head_top(정수리, 오려내기에서) · shoulder_l/r(몸이 화면 옆을 벗어나는 줄) · motion
   <장면 id>.debug-<f>.png  초록 바탕 위 오려내기 + 선 (--debug-frames 일 때만)
 
-오려내기: rembg u2net (CPU, 1080×1920 한 장 ≈ 0.25초). 처음 한 번 모델(≈170MB)을 ~/.u2net 에 받는다.
+오려내기: rembg u2net (CPU, 1080×1920 한 장 ≈ 0.25초). 처음 한 번 모델(≈170MB)을 ~/.rembg/models/u2net 에 받는다 (예전 rembg 는 ~/.u2net).
   u2net 은 벌린 입을 배경으로 읽어서, 화면의 HOLE_MAX_FRAC 보다 작은 구멍은 메운다. 가장자리 깜빡임은 3프레임 중앙값.
 얼굴: YuNet (models/yunet, face.py 와 같은 모델), 가장 큰 얼굴, 지난 상자와 섞어(EMA) 떨림을 줄이고 놓친 프레임은 이어 쓴다.
 어깨: 셀피 구도에서 '얼굴 아래 + 0.55×얼굴 높이' 같은 미디엄 샷 공식은 가슴에 떨어진다 → 오려내기에서 몸이 옆 끝을 채우는 첫 줄을 잰다.

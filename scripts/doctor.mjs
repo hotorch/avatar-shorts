@@ -5,7 +5,7 @@ import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {findPython, hasVenv, VENV_PY as py, WIN} from './platform.mjs';
+import {findPython, hasVenv, u2netPaths, VENV_PY as py, WIN} from './platform.mjs';
 
 const run = (cmd, args) => {
   const r = spawnSync(cmd, args, {encoding: 'utf8'});
@@ -49,8 +49,8 @@ add(fs.existsSync(yunet) ? 'ok' : 'bad', '얼굴 인식 모델', fs.existsSync(y
 
 const rb = hasVenv() ? run(py, ['-c', 'import rembg, onnxruntime; print(onnxruntime.__version__)']) : null;
 add(rb ? 'ok' : 'warn', '사람 오려내기 (rembg)', rb ? `onnxruntime ${rb}` : '없음', 'npm run setup (발표자 효과 npm run fx 에만 필요)');
-const u2 = path.join(process.env.U2NET_HOME ?? path.join(os.homedir(), '.u2net'), 'u2net.onnx');
-add(fs.existsSync(u2) ? 'ok' : 'warn', '오려내기 모델 (u2net)', fs.existsSync(u2) ? '있음' : '아직 안 받음', '첫 npm run fx 때 자동으로 받습니다 (≈170MB). 미리: npm run setup');
+const u2 = u2netPaths().some((p) => fs.existsSync(p));
+add(u2 ? 'ok' : 'warn', '오려내기 모델 (u2net)', u2 ? '있음' : '아직 안 받음', '첫 npm run fx 때 자동으로 받습니다 (≈170MB). 미리: npm run setup');
 
 const hf = path.join(process.env.HF_HOME ?? path.join(os.homedir(), '.cache', 'huggingface'), 'hub');
 const models = fs.existsSync(hf) ? fs.readdirSync(hf).filter((d) => /faster-whisper/.test(d)).map((d) => d.replace(/.*faster-whisper-/, '')) : [];

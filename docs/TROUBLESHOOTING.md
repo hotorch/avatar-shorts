@@ -19,7 +19,7 @@
 | Windows: `render` 가 `public/_live 를 비우지 못했습니다` | `npm run studio` 가 영상 파일을 쥐고 있음 | Studio 창(터미널)을 닫고 다시 |
 | doctor 에 `얼굴 인식 (OpenCV)` ❌ | 예전에 설치한 `.venv` 에 OpenCV 가 없음 | `npm run setup` 한 번 더 |
 | doctor 에 `사람 오려내기 (rembg)` ⚠️ · `npm run fx` 가 `rembg 가 없습니다` | 발표자 효과가 들어오기 전에 만든 `.venv` | `npm run setup` 한 번 더 (발표자 효과를 안 쓰면 그대로 둬도 됩니다) |
-| 첫 `npm run fx` 가 한참 멈춘 듯 | 오려내기 모델(u2net ≈170MB)을 `~/.u2net` 에 받는 중 | 한 번만. `npm run setup` 이 미리 받아 둡니다. 회사망이면 GitHub 다운로드가 막혔을 수 있음 |
+| 첫 `npm run fx` 가 한참 멈춘 듯 | 오려내기 모델(u2net ≈170MB)을 `~/.rembg/models/u2net` 에 받는 중 (예전 rembg 는 `~/.u2net`) | 한 번만. `npm run setup` 이 미리 받아 둡니다. 회사망이면 GitHub 다운로드가 막혔을 수 있음 |
 | Windows: 자막·JSON 의 한글이 깨짐 (`UnicodeDecodeError`, `cp949`) | 파이썬 스크립트를 `npm run` 없이 직접 실행 | `npm run edit -- <이름>` 처럼 `npm run` 으로 (UTF-8 모드로 실행됩니다) |
 
 ## Claude Code

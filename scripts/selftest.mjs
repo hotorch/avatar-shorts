@@ -8,6 +8,7 @@ import path from 'node:path';
 import {checkTriad} from './style.mjs';
 import {varietyProblems} from './variety.mjs';
 import {FX, shoulderFit} from './fx-rules.mjs';
+import {hasVenv, u2netPaths, VENV_PY} from './platform.mjs';
 import {loadCuts, remapScene} from './timeline.mjs';
 import {fitFrame, FRAME, headBox} from '../src/layouts/framing.js';
 
@@ -144,6 +145,26 @@ test('음성 인식은 wav 를 직접 읽어 넘김 (PyAV 를 안 씀)', () => {
   // 예전: av 19 에서 faster-whisper 의 decode_audio 가 metadata_errors 인자로 TypeError → transcribe 실패
   const src = fs.readFileSync('scripts/transcribe.py', 'utf8');
   must(/model\.transcribe\(\s*audio,/.test(src), 'transcribe 에 파일 경로를 넘김 → av 버전에 따라 깨짐');
+});
+test('오려내기 모델 자리: 새 자리·예전 자리·환경변수 (doctor 가 받아 둔 모델을 못 찾던 버그), 설치된 rembg 와 일치', () => {
+  // 예전: ~/.u2net 만 봐서, 새 rembg 가 ~/.rembg/models/u2net 에 받아도 '아직 안 받음' ⚠️
+  const j = (...a) => path.join(...a);
+  const cases = [
+    [{}, [j('H', '.rembg', 'models', 'u2net', 'u2net.onnx'), j('H', '.u2net', 'u2net.onnx')]],
+    [{U2NET_HOME: 'U'}, [j('U', 'models', 'u2net', 'u2net.onnx'), j('U', 'u2net.onnx')]],
+    [{REMBG_HOME: 'R'}, [j('R', 'models', 'u2net', 'u2net.onnx'), j('H', '.u2net', 'u2net.onnx')]],
+    [{XDG_DATA_HOME: 'X'}, [j('X', 'rembg', 'models', 'u2net', 'u2net.onnx'), j('X', '.u2net', 'u2net.onnx')]],
+  ];
+  for (const [env, want] of cases) must(JSON.stringify(u2netPaths(env, 'H')) === JSON.stringify(want), `${JSON.stringify(env)} → ${u2netPaths(env, 'H')}`);
+  // rembg 가 깔려 있으면 그쪽 답과 비교 (CI 는 rembg 를 안 깔아서 건너뜀). 환경을 비워서 이 PC 설정과 무관하게
+  if (!hasVenv()) return;
+  const code = 'from rembg.sessions.u2net import U2netSession as S; import os; print(os.path.join(S.model_dir(), "u2net.onnx")); print(os.path.join(S.legacy_home(), "u2net.onnx"))';
+  const env = {...process.env};
+  for (const k of ['U2NET_HOME', 'REMBG_HOME', 'XDG_DATA_HOME']) delete env[k];
+  const r = sh(VENV_PY, ['-c', code], {env});
+  if (r.code !== 0) return;
+  const got = r.out.split(/\r?\n/).filter((l) => l.endsWith('u2net.onnx')); // 경고 줄이 섞여도 경로만
+  must(JSON.stringify(got) === JSON.stringify(u2netPaths(env)), `rembg 답과 다름: ${got}`);
 });
 test('커스텀 장면이 전부 등록됨 (src/custom/index.ts)', () => {
   const idx = fs.readFileSync('src/custom/index.ts', 'utf8');

@@ -2,6 +2,7 @@
 //   파이썬 이름(python3 / py / python), 가상환경 경로(.venv/bin / .venv\Scripts), npx·npm(.cmd), 한글 인코딩(cp949)
 import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -11,6 +12,15 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 // 가상환경 파이썬: Windows 는 .venv\Scripts\python.exe
 export const VENV_PY = path.join(ROOT, '.venv', ...(WIN ? ['Scripts', 'python.exe'] : ['bin', 'python']));
 export const hasVenv = () => fs.existsSync(VENV_PY);
+
+// 사람 오려내기 모델이 있을 수 있는 자리 (rembg sessions/base.py 의 model_dir · legacy_home 과 같은 규칙).
+//   최근 rembg 는 <홈>/models/u2net/ 에 받고, 예전 버전이 받은 ~/.u2net 은 읽기만 한다. requirements 가 둘 다 허용하므로 둘 다 본다
+export const u2netPaths = (env = process.env, home = os.homedir()) => {
+  const xdg = env.XDG_DATA_HOME;
+  const legacy = env.U2NET_HOME || path.join(xdg || home, '.u2net');
+  const root = env.U2NET_HOME || env.REMBG_HOME || (xdg ? path.join(xdg, 'rembg') : path.join(home, '.rembg'));
+  return [path.join(root, 'models', 'u2net', 'u2net.onnx'), path.join(legacy, 'u2net.onnx')];
+};
 
 // 한국어 Windows 는 기본 인코딩이 cp949 라 한글 JSON·출력이 깨진다 → 파이썬을 UTF-8 모드로
 export const PY_ENV = {...process.env, PYTHONUTF8: '1', PYTHONIOENCODING: 'utf-8'};
