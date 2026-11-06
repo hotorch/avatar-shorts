@@ -99,6 +99,27 @@ const luminance = (hex: string) => {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };
 
+const mix = (a: string, c: string, k: number) => {
+  const [x, y] = [hexToRgb(a), hexToRgb(c)];
+  return `#${x.map((v, i) => Math.round(v + (y[i] - v) * k).toString(16).padStart(2, '0')).join('')}`;
+};
+
+// 취향 look.background: 바탕 한 색에서 면·글자를 만든다 (밝기로 어두운 테마인지 정함)
+const fromBackground = (bg: string) => {
+  const dark = luminance(bg) < 0.25;
+  const ink = dark ? '#F2F5F7' : '#141312';
+  return {
+    dark,
+    bg,
+    paper: dark ? mix(bg, '#FFFFFF', 0.07) : mix(bg, '#FFFFFF', 0.6),
+    paper2: dark ? mix(bg, '#FFFFFF', 0.13) : mix(bg, '#000000', 0.06),
+    grid: alpha(ink, dark ? 0.13 : 0.16),
+    line: alpha(ink, dark ? 0.08 : 0.08),
+    ink,
+    muted: mix(ink, bg, 0.42),
+  };
+};
+
 // 트라이어드를 안 주면 팔레트에서 만든다 (style/policy.json 의 paletteDefault 와 같은 값)
 const TRIAD: Record<PaletteName, [string, string, string]> = {
   darktech: ['#0B2B2F', '#12B5A6', '#DDF3EF'],
@@ -112,8 +133,9 @@ export const makeTheme = (
   triad?: [string, string, string],
   surface: 'gradient' | 'flat' = 'flat',
   accentFromTriad = !!triad,
+  background?: string,
 ): Theme => {
-  const b = BASE[palette] ?? BASE.editorial;
+  const b = {...(BASE[palette] ?? BASE.editorial), ...(background ? fromBackground(background) : {})};
   const tri = triad ?? TRIAD[palette] ?? TRIAD.editorial;
   // 정책: 한 영상에 강조색 하나 — 트라이어드를 골랐으면 그 포인트색이 강조색 (style.mjs 가 글자 대비를 보고 accentFromTriad 를 정한다)
   const acc = accentFromTriad && triad ? tri[1] : accent ? ACCENTS[accent] : b.accent;

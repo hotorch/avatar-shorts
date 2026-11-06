@@ -13,7 +13,7 @@ export const Short: React.FC<Plan> = (plan) => {
     loadFonts().then(() => continueRender(handle));
   }, [handle]);
 
-  const theme = makeTheme(plan.theme.palette, plan.theme.accent, plan.theme.triad, plan.theme.surface, plan.theme.accentFromTriad);
+  const theme = makeTheme(plan.theme.palette, plan.theme.accent, plan.theme.triad, plan.theme.surface, plan.theme.accentFromTriad, plan.theme.background);
   return (
     <ThemeProvider value={theme}>
       <AbsoluteFill style={{background: theme.bg}}>

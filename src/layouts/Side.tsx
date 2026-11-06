@@ -96,7 +96,7 @@ export const Side: React.FC<{plan: Plan}> = ({plan}) => {
 
       {/* 자막: 장면이 있을 때만 (없을 땐 TalkText 가 대신) */}
       {busy ? (
-        <Captions cues={plan.captions} y={CAPTION_Y} x={lerp(STAGE.x, WIDE.x, cut)} maxW={lerp(STAGE.w, WIDE.w, cut)} size={50 * (plan.captionScale ?? 1)} bigSize={64 * (plan.captionScale ?? 1)} surface="backdrop" />
+        <Captions cues={plan.captions} y={CAPTION_Y} x={lerp(STAGE.x, WIDE.x, cut)} maxW={lerp(STAGE.w, WIDE.w, cut)} size={50 * (plan.captionScale ?? 1)} bigSize={64 * (plan.captionScale ?? 1)} surface="backdrop" look={plan.captionStyle} />
       ) : null}
     </AbsoluteFill>
   );

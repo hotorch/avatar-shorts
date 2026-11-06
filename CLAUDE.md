@@ -14,6 +14,7 @@
 | 렌더 전에 장면 미리 보기, "비슷한 장면이 반복돼" | `storyboard` |
 | 템플릿으로 안 되는 장면 직접 만들기, 템플릿 고치기 | `motion-kit` |
 | 발표자 위 효과 (머리 뒤 글자, 정지 스티커, 어깨 카드, 티어 표, 유리 그래프, 보정 와이프) | `broll-plan` → `references/presenter-fx.md` |
+| 고른 메모("온보딩:")·자막 세트·브랜드 색·DESIGN.md 붙여 넣기 | `onboarding` |
 | 레퍼런스·"앞으로 이렇게" → 정책/취향/부품 | `style-intake` |
 | 좋아하는 영상 → 내 취향, "이 영상처럼", "내 취향 보여줘" | `reference-taste` |
 | Google Flow 등 생성 도구로 B-roll 을 만들고 싶을 때 | `flow-prompts` |
@@ -42,6 +43,8 @@ node scripts/style.mjs <이름>                     # 정책+취향 합친 결�
 npm run storyboard -- <이름>       # 렌더 전: 검사 + 장면마다 대표 프레임 시트(out/storyboard.png) + 지문 표(storyboard.md)
 npm run reference -- <영상> [이름]  # 좋아하는 영상을 재서 내 취향(style/me.json)에 반영 → projects/_refs/<이름>/sheet.png
 npm run me [-- --set 키=값 --why …]  # 내 취향 카드 / 직접 정하기 (--unset, --remove <레퍼런스>)
+npm run brand [-- <문서> --accent "#…" --background "#…" --dry --reset]  # 브랜드 문서(DESIGN.md)·내 색 → 내 취향 (색 값만)
+npm run sample [-- --taste '{…}' --out <png>]  # 내 디자인 1장: 지금 취향을 예시 영상에 입혀 스틸 3칸 → projects/taste-sample/out/my-design.png
 npm run render -- <이름> --check   # 검사 (+ .props.json, public/_live 준비)
 npm run still -- <이름> 16.3 17.0  # 그 순간 스틸 (원본 시간. --edit = 결과 영상 시간, --scene 06)
 npm run render -- <이름> --preview # 절반 해상도
@@ -68,8 +71,8 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - `src/layouts/` Vertical(1080×1920, 분할/머리 위·아래 카드/컷어웨이/아바타 확대 퇴장) · framing.js(머리 위치 → 아바타·판·카드·자막 자리, render 검사와 공용) · Side(1920×1080, 왼쪽 아바타 카드) · Avatar(펀치인) · SceneHost
 - `src/scenes/` 템플릿 12종, `src/custom/` 커스텀 장면(StackCarousel · TypeSpecimen · LightBloom · OrbitIdea), `src/kit/` 부품(motion, theme, Backdrop, Object3D, KText, Parts, Gradient)
 - `src/fx/` 발표자 효과 6종 (fx.tsx 바닥 · effects.tsx · index.tsx 등록·FxHost). 기준·검사 `scripts/fx-rules.mjs`, 오려내기 `fx.mjs` → `fx_matte.py`(rembg u2net + YuNet), 머리 뒤 글자 가시성 `fx_check.py`
-- `src/captions/Captions.tsx` 자막
-- `scripts/` new-project · probe · face · transcribe · align · edit · words · style · me(내 취향) · reference(레퍼런스 측정) · timeline · variety(장면 지문·다양성 검사) · render · still · storyboard · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
+- `src/captions/Captions.tsx` 자막 (모양 6 · 움직임 6, 승인 목록과 세트는 정책 `captions`, 합치는 곳 `style.mjs resolveCaptions`)
+- `scripts/` new-project · probe · face · transcribe · align · edit · words · style · me(내 취향) · brand(브랜드 문서 → 색) · sample(내 디자인 1장) · reference(레퍼런스 측정) · timeline · variety(장면 지문·다양성 검사) · render · still · storyboard · look · doctor · selftest · sfx · setup · platform(OS 차이) · py(파이썬 실행기)
 - `examples/demo/` 템플릿 데모 plan · `examples/avatar-v01/` 실제 영상 하나의 전 과정 파일
 - `models/yunet` 얼굴 인식 모델(MIT, git 에 포함) · `public/fonts` 글꼴(OFL) · `public/objects` 3D 오브젝트 62종 · `public/sfx` 합성 효과음 11종 (git 에 포함. 지워지면 `sfx.py`)
 
@@ -82,6 +85,7 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - 다른 저장소·레퍼런스에서 들인 것이 이전 것과 부딪히면 `style/README.md` '이전 것과 새로 들인 것이 부딪힐 때' 4단계로 판정한다 (한계면 이전 것, 필요면 재서 필요한 만큼만, 보기 차이면 취향·기본은 이전 것, 우리 영상 스틸로 확인).
 - 정책(`style/policy.json`)은 사용자 한 명의 말로 바꾸지 않는다 → "이번 영상만 예외로 둘까요?" 로 묻는다. 취향은 바로 바꾸고 기억한다 (내 취향 `npm run me -- --set`. 공용 `style/taste.json` 은 팀이 정할 때만).
 - 레퍼런스 영상은 읽기만 하고, 구도·리듬만 배운다 (그림·글자·로고는 가져오지 않음).
+- 브랜드 문서(DESIGN.md)에서는 색 값만 가져온다. 이름·로고·서체는 화면에 넣지 않고, 문서는 git 에 올리지 않고, 내 취향(`style/me.json`)까지만 간다.
 - 커스텀 장면(`src/custom/`)은 저장소 코드가 된다 → 일반적인 이름으로 만들고 결정 요약에 알린다.
 
 ## 실제로 겪은 함정 (다시 밟지 않게)
@@ -109,4 +113,6 @@ render 가 plan(원본) → 편집 시간으로 옮긴다. 그래서 edit.json �
 - 셀피 구도에서 미디엄 샷 어깨선 공식(얼굴 아래 + 0.55×얼굴 높이)은 가슴에 떨어진다 → 오려내기에서 몸이 화면 옆을 벗어나는 줄을 잰다 (`fx_matte.py` shoulder_l/r). u2net 은 벌린 입을 배경으로 읽어 작은 구멍은 메운다.
 - 발표자 효과 위치를 한 프레임에서 정하면 다른 프레임에서 머리가 카드·글자를 뚫는다 → 장면 모든 프레임의 최악값(`shotStats`). 오려내기는 편집 시간 기준이라 장면 in/out·편집본이 바뀌면 다시 (`npm run fx`, render 가 알림).
 - rembg 가 모델 자리를 `~/.u2net` 에서 `~/.rembg/models/u2net` 로 옮겨서, 받아 놓고도 doctor 가 "아직 안 받음" ⚠️ 을 띄웠다 → 자리는 `u2netPaths`(platform.mjs) 한 곳에서, 설치된 rembg 의 답과 시험으로 맞춘다.
+- 상자 없는 흰 자막(`outline`)은 영상 위에선 읽혀도 밝은 장면 바탕(브랜드 흰 바탕)에선 사라졌다 → 밝은 바탕이면 본문 글자색. 새 자막 모양은 어두운·밝은 바탕 스틸 둘 다 본다.
+- 브랜드 문서를 3색 대비만 통과시키면 "맞는 색"인지 모른다 (금색 띠가 바탕으로 잡힌 문서가 대비는 통과) → 추출을 바꾸면 실제 문서 여러 개의 표를 눈으로 읽는다. 머리말 색 줄 끝에 `# 설명` 이 붙는 문서가 있다.
 - 새 함정을 고치면 `scripts/selftest.mjs` 에 시험 한 줄, 이 목록에 한 줄.

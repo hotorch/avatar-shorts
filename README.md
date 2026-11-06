@@ -67,6 +67,7 @@ If something breaks, run `npm run doctor` first, then see [docs/TROUBLESHOOTING.
 - "Make the captions a bit bigger" / "Cut less silence" / "Shorten it to 45 s"
 - "Show me the storyboard before rendering"
 - "I want it to look like this video" (with a video file you like) / "Show me my taste"
+- "Use the news caption set" / paste a DESIGN.md and say "use these brand colors" ([taste manual](docs/TASTE-MANUAL.md), Korean)
 - "Add this reference gradient to our policy"
 - "I want to make B-roll with Google Flow. Give me prompts"
 - "Put the product name behind my head when I say it" / "Add a tier list where I rank them" (six presenter effects — used only on the line that says it)
@@ -78,7 +79,7 @@ If something breaks, run `npm run doctor` first, then see [docs/TROUBLESHOOTING.
 - [examples/avatar-v01/](examples/avatar-v01/): script, plan, and decision log for the video above
 - [style/README.md](style/README.md): policy (break it and the result is wrong, render blocks it) and taste (choices). Your personal taste is saved in `style/me.json`, on your PC only
 - [CLAUDE.md](CLAUDE.md): commands, code map, real pitfalls we hit
-- What's inside: 12 templates, 6 presenter effects (the speaker is cut out so graphics sit behind and in front of them), 62 3D objects, 6 fonts, 11 synthesized sound effects, 9 skills (`.claude/skills/`)
+- What's inside: 12 templates, 6 presenter effects (the speaker is cut out so graphics sit behind and in front of them), 7 caption sets, 62 3D objects, 6 fonts, 11 synthesized sound effects, 10 skills (`.claude/skills/`)
 
 Docs inside the repo are written in Korean.
 

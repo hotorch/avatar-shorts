@@ -73,6 +73,26 @@ export const pickTriad = (tones, tri) => {
 
 const PALETTE_BG = {darktech: '#14171B', editorial: '#F3F0E8', academic: '#F6F0E2'};
 
+/** 자막 세트 + 칸별 덮어쓰기 → 렌더가 쓸 모양 (승인 목록은 policy.captions) */
+export const resolveCaptions = (want = {}, pc = {}, problems = []) => {
+  const setId = want.set ?? 'basic';
+  const set = pc.sets?.[setId];
+  if (!set) {
+    problems.push(`정책(captions): 자막 세트 "${setId}" 는 없습니다 (${Object.keys(pc.sets ?? {}).join(', ')})`);
+    return null;
+  }
+  const pick = (k, list) => {
+    const id = want[k] ?? set[k];
+    if (!list?.[id]) problems.push(`정책(captions): ${k} "${id}" 는 없습니다 (${Object.keys(list ?? {}).join(', ')})`);
+    return id;
+  };
+  const font = pick('font', pc.fonts);
+  const shape = pick('shape', pc.shapes);
+  const motion = pick('motion', pc.motions);
+  if (!pc.fonts?.[font] || !pc.shapes?.[shape] || !pc.motions?.[motion]) return null;
+  return {set: setId, font: {family: pc.fonts[font].family, weight: pc.fonts[font].weight}, shape, motion, motionSec: pc.motions[motion].sec, scale: set.scale ?? 1};
+};
+
 export const resolveStyle = (slug, plan = {}) => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const policy = readJson(path.join(root, 'style/policy.json'));
@@ -109,7 +129,10 @@ export const resolveStyle = (slug, plan = {}) => {
   if (triad) problems.push(...checkTriad(triad.c, tri).map((m) => `정책(triad ${triadName}): ${m}`));
   // 강조색: 트라이어드를 골랐으면(직접·영상 기준) 그 포인트색이 영상의 강조색 (정책: 한 영상 한 강조색).
   // 단, 장면 바탕 위 글자로 읽히지 않으면(대비 < 3) 팔레트 강조색을 글자에 쓰고 트라이어드는 면에만 쓴다.
-  const bg = PALETTE_BG[palette] ?? PALETTE_BG.darktech;
+  const background = plan.theme?.background ?? look.background ?? null;
+  if (background && !/^#[0-9a-f]{6}$/i.test(background)) problems.push(`취향 look.background "${background}" 는 #rrggbb 색이어야 합니다`);
+  const okBackground = background && /^#[0-9a-f]{6}$/i.test(background) ? background : null;
+  const bg = okBackground ?? PALETTE_BG[palette] ?? PALETTE_BG.darktech;
   let accentFromTriad = !!triad && source !== 'default';
   if (accentFromTriad && contrast(triad.c[1], bg) < 3) {
     warn.push(`트라이어드 포인트색 ${triad.c[1]} 이 ${palette} 바탕에서 글자로 약해서, 글자 강조색은 팔레트 기본을 씁니다 (면에는 트라이어드)`);
@@ -120,12 +143,14 @@ export const resolveStyle = (slug, plan = {}) => {
     ...(plan.theme?.accent ?? look.accent ? {accent: plan.theme?.accent ?? look.accent} : {}),
     ...(triad ? {triad: triad.c, triadName, triadSource: source, accentFromTriad} : {}),
     surface: plan.theme?.surface ?? look.surface ?? 'flat',
+    ...(okBackground ? {background: okBackground} : {}),
   };
   if (accentFromTriad && theme.accent) {
     warn.push('정책(한 영상 한 강조색): 트라이어드가 있으면 accent 대신 트라이어드 포인트색을 씁니다');
     delete theme.accent;
   }
-  return {policy, taste, theme, problems, warn, info};
+  const captionStyle = resolveCaptions(taste.captions, policy.captions, problems);
+  return {policy, taste, theme, captionStyle, problems, warn, info};
 };
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

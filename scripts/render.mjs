@@ -66,6 +66,7 @@ const props = {
   theme: style.theme,
   sfxVolume: plan.sfxVolume ?? style.taste.sound?.sfxVolume ?? 0.5,
   captionScale: plan.captionScale ?? style.taste.captions?.scale ?? 1,
+  captionStyle: style.captionStyle,
   layout: plan.layout ?? video?.layout ?? 'vertical',
   duration: plan.duration ?? (edited ? cuts.duration : video?.duration) ?? 30,
   captions,

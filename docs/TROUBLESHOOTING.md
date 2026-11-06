@@ -45,7 +45,19 @@
 | 고유명사가 틀림 | 음성 인식 한계 | `--hint "제품명, 이름"` 을 주거나, 대본을 같이 주면 대본을 정답으로 씁니다 |
 | 전체적으로 부정확 | small 모델 | `--model medium` (느리지만 정확) |
 | 일치율 70% 미만 경고 | script.txt 가 실제 말과 다름 | 빠지거나 더한 문장이 없는지 transcript.txt 와 대조 |
+| `자막 세트 "…" 는 없습니다` ❌ | 목록에 없는 이름 (유료 온보딩 번호 S22 등 포함) | 정책 `captions.sets` 의 이름으로 (`news`, `docu` 등). `docs/TASTE-MANUAL.md` 참고 |
+| 세트를 바꿨는데 자막이 그대로 | 그 프로젝트 `taste.json` 이 내 취향보다 앞섬 | `projects/<이름>/taste.json` 의 `captions` 를 지우거나 고치기 |
 | 자막 18자 넘는다고 ❌ | 정책 `captions.maxChars` | script.txt 에서 쉼표·접속어 앞으로 줄을 나누고 `npm run align -- <이름>` 다시 |
+
+## 브랜드 색
+
+| 증상 | 원인 | 해결 |
+|---|---|---|
+| `브랜드 문서가 없습니다` | 파일을 안 줬고 폴더에 `DESIGN.md` 도 없음 | getdesign.md 의 DESIGN.md 탭에서 Copy → Claude Code 에 붙여 넣기, 또는 `npm run brand -- 파일.md` |
+| `색(#rrggbb)을 찾지 못했습니다` | 브랜드 문서가 아니거나 일부만 복사됨 | Copy 버튼으로 전체를 다시, 또는 `npm run brand -- --accent "#색상값"` |
+| 고른 색과 조금 다름 | 정책 글자 대비를 맞추느라 조정 (출력 ℹ️ 줄) | 정상입니다. 그대로 쓰거나 `--accent`·`--background` 로 한 칸만 내 색 |
+| 밝은 브랜드인데 장면이 어두움 | 포인트색이 밝은 바탕에서 글자로 안 읽힘 | 바탕을 쓰고 싶으면 `--background "#ffffff"` (글자 강조색은 팔레트 기본이 됩니다) |
+| 브랜드를 바꿨는데 색이 그대로 | 그 영상 `plan.json` 의 `theme` 또는 프로젝트 `taste.json` 이 내 취향보다 앞섬 | 그 줄을 지우기. `node scripts/style.mjs <이름>` 으로 확인 |
 
 ## 말 편집 (무음·재배치)
 

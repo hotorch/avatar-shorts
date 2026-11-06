@@ -31,14 +31,15 @@ argument-hint: <영상 경로> [대본]
 | 경로가 `.../` 처럼 줄어 있음 | 파일 이름으로 `projects/`, 홈 폴더를 찾는다 (`mdfind -name`, `find`). 하나면 그걸로 |
 | 사용자가 대본을 같이 줌 | 대본이 **정답 글자**. 음성 인식은 시간만. 대본과 다르게 들린 곳은 대본을 따른다 |
 | 팔레트 | 취향 `look.palette`. `auto` 면 주제로: IT·AI·개발 → darktech, 심리·마케팅·일반 → editorial, 금융·공부·역사 → academic |
-| 색(3색·강조색) | 묻지 않는다. `look.triad: auto` 가 영상 배경색에 어울리는 승인 3색을 고른다 (`render --check` 가 ℹ️ 로 후보 3개를 보여 줌) |
+| 색(3색·강조색) | 묻지 않는다. 내 취향에 브랜드 색이 있으면(`npm run me`) 그대로 쓰고 plan 의 `theme` 에 색·팔레트를 적지 않는다. 없으면 `look.triad: auto` 가 영상 배경색에 어울리는 승인 3색을 고른다 (`render --check` 가 ℹ️ 로 후보 3개를 보여 줌) |
+| 자막 모양 | 묻지 않는다. 취향 `captions.set`. 영상 중에 고르려 하면 → `onboarding` |
 | B-roll 양 | 취향 `broll.density`. 영상이 40초 이하면 한 단계 올린다 |
 | 무음·군더더기·훅 | 취향 `edit.*` → `viral-edit` 스킬 |
 | 템플릿에 없는 표현이 대사에 나옴 ("빛이 번지죠") | 대사가 화면을 설명하면 **그 화면을 보여 줘야** 한다 → `motion-kit` 으로 만든다 (묻지 않음) |
 | 짧은 장면이 정책 최소 길이에 걸림 | 옆 문장 쪽으로 늘리고, 안 되면 합치거나 뺀다 |
 
 ## 0. 준비
-`node_modules` 또는 `.venv` 가 없으면 `npm run setup`. 어느 단계든 도구 오류가 나면 **`npm run doctor`** 를 돌려 ❌ 줄의 안내를 쉬운 말로 전하고, `docs/TROUBLESHOOTING.md` 에서 증상을 찾는다.
+`node_modules` 또는 `.venv` 가 없으면 `npm run setup`. 메시지에 "온보딩:" 메모나 DESIGN.md 가 함께 오면 `onboarding` 을 먼저 끝내고 이어 간다. 어느 단계든 도구 오류가 나면 **`npm run doctor`** 를 돌려 ❌ 줄의 안내를 쉬운 말로 전하고, `docs/TROUBLESHOOTING.md` 에서 증상을 찾는다.
 
 ## ① 영상
 1. `npm run new -- "<영상경로>" [짧은-영문-이름]` → `projects/<이름>/`.
@@ -77,7 +78,7 @@ argument-hint: <영상 경로> [대본]
 - "이 설정을 앞으로 기본으로 쓸까요?" 는 사용자가 무언가를 고쳐 달라고 한 뒤에만 묻는다.
 
 ## 수정 요청을 받으면
-해당 부분만 고쳐 다시 렌더. 취향에 해당하는 말("자막 더 크게", "무음 덜 잘라")은 `projects/<이름>/taste.json` 에 적는다. 같은 방향 요청이 두 번이면(또는 "앞으로도") 내 취향에 기억하고 알린다: `npm run me -- --set <키>=<값> --why "…"` (`style/me.json`, 이 PC 에만. 공용 `style/taste.json` 은 바꾸지 않는다).
+해당 부분만 고쳐 다시 렌더. 취향에 해당하는 말("자막 더 크게", "무음 덜 잘라", "자막 세트 뉴스로")은 `projects/<이름>/taste.json` 에 적는다. 같은 방향 요청이 두 번이면(또는 "앞으로도") 내 취향에 기억하고 알린다: `npm run me -- --set <키>=<값> --why "…"` (`style/me.json`, 이 PC 에만. 공용 `style/taste.json` 은 바꾸지 않는다).
 
 ## 꼭 지킬 것 (정책)
 - **지어내지 않는다**: 말하지 않은 숫자·가격·결과·인용·로고를 화면에 넣지 않는다. 추세는 방향만.

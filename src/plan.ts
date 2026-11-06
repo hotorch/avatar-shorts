@@ -18,6 +18,19 @@ export type Cue = {
   style?: 'base' | 'big';
 };
 
+export type CaptionShape = 'strip' | 'band' | 'glass' | 'outline' | 'pop' | 'console';
+export type CaptionMotion = 'none' | 'slam' | 'rise' | 'focus' | 'type' | 'word';
+export type CaptionStyle = {
+  set: string;
+  font: {family: string; weight: number};
+  shape: CaptionShape;
+  motion: CaptionMotion;
+  /** 움직임이 끝나는 시간(초). 정책 captions.motions */
+  motionSec: number;
+  /** 세트의 크기 배율 (취향 captions.scale 에 곱함) */
+  scale: number;
+};
+
 export type Sfx = {t: number; cue: string; volume?: number};
 
 export type Scene = {
@@ -75,6 +88,8 @@ export type Plan = {
     accentFromTriad?: boolean;
     /** gradient = 주인공 면에 트라이어드 그라디언트 패널, flat = 단색 */
     surface?: 'gradient' | 'flat';
+    /** 장면 바탕색 (취향 look.background). 없으면 팔레트 바탕 */
+    background?: string;
   };
   /** 컷마다 줌 (edit.py 의 cuts.json → render 가 채움). t 는 편집본 기준 초 */
   punch?: {t: number; scale: number}[];
@@ -82,6 +97,8 @@ export type Plan = {
   avatarGrow?: {durationSec: number; steps: {before: number; scale: number}[]; settleSec: number};
   /** 자막 크기 배율 (취향 captions.scale) */
   captionScale?: number;
+  /** 자막 모양 (취향 captions.set·font·shape·motion → scripts/style.mjs 가 합쳐 render 가 채움) */
+  captionStyle?: CaptionStyle;
   captions: Cue[];
   scenes: Scene[];
   sfx?: Sfx[];

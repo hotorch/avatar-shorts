@@ -103,6 +103,7 @@ export const Vertical: React.FC<{plan: Plan}> = ({plan}) => {
         size={64 * (plan.captionScale ?? 1)}
         bigSize={92 * (plan.captionScale ?? 1)}
         surface={onCut ? 'backdrop' : 'video'}
+        look={plan.captionStyle}
       />
     </AbsoluteFill>
   );

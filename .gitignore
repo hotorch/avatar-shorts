@@ -3,6 +3,8 @@ out/
 projects/*
 !projects/.gitkeep
 style/me.json
+style/brand/
+DESIGN.md
 public/_live/
 .DS_Store
 *.log

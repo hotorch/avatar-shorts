@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {checkTriad} from './style.mjs';
 import {varietyProblems} from './variety.mjs';
+import {brandTriad, parseBrand, tokensFromAccent} from './brand.mjs';
 import {FX, shoulderFit} from './fx-rules.mjs';
 import {hasVenv, u2netPaths, VENV_PY} from './platform.mjs';
 import {loadCuts, remapScene} from './timeline.mjs';
@@ -435,12 +436,120 @@ test('어깨 효과 발표자 배율: 고정 0.74 가 아니라 잰 값, 하한�
   must(policy.presenterFx.shoulderScale === undefined, '정책에 고정 배율이 남아 있음 (잰 값과 두 곳)');
 });
 
+// ── 자막 세트·브랜드 색 (온보딩: 고른 값이 정말 영상까지 가는지)
+const pc = policy.captions;
+test('자막 승인 목록 = 코드: 모양·움직임이 Captions.tsx·plan.ts 와 같고, 세트는 있는 칸만, 폰트는 허용 목록, 움직임은 정책 시간 안', () => {
+  const src = fs.readFileSync('src/captions/Captions.tsx', 'utf8');
+  const types = fs.readFileSync('src/plan.ts', 'utf8');
+  const fonts = fs.readFileSync('src/kit/fonts.ts', 'utf8');
+  for (const k of Object.keys(pc.shapes)) {
+    must(types.match(/CaptionShape = ([^;]+);/)[1].includes(`'${k}'`), `plan.ts 에 모양 ${k} 없음`);
+    must(k === 'outline' || src.includes(`look.shape === '${k}'`), `Captions.tsx 가 모양 ${k} 를 안 그림`);
+  }
+  for (const [k, m] of Object.entries(pc.motions)) {
+    must(types.match(/CaptionMotion = ([^;]+);/)[1].includes(`'${k}'`), `plan.ts 에 움직임 ${k} 없음`);
+    must(k === 'none' || src.includes(`'${k}'`), `Captions.tsx 에 움직임 ${k} 없음`);
+    must(m.sec <= pc.motionMaxSec, `움직임 ${k} ${m.sec}초 > ${pc.motionMaxSec}`);
+  }
+  for (const [k, f] of Object.entries(pc.fonts)) {
+    must(policy.fonts.allowed.includes(f.family), `폰트 ${k}: ${f.family} 가 허용 목록에 없음`);
+    must(fonts.includes(`'${f.family}'`), `폰트 ${k}: fonts.ts 가 안 불러옴`);
+  }
+  for (const [k, v] of Object.entries(pc.sets)) must(pc.fonts[v.font] && pc.shapes[v.shape] && pc.motions[v.motion], `세트 ${k} 의 칸이 목록에 없음`);
+  must(pc.sets.basic.font === 'suit' && pc.sets.basic.shape === 'strip' && pc.sets.basic.motion === 'none', '기본 세트가 이전 모습과 다름');
+});
+test('자막 세트가 영상까지: 프로젝트·내 취향 → .props.json, 한 칸 덮어쓰기, 없는 이름은 막힘', () => {
+  const taste = path.join(T, 'taste.json');
+  const props = () => json(path.join(T, '.props.json')).captionStyle;
+  const plan = {theme: {palette: 'darktech'}, scenes: [hero('a', 4.5, 5.9)]};
+  try {
+    must(check(plan).code === 0 && props().shape === 'strip', '기본이 흰 띠가 아님');
+    fs.writeFileSync(taste, JSON.stringify({captions: {set: 'docu', motion: 'slam'}}));
+    must(check(plan).code === 0, '세트가 안 통과');
+    const p = props();
+    must(p.set === 'docu' && p.shape === 'outline' && p.font.family === 'Nanum Myeongjo' && p.motion === 'slam' && p.motionSec === pc.motions.slam.sec, `합친 값이 다름 ${JSON.stringify(p)}`);
+    fs.writeFileSync(taste, JSON.stringify({captions: {set: 'S22'}}));
+    const bad = check(plan);
+    must(bad.code !== 0 && /자막 세트 "S22"/.test(bad.out), '없는 세트가 통과');
+    fs.writeFileSync(taste, JSON.stringify({captions: {font: 'comic'}}));
+    must(check(plan).code !== 0, '없는 폰트가 통과');
+    fs.rmSync(taste);
+    const me = sh(process.execPath, ['scripts/me.mjs', '--set', 'captions.set=news']);
+    must(me.code === 0 && check(plan).code === 0 && props().set === 'news', `내 취향이 안 먹음 ${me.out.split('\n').pop()}`);
+  } finally {
+    fs.rmSync(taste, {force: true});
+    fs.rmSync(ME, {force: true});
+  }
+});
+test('브랜드 문서 → 3색: 머리말·줄 끝 주석·예전 형식·색 하나·흑백·밝은 포인트색 전부 대비 정책 통과', () => {
+  const doc = (colors) => `---\nname: x\ncolors:\n${colors}\ntypography:\n  a: b\n---\n# x\n`;
+  const pick = (t, force) => {
+    const r = brandTriad(t, policy.triad, force);
+    must(!checkTriad(r.triad, policy.triad).length, `대비 실패 ${r.triad}`);
+    return r;
+  };
+  const a = parseBrand(doc('  primary: "#533afd"   # 설명\n  primary-hover: "#2e2b8c"\n  ink: "#0e102a"\n  canvas: "#ffffff"\n  canvas-soft: "#f6f9fc"\n  error: "#ff0000"'));
+  must(a.source === 'colors' && a.tokens.length === 6, '머리말을 못 읽음');
+  const r = pick(a.tokens);
+  must(r.triad[1] === '#533afd' && r.background === '#ffffff' && r.palette === 'editorial', `primary·canvas 가 아님 ${JSON.stringify(r)}`);
+  must(parseBrand('앞에 다른 글\n' + doc('  primary: "#533afd"')).tokens.length === 1, '붙여 넣기 앞 글이 있으면 못 읽음');
+  const old = parseBrand('# x\n- **Near Black** (`#121212`): Deepest background surface\n- **Lime** (`#1ed760`): Primary brand accent\n- **Red** (`#f3727f`): error states\n');
+  must(old.source === 'prose' && pick(old.tokens).triad[1] === '#1ed760', '예전 형식에서 포인트색을 못 찾음');
+  const yellow = pick(parseBrand(doc('  primary: "#fcd535"\n  ink: "#1e2329"\n  canvas: "#ffffff"')).tokens);
+  must(yellow.palette === 'darktech' && yellow.background === yellow.triad[0], '밝은 포인트색인데 바탕이 안 어두워짐');
+  must(pick(parseBrand(doc('  primary: "#000000"\n  ink: "#111111"\n  canvas: "#ffffff"')).tokens).mono, '흑백 브랜드를 못 알아봄');
+  must(pick(tokensFromAccent('#FF5A5F')).triad[1] === '#ff5a5f', '색 하나가 그대로가 아님');
+  must(pick(a.tokens, {accent: '#00aa55'}).triad[1] === '#00aa55', '--accent 가 안 먹음');
+});
+test('브랜드 문서·내 선택은 git 에 안 올라감 (남의 문서, 이 PC 에만)', () => {
+  const ig = fs.readFileSync('.gitignore', 'utf8');
+  for (const p of ['style/me.json', 'style/brand/', 'DESIGN.md']) must(ig.split('\n').includes(p), `.gitignore 에 ${p} 없음`);
+  must(!Object.values(policy.triad.approved).some((t) => t.src === 'brand'), '정책 승인 목록에 브랜드 색');
+});
+test('매뉴얼이 세트 전부를 보여 주고 스킬이 이름을 다 받음 (docs/TASTE-MANUAL.md · onboarding)', () => {
+  const man = fs.readFileSync('docs/TASTE-MANUAL.md', 'utf8');
+  const skill = fs.readFileSync('.claude/skills/onboarding/SKILL.md', 'utf8');
+  for (const [k, v] of Object.entries(pc.sets)) {
+    must(man.includes(`### ${v.label}`), `매뉴얼에 ${v.label} 없음`);
+    must(fs.existsSync(`docs/taste/set-${k}.jpg`), `견본 docs/taste/set-${k}.jpg 없음`);
+    must(skill.includes(`\`${k}\``), `스킬에 세트 ${k} 없음`);
+  }
+  for (const k of [...Object.keys(pc.fonts), ...Object.keys(pc.shapes), ...Object.keys(pc.motions)]) must(skill.includes(`\`${k}\``), `스킬에 ${k} 없음`);
+  for (const m of man.matchAll(/docs\/taste\/[\w.-]+/g)) must(fs.existsSync(m[0]), `매뉴얼 이미지 없음 ${m[0]}`);
+});
+test('바탕색: 취향 look.background → 테마, 틀린 값은 막힘', () => {
+  const taste = path.join(T, 'taste.json');
+  const plan = {theme: {palette: 'darktech'}, scenes: [hero('a', 4.5, 5.9)]};
+  try {
+    fs.writeFileSync(taste, JSON.stringify({look: {background: '#faf9f5', triad: 'terracotta'}}));
+    must(check(plan).code === 0 && json(path.join(T, '.props.json')).theme.background === '#faf9f5', '바탕이 .props.json 에 없음');
+    fs.writeFileSync(taste, JSON.stringify({look: {background: 'white'}}));
+    must(check(plan).code !== 0, '틀린 바탕색이 통과');
+  } finally {
+    fs.rmSync(taste, {force: true});
+  }
+});
+
 // ── 5. 렌더 한 프레임 (브라우저 필요)
 if (!quick)
   test('스틸 렌더 (npm run still)', () => {
     check({theme: {palette: 'darktech'}, scenes: [hero('a', 4.5, 5.9)]});
     const r = sh(process.execPath, ['scripts/still.mjs', '.selftest', '5.2']);
     must(r.code === 0 && fs.existsSync(path.join(T, 'out', 'still.png')), r.out.trim().split('\n').pop());
+  });
+if (!quick)
+  test('자막 세트 스틸: 상자 모양·글자별 움직임·밝은 바탕까지 렌더됨 (npm run still)', () => {
+    const taste = path.join(T, 'taste.json');
+    try {
+      for (const t of [{captions: {set: 'terminal'}}, {captions: {set: 'essay'}, look: {background: '#ffffff'}}]) {
+        fs.writeFileSync(taste, JSON.stringify(t));
+        check({theme: {palette: 'darktech'}, scenes: [hero('a', 4.5, 5.9)]});
+        const r = sh(process.execPath, ['scripts/still.mjs', '.selftest', '5.2']);
+        must(r.code === 0 && fs.existsSync(path.join(T, 'out', 'still.png')), r.out.trim().split('\n').pop());
+      }
+    } finally {
+      fs.rmSync(taste, {force: true});
+    }
   });
 if (!quick)
   test('발표자 효과 스틸: 오려내기(VP9 알파)를 발표자 자리에 그려 렌더됨 (npm run still)', () => {

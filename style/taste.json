@@ -7,6 +7,7 @@
     "palette": "auto",
     "accent": null,
     "triad": "auto",
+    "background": null,
     "surface": "gradient"
   },
 
@@ -26,7 +27,11 @@
   },
 
   "captions": {
-    "scale": 1.0
+    "scale": 1.0,
+    "set": "basic",
+    "font": null,
+    "shape": null,
+    "motion": null
   },
 
   "sound": {

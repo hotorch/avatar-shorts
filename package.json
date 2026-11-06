@@ -25,6 +25,8 @@
     "storyboard": "node scripts/storyboard.mjs",
     "reference": "node scripts/reference.mjs",
     "me": "node scripts/me.mjs",
+    "brand": "node scripts/brand.mjs",
+    "sample": "node scripts/sample.mjs",
     "words": "node scripts/words.mjs",
     "test": "node scripts/selftest.mjs"
   },

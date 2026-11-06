@@ -9,9 +9,43 @@
   },
 
   "captions": {
+    "$doc": "자막을 어떻게 보여 줄 수 있는지의 승인 목록. 어느 것을 쓸지는 취향(captions.set · font · shape · motion). 세트 = 폰트·모양·움직임을 묶은 것, 세 칸은 따로 덮어쓸 수 있다. 움직임은 motionMaxSec 안에 끝나야 한다 (말이 먼저 나가면 자막이 뒤처져 보인다). 흔들기·반짝이는 금지(motion.banned). 글자는 어떤 세트든 말한 그대로.",
     "maxChars": 18,
     "maxEmphPerCue": 2,
-    "bigMaxRatio": 0.3
+    "bigMaxRatio": 0.3,
+    "motionMaxSec": 0.5,
+    "sets": {
+      "basic":    {"label": "기본",   "font": "suit",       "shape": "strip",   "motion": "none",  "scale": 1,    "fit": "무엇이든. 고민되면 이것"},
+      "variety":  {"label": "예능",   "font": "pretendard", "shape": "pop",     "motion": "slam",  "scale": 1.12, "fit": "리액션·반전·밈"},
+      "news":     {"label": "뉴스",   "font": "pretendard", "shape": "band",    "motion": "rise",  "scale": 1,    "fit": "정보·이슈 정리"},
+      "docu":     {"label": "다큐",   "font": "myeongjo",   "shape": "outline", "motion": "focus", "scale": 1,    "fit": "브랜드 필름·인터뷰"},
+      "terminal": {"label": "터미널", "font": "mono",       "shape": "console", "motion": "type",  "scale": 0.95, "fit": "개발·AI·코딩"},
+      "tech":     {"label": "테크",   "font": "suit",       "shape": "glass",   "motion": "rise",  "scale": 1,    "fit": "AI 도구·앱 리뷰"},
+      "essay":    {"label": "에세이", "font": "allimjang",  "shape": "outline", "motion": "word",  "scale": 1.05, "fit": "일상·감성·공부"}
+    },
+    "fonts": {
+      "suit":       {"label": "SUIT",            "family": "SUIT",                  "weight": 700},
+      "pretendard": {"label": "Pretendard 굵게", "family": "Pretendard",            "weight": 800},
+      "myeongjo":   {"label": "나눔명조",        "family": "Nanum Myeongjo",        "weight": 800},
+      "allimjang":  {"label": "학교안심 알림장", "family": "Hakgyoansim Allimjang", "weight": 400},
+      "mono":       {"label": "IBM Plex Mono",   "family": "IBM Plex Mono",         "weight": 500}
+    },
+    "shapes": {
+      "strip":   {"label": "흰 띠"},
+      "band":    {"label": "검은 띠"},
+      "glass":   {"label": "유리 상자"},
+      "outline": {"label": "글자만 (테두리)"},
+      "pop":     {"label": "노란 굵은 글자"},
+      "console": {"label": "터미널 상자"}
+    },
+    "motions": {
+      "none":  {"label": "없음",        "sec": 0.07},
+      "slam":  {"label": "쾅",          "sec": 0.3},
+      "rise":  {"label": "쑥 올라오기", "sec": 0.2},
+      "focus": {"label": "초점 맞추기", "sec": 0.27},
+      "type":  {"label": "타자 치기",   "sec": 0.5},
+      "word":  {"label": "단어씩 켜기", "sec": 0.5}
+    }
   },
 
   "face": {
@@ -70,7 +104,7 @@
   },
 
   "sceneColors": {
-    "$doc": "장면이 바탕·면·타일을 칠할 땐 팔레트·트라이어드 색과 그 색에 검정을 섞은 명암만 쓴다. 레퍼런스 사진의 색·남의 브랜드 색은 가져오지 않는다. 출처: savee-tile-vertical.mp4(넘길 때마다 바탕색이 사진 색을 따라감) → 우리는 트라이어드를 따라감 (StackCarousel). 커스텀 장면은 검사기가 속을 못 보므로 motion-kit 규칙으로 지킨다. 계기: avatar-v03.",
+    "$doc": "장면이 바탕·면·타일을 칠할 땐 팔레트·트라이어드 색과 그 색에 검정을 섞은 명암만 쓴다. 레퍼런스 사진의 색·장면마다 다른 브랜드 색을 그대로 칠하지 않는다. 내가 고른 브랜드 색은 npm run brand 를 거쳐 트라이어드(look.triad)·바탕(look.background)으로만 들어온다 — 색 값만, 대비 검사를 통과해야 하고, 이름·로고·서체는 가져오지 않는다. 출처: savee-tile-vertical.mp4(넘길 때마다 바탕색이 사진 색을 따라감) → 우리는 트라이어드를 따라감 (StackCarousel). 커스텀 장면은 검사기가 속을 못 보므로 motion-kit 규칙으로 지킨다. 계기: avatar-v03.",
     "fillsFromThemeOnly": true
   },
 

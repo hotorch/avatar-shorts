@@ -72,6 +72,17 @@
 | 원본의 승인 로고(티어 타일) | 넣지 않음 | 저장소 3D 오브젝트 또는 내 `broll/` 이미지 |
 | 사진·로고·브랜드 글자(ACME, SAVEE) | 넣지 않음 | 남의 그림·브랜드 |
 
+### 예: 자막 세트와 브랜드 문서를 들였을 때 (온보딩, 2026-11-06)
+사람이 직접 고르는 길이 생겼다. 고르는 법은 `docs/TASTE-MANUAL.md`, 받는 쪽은 `onboarding` 스킬.
+| 들어온 것 | 분류 | 들어간 곳 |
+|---|---|---|
+| 자막 모양 6 · 움직임 6 · 폰트 5 | 자산 | `src/captions/Captions.tsx` |
+| 쓸 수 있는 세트·폰트·모양·움직임 목록, 움직임 0.5초 안에 끝남 | 정책 | `captions.sets` · `fonts` · `shapes` · `motions` · `motionMaxSec` (없는 이름은 render 가 막음) |
+| 어느 세트를 쓸지 | 취향 (기본 `basic` = 이전 모습, 보기 차이는 기본이 이전 것) | `captions.set` · `font` · `shape` · `motion` |
+| getdesign.md 의 DESIGN.md 색 | 이전 정책 `sceneColors` 와 부딪힘 → 판정: 장면은 여전히 테마 색만 칠한다(한계 유지). 사람이 고른 색은 트라이어드·바탕 자리로만, 승인 3색과 같은 대비 검사를 지나서 들어온다 | `npm run brand` → `look.triad` · `look.background` (이 PC 의 `style/me.json`) |
+| 브랜드 이름·로고·서체, 문서 자체 | 넣지 않음 | 남의 브랜드. `style/brand/`·`DESIGN.md` 는 git 제외 |
+| 대비를 못 지키는 브랜드 색 | 필요한 만큼만 조정 (진한색을 먼저 어둡게, 안 되면 포인트색을 밝게, 포인트색이 바탕에서 안 읽히면 바탕을 진한색으로). 바꾼 것은 ℹ️ 로 알림 | `brandTriad` (`scripts/brand.mjs`) |
+
 ## 취향이 학습되는 방식
 `style/taste.json` 은 팀·채널이 git 으로 나누는 **공용 기본값**이고, 한 사람의 취향은 **`style/me.json`** (그 사람 PC 에만, git 제외) 에 쌓인다. 볼 때는 `npm run me`.
 
@@ -90,6 +101,7 @@
 | `ask` | `never` / `important` / `always` | 질문 정도. never = 끝까지 알아서, 마지막에 결정 요약만 |
 | `look.palette` | `auto` / `darktech` / `editorial` / `academic` | auto = 주제로 Claude 가 고름 (IT·AI → darktech, 심리·마케팅 → editorial, 금융·공부 → academic) |
 | `look.triad` | `auto` / 승인 목록 이름 / `["#dark","#accent","#light"]` | auto = 영상 배경(얼굴 제외)의 색상 분포와 포인트색·진한색 색상이 가까운 승인 트라이어드 (`video.json tones`, 정책 `triad.auto`). 배경이 무채색이면 팔레트 기본. 직접 주면 대비 검사를 통과해야 한다. 고른 포인트색이 영상 전체 강조색이 된다(장면 바탕에서 대비 < 3 이면 글자엔 팔레트 강조색) |
+| `look.background` | `null` / `#rrggbb` | 장면 바탕색. `null` 이면 팔레트 바탕. 면·글자색은 이 색에서 만든다. 보통 `npm run brand` 가 적는다 |
 | `look.surface` | `gradient` / `flat` | 주인공 면(hero 배경 카드, 빛 번짐 카드)에 그라디언트 |
 | `edit.silence` | `tight` / `natural` / `off` | 남길 무음 0.16s / 0.30s / 정책 한계(0.45s)까지만 |
 | `edit.fillers` | `true` / `false` | "음", "어" 빼기 (정책 `edit.fillers` 목록) |
@@ -101,4 +113,6 @@
 | `broll.exit` | `wipe` / `avatar-grow` | 컷어웨이(화면 전체)에서 얼굴로 돌아올 때. wipe = 둥근 창이 닫힘, avatar-grow = 가운데 작은 아바타 틀이 3계단으로 확 커져 꽉 찬 얼굴로 이어짐 (바로 뒤가 다른 장면이면 wipe) |
 | `broll.framing` | `varied` / `split` | varied = 머리 위 카드·턱 아래 카드·분할·전체를 섞는다, split = 분할·전체만 (예전 방식). 어느 쪽이든 얼굴은 가리지 않는다(정책 `face`) |
 | `captions.scale` | 0.8 ~ 1.3 | 자막 크기 |
+| `captions.set` | `basic` / `variety` / `news` / `docu` / `terminal` / `tech` / `essay` | 폰트·모양·움직임을 묶은 세트 (정책 `captions.sets`) |
+| `captions.font` · `shape` · `motion` | 정책 `captions.fonts` · `shapes` · `motions` 의 이름, 또는 `null` | 세트에서 한 칸만 바꾸기. `null` 이면 세트 값 |
 | `sound.sfxVolume` | 0 ~ 1 | 효과음 |
