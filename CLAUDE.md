@@ -14,7 +14,7 @@
 | 렌더 전에 장면 미리 보기, "비슷한 장면이 반복돼" | `storyboard` |
 | 템플릿으로 안 되는 장면 직접 만들기, 템플릿 고치기 | `motion-kit` |
 | 발표자 위 효과 (머리 뒤 글자, 정지 스티커, 어깨 카드, 티어 표, 유리 그래프, 보정 와이프) | `broll-plan` → `references/presenter-fx.md` |
-| 고른 메모("온보딩:")·자막 세트·브랜드 색·DESIGN.md 붙여 넣기 | `onboarding` |
+| 내 취향 세팅(메모가 없으면 질문 3개 인터뷰)·고른 메모("온보딩:")·자막 세트·브랜드 색·DESIGN.md 붙여 넣기 | `onboarding` |
 | 레퍼런스·"앞으로 이렇게" → 정책/취향/부품 | `style-intake` |
 | 좋아하는 영상 → 내 취향, "이 영상처럼", "내 취향 보여줘" | `reference-taste` |
 | Google Flow 등 생성 도구로 B-roll 을 만들고 싶을 때 | `flow-prompts` |

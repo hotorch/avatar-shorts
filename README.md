@@ -67,7 +67,7 @@ If something breaks, run `npm run doctor` first, then see [docs/TROUBLESHOOTING.
 - "Make the captions a bit bigger" / "Cut less silence" / "Shorten it to 45 s"
 - "Show me the storyboard before rendering"
 - "I want it to look like this video" (with a video file you like) / "Show me my taste"
-- "Use the news caption set" / paste a DESIGN.md and say "use these brand colors" ([taste manual](docs/TASTE-MANUAL.md), Korean)
+- `/onboarding` (three questions set your captions, colors, and pace) / "Use the news caption set" / paste a DESIGN.md and say "use these brand colors" ([taste manual](docs/TASTE-MANUAL.md), Korean)
 - "Add this reference gradient to our policy"
 - "I want to make B-roll with Google Flow. Give me prompts"
 - "Put the product name behind my head when I say it" / "Add a tier list where I rank them" (six presenter effects — used only on the line that says it)

@@ -517,6 +517,16 @@ test('매뉴얼이 세트 전부를 보여 주고 스킬이 이름을 다 받음
   for (const k of [...Object.keys(pc.fonts), ...Object.keys(pc.shapes), ...Object.keys(pc.motions)]) must(skill.includes(`\`${k}\``), `스킬에 ${k} 없음`);
   for (const m of man.matchAll(/docs\/taste\/[\w.-]+/g)) must(fs.existsSync(m[0]), `매뉴얼 이미지 없음 ${m[0]}`);
 });
+test('온보딩 인터뷰는 짧다: 질문 3개 이하, 시작 안내의 개수 = 실제 질문 수, 답은 있는 세트로', () => {
+  // 지루하면 실패: 길이를 먼저 알리고 한 화면에 끝낸다. 질문을 늘리려면 안내 문장도 같이 고쳐야 통과한다
+  const part = fs.readFileSync('.claude/skills/onboarding/SKILL.md', 'utf8').split('## 0. ')[1].split('\n## ')[0];
+  const rows = [...part.matchAll(/^\| (\d) \| (.+)$/gm)];
+  const said = Number(part.match(/^> 질문 (\d)개/m)?.[1]);
+  must(rows.length && rows.length <= 3, `질문이 ${rows.length}개`);
+  must(said === rows.length, `안내는 ${said}개인데 질문은 ${rows.length}개`);
+  const sets = [...rows[0][2].matchAll(/`(\w+)`/g)].map((m) => m[1]);
+  must(sets.length >= 2 && sets.every((k) => pc.sets[k]), `없는 세트 ${sets}`);
+});
 test('바탕색: 취향 look.background → 테마, 틀린 값은 막힘', () => {
   const taste = path.join(T, 'taste.json');
   const plan = {theme: {palette: 'darktech'}, scenes: [hero('a', 4.5, 5.9)]};
