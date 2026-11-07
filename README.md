@@ -1,3 +1,11 @@
+<!-- gitreels:start -->
+<p align="center">
+  <a href="https://gitreels.com/hotorch/avatar-shorts"><img src="https://gitreels.com/hotorch/avatar-shorts.webp" alt="hotorch/avatar-shorts in 15 seconds" width="100%"></a>
+  <br>
+  <a href="https://gitreels.com"><img src="https://gitreels.com/badge.svg" alt="Made with GitReels" height="24"></a>
+</p>
+<!-- gitreels:end -->
+
 # avatar-shorts
 
 **English** | [한국어](README.ko.md)
